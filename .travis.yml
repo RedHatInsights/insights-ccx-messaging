@@ -19,4 +19,4 @@ script:
   - make pydocstyle
 
 script:
-  - pytest -v --cov=insights_sha_extractor
+  - pytest -v --cov=ccx_messaging
