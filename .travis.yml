@@ -14,9 +14,13 @@ install:
   - pip install pydocstyle
   - pip install pytest-cov
   - pip install -r requirements.txt
+  - curl -Os https://uploader.codecov.io/latest/linux/codecov
+  - chmod +x codecov
 script:
   - make pycodestyle
   - make pydocstyle
 
 script:
   - pytest -v --cov=ccx_messaging
+  - pytest -v --cov=ccx_messaging --cov-report=xml
+  - ./codecov -t c5c72a0d-fa95-4f38-8015-9aadbaf46466
