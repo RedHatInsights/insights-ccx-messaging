@@ -81,7 +81,7 @@ _INVALID_MESSAGES = [
     # incorrect format of base64 encoding
     (
         '{"url": "https://s3.com/hash", "b64_identity": "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ1'
-        '9pZCI6ICIxMjM0NTY3OCJ9Cg==", "timestamp": "2020-01-23T16:15:59.478901889Z"}',
+        '9pZCI6ICIxMjM0NTY3OCJ9Cg=", "timestamp": "2020-01-23T16:15:59.478901889Z"}',
         _ERR_BASE64,
     ),
     # org_id not string
@@ -93,7 +93,7 @@ _INVALID_MESSAGES = [
         'ICAgICAgImZpcnN0X25hbWUiOiAiSW5zaWdodHMiLAogICAgICAgICJpc19hY3RpdmUiOiB0cnVlLAogICAgICAgIC'
         'Jpc19pbnRlcm5hbCI6IGZhbHNlLAogICAgICAgICJpc19vcmdfYWRtaW4iOiB0cnVlLAogICAgICAgICJsYXN0X25h'
         'bWUiOiAiUUUiLAogICAgICAgICJsb2NhbGUiOiAiZW5fVVMiLAogICAgICAgICJ1c2VybmFtZSI6ICJpbnNpZ2h0cy'
-        '1tYXN0ZXIiCiAgICB9Cn0K", "timestamp": "2020-01-23T16:15:59.478901889Z"}',
+        '1tYXN0ZXIiCiAgICB9Cn0KfQo=", "timestamp": "2020-01-23T16:15:59.478901889Z"}',
         _ERR_JSON_SCHEMA,
     ),
 ]
