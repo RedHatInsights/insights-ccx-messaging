@@ -23,4 +23,4 @@ script:
 script:
   - pytest -v --cov=ccx_messaging
   - pytest -v --cov=ccx_messaging --cov-report=xml
-  - ./codecov
+  - ./codecov -t c5c72a0d-fa95-4f38-8015-9aadbaf46466
