@@ -99,3 +99,11 @@ def test_cluster_id_watcher_ok(caplog):
         sut.on_extract(None, None, extraction_mock)
         assert input_msg_mock.value["ClusterName"] == uuid_value
         assert len(caplog.records) == 0
+
+        sut.last_record = MagicMock()
+        sut.last_record.value = {"ClusterName": uuid_value}
+
+        # now the cluster name should be set already
+        # so the method ends w/o opening the file
+        sut.on_extract(None, None, extraction_mock)
+        assert input_msg_mock.value["ClusterName"] == uuid_value
