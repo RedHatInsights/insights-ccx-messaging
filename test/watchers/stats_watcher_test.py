@@ -49,7 +49,7 @@ def test_stats_watcher_on_recv():
     input_msg_mock.value = {"identity": {}}
 
     # construct watcher object
-    w = StatsWatcher()
+    w = StatsWatcher(prometheus_port=8001)
 
     # check that all metrics are initialized
     assert w._recv_total._value.get() == 0
@@ -67,7 +67,7 @@ def test_stats_watcher_on_download():
     """Test the on_download() method."""
 
     # construct watcher object
-    w = StatsWatcher()
+    w = StatsWatcher(prometheus_port=8002)
 
     # check that all metrics are initialized
     assert w._recv_total._value.get() == 0
