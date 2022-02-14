@@ -41,3 +41,14 @@ def test_stats_watcher_initialize(start_http_server_mock, value):
     StatsWatcher(**value)
     port = value.get("prometheus_port", 8000)  # 8000 is the default value
     start_http_server_mock.assert_called_with(port)
+
+
+def test_stats_watcher_on_recv():
+    """Test the on_recv() method."""
+    input_msg_mock = MagicMock()
+    input_msg_mock.value = {"identity": {}}
+
+    w = StatsWatcher()
+    assert w._recv_total.__value == 0
+    w.on_recv(input_msg_mock)
+    assert w._recv_total.__value == 1
