@@ -44,6 +44,14 @@ def test_stats_watcher_initialize(start_http_server_mock, value):
     start_http_server_mock.assert_called_with(port)
 
 
+def check_initial_metrics_state(w):
+    """Check that all metrics are initialized."""
+    assert w._recv_total._value.get() == 0
+    assert w._downloaded_total._value.get() == 0
+    assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
+
+
 def test_stats_watcher_on_recv():
     """Test the on_recv() method."""
     input_msg_mock = MagicMock()
@@ -53,10 +61,7 @@ def test_stats_watcher_on_recv():
     w = StatsWatcher(prometheus_port=8001)
 
     # check that all metrics are initialized
-    assert w._recv_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
+    check_initial_metrics_state(w)
 
     # change metrics
     w.on_recv(input_msg_mock)
@@ -75,10 +80,7 @@ def test_stats_watcher_on_download():
     w = StatsWatcher(prometheus_port=8002)
 
     # check that all metrics are initialized
-    assert w._recv_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
+    check_initial_metrics_state(w)
 
     # prepare required attributes
     w._start_time = time.time()
@@ -102,10 +104,7 @@ def test_stats_watcher_on_process():
     w = StatsWatcher(prometheus_port=8003)
 
     # check that all metrics are initialized
-    assert w._recv_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
+    check_initial_metrics_state(w)
 
     # prepare required attributes
     w._start_time = time.time()
@@ -130,10 +129,7 @@ def test_stats_watcher_on_process_timeout():
     w = StatsWatcher(prometheus_port=8004)
 
     # check that all metrics are initialized
-    assert w._recv_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
+    check_initial_metrics_state(w)
 
     # change metrics
     w.on_process_timeout(input_msg_mock)
