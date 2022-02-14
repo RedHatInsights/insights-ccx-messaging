@@ -226,7 +226,7 @@ def test_stats_watcher_on_not_handled():
 def test_reset_times():
     """Test the method _reset_times()."""
     # construct watcher object
-    w = StatsWatcher(prometheus_port=8007)
+    w = StatsWatcher(prometheus_port=8008)
     init_timestamps(w)
 
     assert w._start_time is not None
