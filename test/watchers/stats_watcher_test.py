@@ -207,7 +207,7 @@ def test_stats_watcher_on_not_handled():
     input_msg_mock.value = {"identity": {}}
 
     # construct watcher object
-    w = StatsWatcher(prometheus_port=8006)
+    w = StatsWatcher(prometheus_port=8007)
     init_timestamps(w)
 
     # change metrics
@@ -221,3 +221,22 @@ def test_stats_watcher_on_not_handled():
     assert w._published_total._value.get() == 0
     assert w._failures_total._value.get() == 0
     assert w._not_handling_total._value.get() == 1
+
+
+def test_reset_times():
+    """Test the method _reset_times()."""
+    # construct watcher object
+    w = StatsWatcher(prometheus_port=8007)
+    init_timestamps(w)
+
+    assert w._start_time is not None
+    assert w._downloaded_time is not None
+    assert w._processed_time is not None
+    assert w._published_time is not None
+
+    w._reset_times()
+
+    assert w._start_time is not None
+    assert w._downloaded_time is None
+    assert w._processed_time is None
+    assert w._published_time is None
