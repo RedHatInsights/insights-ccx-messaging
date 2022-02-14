@@ -218,6 +218,17 @@ def test_stats_watcher_on_consumer_failure():
     # metric should change again
     assert w._failures_total._value.get() == 3
 
+    # now try this - downloaded time is not None and processed time is none
+    w._downloaded_time = time.time()
+    w._processed_time = None
+
+    # change metrics again
+    w.on_consumer_failure(input_msg_mock, Exception("something"))
+
+    # metric should change again
+    assert w._failures_total._value.get() == 4
+
+
 
 def test_stats_watcher_on_not_handled():
     """Test the on_not_handled() method."""
