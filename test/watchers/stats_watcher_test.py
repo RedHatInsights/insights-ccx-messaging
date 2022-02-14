@@ -52,6 +52,15 @@ def check_initial_metrics_state(w):
     assert w._processed_timeout_total._value.get() == 0
 
 
+def init_timestamps(w):
+    """Initialize all timestamps in watcher."""
+    t = time.Time()
+    w._start_time = t
+    w._downloaded_time = t
+    w._processed_time = t
+    w._published_time = t
+
+
 def test_stats_watcher_on_recv():
     """Test the on_recv() method."""
     input_msg_mock = MagicMock()
@@ -59,6 +68,7 @@ def test_stats_watcher_on_recv():
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8001)
+    init_timestamps(w)
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
@@ -78,12 +88,10 @@ def test_stats_watcher_on_download():
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8002)
+    init_timestamps(w)
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
-
-    # prepare required attributes
-    w._start_time = time.time()
 
     # change metrics
     w.on_download("path")
@@ -102,13 +110,10 @@ def test_stats_watcher_on_process():
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8003)
+    init_timestamps(w)
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
-
-    # prepare required attributes
-    w._start_time = time.time()
-    w._downloaded_time = time.time()
 
     # change metrics
     w.on_process(input_msg_mock, "{result}")
@@ -127,9 +132,7 @@ def test_stats_watcher_on_process_timeout():
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8004)
-
-    # check that all metrics are initialized
-    check_initial_metrics_state(w)
+    init_timestamps(w)
 
     # change metrics
     w.on_process_timeout(input_msg_mock)
