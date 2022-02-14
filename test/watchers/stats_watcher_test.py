@@ -51,11 +51,12 @@ def check_initial_metrics_state(w):
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
+    assert w._failures_total._value.get() == 0
 
 
 def init_timestamps(w):
     """Initialize all timestamps in watcher."""
-    t = time.Time()
+    t = time.time()
     w._start_time = t
     w._downloaded_time = t
     w._processed_time = t
@@ -83,6 +84,7 @@ def test_stats_watcher_on_recv():
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
+    assert w._failures_total._value.get() == 0
 
 
 def test_stats_watcher_on_download():
@@ -104,6 +106,7 @@ def test_stats_watcher_on_download():
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
+    assert w._failures_total._value.get() == 0
 
 
 def test_stats_watcher_on_process():
@@ -127,6 +130,7 @@ def test_stats_watcher_on_process():
     assert w._processed_total._value.get() == 1
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
+    assert w._failures_total._value.get() == 0
 
 
 def test_stats_watcher_on_process_timeout():
@@ -145,6 +149,7 @@ def test_stats_watcher_on_process_timeout():
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 1
     assert w._published_total._value.get() == 0
+    assert w._failures_total._value.get() == 0
 
 
 def test_stats_watcher_on_consumer_success():
@@ -153,7 +158,7 @@ def test_stats_watcher_on_consumer_success():
     input_msg_mock.value = {"identity": {}}
 
     # construct watcher object
-    w = StatsWatcher(prometheus_port=8004)
+    w = StatsWatcher(prometheus_port=8005)
     init_timestamps(w)
 
     # change metrics
@@ -164,4 +169,26 @@ def test_stats_watcher_on_consumer_success():
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
+    assert w._published_total._value.get() == 1
+    assert w._failures_total._value.get() == 0
+
+
+def test_stats_watcher_on_consumer_failure():
+    """Test the on_consumer_failure() method."""
+    input_msg_mock = MagicMock()
+    input_msg_mock.value = {"identity": {}}
+
+    # construct watcher object
+    w = StatsWatcher(prometheus_port=8006)
+    init_timestamps(w)
+
+    # change metrics
+    w.on_consumer_failure(input_msg_mock, Exception("something"))
+
+    # test new metrics values
+    assert w._recv_total._value.get() == 0
+    assert w._downloaded_total._value.get() == 0
+    assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
+    assert w._failures_total._value.get() == 1
