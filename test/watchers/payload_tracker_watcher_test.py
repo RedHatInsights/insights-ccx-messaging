@@ -92,3 +92,8 @@ def test_payload_tracker_watcher_publish_status(producer_init_mock):
         b'{"service": "ccx-data-pipeline", "request_id": "some request id", '
         b'"status": "error", "date": "2020-05-07T14:00:00", "status_msg": "Something"}',
     )
+
+    # call _publish_status without request_id and check there is not any
+    # exception thrown
+    del mocked_values["request_id"]
+    sut.on_recv(mocked_input_message)
