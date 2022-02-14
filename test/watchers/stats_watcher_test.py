@@ -1,4 +1,4 @@
-# Copyright 2020 Red Hat, Inc
+# Copyright 2020, 2021, 2022 Red Hat, Inc
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -199,6 +199,35 @@ def test_stats_watcher_on_consumer_failure():
     assert w._published_total._value.get() == 0
     assert w._failures_total._value.get() == 1
     assert w._not_handling_total._value.get() == 0
+
+    # reset downloaded time
+    w._downloaded_time = None
+
+    # change metrics again
+    w.on_consumer_failure(input_msg_mock, Exception("something"))
+
+    # metric should change
+    assert w._failures_total._value.get() == 2
+
+    # reset processed time
+    w._processed_time = None
+
+    # change metrics again
+    w.on_consumer_failure(input_msg_mock, Exception("something"))
+
+    # metric should change again
+    assert w._failures_total._value.get() == 3
+
+    # now try this - downloaded time is not None and processed time is none
+    w._downloaded_time = time.time()
+    w._processed_time = None
+
+    # change metrics again
+    w.on_consumer_failure(input_msg_mock, Exception("something"))
+
+    # metric should change again
+    assert w._failures_total._value.get() == 4
+
 
 
 def test_stats_watcher_on_not_handled():
