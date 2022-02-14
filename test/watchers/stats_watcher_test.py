@@ -212,6 +212,9 @@ def test_stats_watcher_on_consumer_failure():
     # reset processed time
     w._processed_time = None
 
+    # change metrics again
+    w.on_consumer_failure(input_msg_mock, Exception("something"))
+
     # metric should change again
     assert w._failures_total._value.get() == 3
 
