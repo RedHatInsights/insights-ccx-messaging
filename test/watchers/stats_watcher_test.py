@@ -56,6 +56,7 @@ def test_stats_watcher_on_recv():
     assert w._recv_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
 
     # change metrics
     w.on_recv(input_msg_mock)
@@ -64,6 +65,7 @@ def test_stats_watcher_on_recv():
     assert w._recv_total._value.get() == 1
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
 
 
 def test_stats_watcher_on_download():
@@ -76,15 +78,19 @@ def test_stats_watcher_on_download():
     assert w._recv_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
+
+    # prepare required attributes
+    w._start_time = time.time()
 
     # change metrics
     w.on_download("path")
-    w._start_time = time.time()
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
     assert w._downloaded_total._value.get() == 1
     assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
 
 
 def test_stats_watcher_on_process():
@@ -99,13 +105,41 @@ def test_stats_watcher_on_process():
     assert w._recv_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
+
+    # prepare required attributes
+    w._start_time = time.time()
+    w._downloaded_time = time.time()
 
     # change metrics
     w.on_process(input_msg_mock, "{result}")
-    w._start_time = time.time()
-    w._downloaded_time = time.time()
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 1
+    assert w._processed_timeout_total._value.get() == 0
+
+
+def test_stats_watcher_on_process_timeout():
+    """Test the on_process_timeout() method."""
+    input_msg_mock = MagicMock()
+    input_msg_mock.value = {"identity": {}}
+
+    # construct watcher object
+    w = StatsWatcher(prometheus_port=8004)
+
+    # check that all metrics are initialized
+    assert w._recv_total._value.get() == 0
+    assert w._downloaded_total._value.get() == 0
+    assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
+
+    # change metrics
+    w.on_process_timeout(input_msg_mock)
+
+    # test new metrics values
+    assert w._recv_total._value.get() == 0
+    assert w._downloaded_total._value.get() == 0
+    assert w._processed_total._value.get() == 1
+    assert w._processed_timeout_total._value.get() == 1
