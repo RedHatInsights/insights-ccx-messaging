@@ -52,6 +52,7 @@ def check_initial_metrics_state(w):
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
     assert w._failures_total._value.get() == 0
+    assert w._not_handling_total._value.get() == 0
 
 
 def init_timestamps(w):
@@ -85,6 +86,7 @@ def test_stats_watcher_on_recv():
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
     assert w._failures_total._value.get() == 0
+    assert w._not_handling_total._value.get() == 0
 
 
 def test_stats_watcher_on_download():
@@ -107,6 +109,7 @@ def test_stats_watcher_on_download():
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
     assert w._failures_total._value.get() == 0
+    assert w._not_handling_total._value.get() == 0
 
 
 def test_stats_watcher_on_process():
@@ -131,6 +134,7 @@ def test_stats_watcher_on_process():
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
     assert w._failures_total._value.get() == 0
+    assert w._not_handling_total._value.get() == 0
 
 
 def test_stats_watcher_on_process_timeout():
@@ -150,6 +154,7 @@ def test_stats_watcher_on_process_timeout():
     assert w._processed_timeout_total._value.get() == 1
     assert w._published_total._value.get() == 0
     assert w._failures_total._value.get() == 0
+    assert w._not_handling_total._value.get() == 0
 
 
 def test_stats_watcher_on_consumer_success():
@@ -171,6 +176,7 @@ def test_stats_watcher_on_consumer_success():
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 1
     assert w._failures_total._value.get() == 0
+    assert w._not_handling_total._value.get() == 0
 
 
 def test_stats_watcher_on_consumer_failure():
@@ -192,3 +198,26 @@ def test_stats_watcher_on_consumer_failure():
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
     assert w._failures_total._value.get() == 1
+    assert w._not_handling_total._value.get() == 0
+
+
+def test_stats_watcher_on_not_handled():
+    """Test the on_not_handled() method."""
+    input_msg_mock = MagicMock()
+    input_msg_mock.value = {"identity": {}}
+
+    # construct watcher object
+    w = StatsWatcher(prometheus_port=8006)
+    init_timestamps(w)
+
+    # change metrics
+    w.on_not_handled(input_msg_mock)
+
+    # test new metrics values
+    assert w._recv_total._value.get() == 0
+    assert w._downloaded_total._value.get() == 0
+    assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
+    assert w._published_total._value.get() == 0
+    assert w._failures_total._value.get() == 0
+    assert w._not_handling_total._value.get() == 1
