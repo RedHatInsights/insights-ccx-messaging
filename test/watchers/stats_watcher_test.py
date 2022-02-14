@@ -50,6 +50,7 @@ def check_initial_metrics_state(w):
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
+    assert w._published_total._value.get() == 0
 
 
 def init_timestamps(w):
@@ -81,6 +82,7 @@ def test_stats_watcher_on_recv():
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
+    assert w._published_total._value.get() == 0
 
 
 def test_stats_watcher_on_download():
@@ -101,6 +103,7 @@ def test_stats_watcher_on_download():
     assert w._downloaded_total._value.get() == 1
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
+    assert w._published_total._value.get() == 0
 
 
 def test_stats_watcher_on_process():
@@ -123,10 +126,29 @@ def test_stats_watcher_on_process():
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 1
     assert w._processed_timeout_total._value.get() == 0
+    assert w._published_total._value.get() == 0
 
 
 def test_stats_watcher_on_process_timeout():
     """Test the on_process_timeout() method."""
+
+    # construct watcher object
+    w = StatsWatcher(prometheus_port=8004)
+    init_timestamps(w)
+
+    # change metrics
+    w.on_process_timeout()
+
+    # test new metrics values
+    assert w._recv_total._value.get() == 0
+    assert w._downloaded_total._value.get() == 0
+    assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 1
+    assert w._published_total._value.get() == 0
+
+
+def test_stats_watcher_on_consumer_success():
+    """Test the on_consumer_success() method."""
     input_msg_mock = MagicMock()
     input_msg_mock.value = {"identity": {}}
 
@@ -135,10 +157,11 @@ def test_stats_watcher_on_process_timeout():
     init_timestamps(w)
 
     # change metrics
-    w.on_process_timeout(input_msg_mock)
+    w.on_consumer_success(input_msg_mock, "broker", "{result}")
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
-    assert w._processed_total._value.get() == 1
-    assert w._processed_timeout_total._value.get() == 1
+    assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
+    assert w._published_total._value.get() == 0
