@@ -48,7 +48,34 @@ def test_stats_watcher_on_recv():
     input_msg_mock = MagicMock()
     input_msg_mock.value = {"identity": {}}
 
+    # construct watcher object
     w = StatsWatcher()
+
+    # check that all metrics are initialized
     assert w._recv_total._value.get() == 0
+    assert w._downloaded_total._value.get() == 0
+
+    # change metrics
     w.on_recv(input_msg_mock)
+
+    # test new metrics values
     assert w._recv_total._value.get() == 1
+    assert w._downloaded_total._value.get() == 0
+
+
+def test_stats_watcher_on_download():
+    """Test the on_download() method."""
+
+    # construct watcher object
+    w = StatsWatcher()
+
+    # check that all metrics are initialized
+    assert w._recv_total._value.get() == 0
+    assert w._downloaded_total._value.get() == 0
+
+    # change metrics
+    w.on_download("path")
+
+    # test new metrics values
+    assert w._recv_total._value.get() == 0
+    assert w._downloaded_total._value.get() == 1
