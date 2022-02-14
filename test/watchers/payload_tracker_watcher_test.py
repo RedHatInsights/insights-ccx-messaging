@@ -71,3 +71,29 @@ def test_payload_tracker_watcher_publish_status(producer_init_mock):
         b'{"service": "ccx-data-pipeline", "request_id": "some request id", '
         b'"status": "received", "date": "2020-05-07T14:00:00"}',
     )
+
+    sut.on_process(mocked_input_message, "{result}")
+    producer_mock.send.assert_called_with(
+        "valid_topic",
+        b'{"service": "ccx-data-pipeline", "request_id": "some request id", '
+        b'"status": "processing", "date": "2020-05-07T14:00:00"}',
+    )
+
+    sut.on_consumer_success(mocked_input_message, "broker", "{result}")
+    producer_mock.send.assert_called_with(
+        "valid_topic",
+        b'{"service": "ccx-data-pipeline", "request_id": "some request id", '
+        b'"status": "success", "date": "2020-05-07T14:00:00"}',
+    )
+
+    sut.on_consumer_failure(mocked_input_message, Exception("Something"))
+    producer_mock.send.assert_called_with(
+        "valid_topic",
+        b'{"service": "ccx-data-pipeline", "request_id": "some request id", '
+        b'"status": "error", "date": "2020-05-07T14:00:00", "status_msg": "Something"}',
+    )
+
+    # call _publish_status without request_id and check there is not any
+    # exception thrown
+    del mocked_values["request_id"]
+    sut.on_recv(mocked_input_message)
