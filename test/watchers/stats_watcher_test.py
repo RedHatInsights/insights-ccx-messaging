@@ -49,6 +49,6 @@ def test_stats_watcher_on_recv():
     input_msg_mock.value = {"identity": {}}
 
     w = StatsWatcher()
-    assert w._recv_total._value == 0
+    assert w._recv_total._value.get() == 0
     w.on_recv(input_msg_mock)
-    assert w._recv_total._value == 1
+    assert w._recv_total._value.get() == 1
