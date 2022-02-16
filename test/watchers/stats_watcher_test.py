@@ -229,7 +229,6 @@ def test_stats_watcher_on_consumer_failure():
     assert w._failures_total._value.get() == 4
 
 
-
 def test_stats_watcher_on_not_handled():
     """Test the on_not_handled() method."""
     input_msg_mock = MagicMock()

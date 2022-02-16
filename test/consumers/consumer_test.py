@@ -27,7 +27,10 @@ from kafka import KafkaConsumer, KafkaProducer
 from ccx_messaging.consumers.consumer import Consumer
 from ccx_messaging.error import CCXMessagingError
 
-from test.utils import mock_consumer_record, mock_consumer_process_no_action_catch_exception
+from test.utils import (
+    mock_consumer_record,
+    mock_consumer_process_no_action_catch_exception,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -87,12 +90,12 @@ _INVALID_MESSAGES = [
     # org_id not string
     (
         '{"url": "https://s3.com/hash", "b64_identity": "eyJpZGVudGl0eSI6IHsKICAgICJhY2NvdW50X251bW'
-        'JlciI6ICI5ODc2NTQzIiwKICAgICJhdXRoX3R5cGUiOiAiYmFzaWMtYXV0aCIsCiAgICAiaW50ZXJuYWwiOiB7CiAg'
-        'ICAgICAgImF1dGhfdGltZSI6IDE0MDAsCiAgICAgICAgIm9yZ19pZCI6IDEyMzQ1Njc4CiAgICB9LAogICAgInR5cG'
-        'UiOiAiVXNlciIsCiAgICAidXNlciI6IHsKICAgICAgICAiZW1haWwiOiAiam9obi5kb2VAcmVkaGF0LmNvbSIsCiAg'
-        'ICAgICAgImZpcnN0X25hbWUiOiAiSW5zaWdodHMiLAogICAgICAgICJpc19hY3RpdmUiOiB0cnVlLAogICAgICAgIC'
-        'Jpc19pbnRlcm5hbCI6IGZhbHNlLAogICAgICAgICJpc19vcmdfYWRtaW4iOiB0cnVlLAogICAgICAgICJsYXN0X25h'
-        'bWUiOiAiUUUiLAogICAgICAgICJsb2NhbGUiOiAiZW5fVVMiLAogICAgICAgICJ1c2VybmFtZSI6ICJpbnNpZ2h0cy'
+        "JlciI6ICI5ODc2NTQzIiwKICAgICJhdXRoX3R5cGUiOiAiYmFzaWMtYXV0aCIsCiAgICAiaW50ZXJuYWwiOiB7CiAg"
+        "ICAgICAgImF1dGhfdGltZSI6IDE0MDAsCiAgICAgICAgIm9yZ19pZCI6IDEyMzQ1Njc4CiAgICB9LAogICAgInR5cG"
+        "UiOiAiVXNlciIsCiAgICAidXNlciI6IHsKICAgICAgICAiZW1haWwiOiAiam9obi5kb2VAcmVkaGF0LmNvbSIsCiAg"
+        "ICAgICAgImZpcnN0X25hbWUiOiAiSW5zaWdodHMiLAogICAgICAgICJpc19hY3RpdmUiOiB0cnVlLAogICAgICAgIC"
+        "Jpc19pbnRlcm5hbCI6IGZhbHNlLAogICAgICAgICJpc19vcmdfYWRtaW4iOiB0cnVlLAogICAgICAgICJsYXN0X25h"
+        "bWUiOiAiUUUiLAogICAgICAgICJsb2NhbGUiOiAiZW5fVVMiLAogICAgICAgICJ1c2VybmFtZSI6ICJpbnNpZ2h0cy"
         '1tYXN0ZXIiCiAgICB9Cn0KfQo=", "timestamp": "2020-01-23T16:15:59.478901889Z"}',
         _ERR_JSON_SCHEMA,
     ),
@@ -110,7 +113,9 @@ def test_deserialize_invalid_format_str(msg):
 @pytest.mark.parametrize("msg", _INVALID_MESSAGES)
 def test_deserialize_invalid_format_bytes(msg):
     """Test that passing a malformed message to `deserialize` raises an exception."""
-    deserialized = Consumer.deserialize(Consumer(None, None, None), msg[0].encode("utf-8"))
+    deserialized = Consumer.deserialize(
+        Consumer(None, None, None), msg[0].encode("utf-8")
+    )
     assert isinstance(deserialized, CCXMessagingError)
     assert str(deserialized).startswith(msg[1])
 
@@ -180,7 +185,9 @@ def test_deserialize_valid_bytes(msg, value):
 @pytest.mark.parametrize("msg,value", _VALID_MESSAGES)
 def test_deserialize_valid_bytearray(msg, value):
     """Test that proper bytearray JSON input messages are correctly deserialized."""
-    retval = Consumer.deserialize(Consumer(None, None, None), bytearray(msg.encode("utf-8")))
+    retval = Consumer.deserialize(
+        Consumer(None, None, None), bytearray(msg.encode("utf-8"))
+    )
     assert retval == value
 
 
@@ -326,7 +333,10 @@ def test_elapsed_time_thread_warning_when_no_message_received():
 
 @patch("ccx_messaging.consumers.consumer.Consumer.handles", lambda *a, **k: True)
 @patch("ccx_messaging.consumers.consumer.Consumer.fire", lambda *a, **k: None)
-@patch("ccx_messaging.consumers.consumer.Consumer.get_stringfied_record", lambda *a, **k: None)
+@patch(
+    "ccx_messaging.consumers.consumer.Consumer.get_stringfied_record",
+    lambda *a, **k: None,
+)
 def test_process_message_timeout_no_kafka_requeuer():
     """Test timeout mechanism that wraps the process function."""
     process_message_timeout = 2

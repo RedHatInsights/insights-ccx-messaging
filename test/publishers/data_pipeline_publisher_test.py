@@ -25,7 +25,9 @@ from ccx_messaging.error import CCXMessagingError
 
 def _mock_consumer_record(value):
     """Construct a value-only `ConsumerRecord`."""
-    return ConsumerRecord(None, None, None, None, None, None, value, None, None, None, None, None)
+    return ConsumerRecord(
+        None, None, None, None, None, None, value, None, None, None, None, None
+    )
 
 
 class DataPipelinePublisherTest(unittest.TestCase):
@@ -44,7 +46,9 @@ class DataPipelinePublisherTest(unittest.TestCase):
             "client_id": "ccx-data-pipeline",
         }
 
-        with patch("ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer") as kafka_producer_mock:
+        with patch(
+            "ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer"
+        ) as kafka_producer_mock:
             sut = DataPipelinePublisher(**producer_kwargs)
 
             kafka_producer_mock.assert_called_with(
@@ -78,7 +82,9 @@ class DataPipelinePublisherTest(unittest.TestCase):
         topic_name = "KAFKATOPIC"
         values = {
             "ClusterName": "the cluster name",
-            "identity": {"identity": {"account_number": "3000", "internal": {"org_id": "5000"}}},
+            "identity": {
+                "identity": {"account_number": "3000", "internal": {"org_id": "5000"}}
+            },
             "timestamp": "2020-01-23T16:15:59.478901889Z",
         }
         input_msg = _mock_consumer_record(values)
@@ -89,7 +95,9 @@ class DataPipelinePublisherTest(unittest.TestCase):
             b'"Version": 2, "RequestId": null}\n'
         )
 
-        with patch("ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer") as kafka_producer_init_mock:
+        with patch(
+            "ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
             producer_mock = MagicMock()
             kafka_producer_init_mock.return_value = producer_mock
 
@@ -113,7 +121,9 @@ class DataPipelinePublisherTest(unittest.TestCase):
         topic_name = "KAFKATOPIC"
         values = {
             "ClusterName": "the cluster name",
-            "identity": {"identity": {"account_number": "3000", "internal": {"org_id": "5000"}}},
+            "identity": {
+                "identity": {"account_number": "3000", "internal": {"org_id": "5000"}}
+            },
             "timestamp": "2020-01-23T16:15:59.478901889Z",
             "request_id": "REQUEST_ID",
         }
@@ -125,7 +135,9 @@ class DataPipelinePublisherTest(unittest.TestCase):
             b'"Version": 2, "RequestId": "REQUEST_ID"}\n'
         )
 
-        with patch("ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer") as kafka_producer_init_mock:
+        with patch(
+            "ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
             producer_mock = MagicMock()
             kafka_producer_init_mock.return_value = producer_mock
 
@@ -149,13 +161,17 @@ class DataPipelinePublisherTest(unittest.TestCase):
         topic_name = "KAFKATOPIC"
         values = {
             "ClusterName": "the cluster name",
-            "identity": {"identity": {"account_number": "3000", "internal": {"org_id": "NaN"}}},
+            "identity": {
+                "identity": {"account_number": "3000", "internal": {"org_id": "NaN"}}
+            },
             "timestamp": "2020-01-23T16:15:59.478901889Z",
         }
         input_msg = _mock_consumer_record(values)
         message_to_publish = '{"key1": "value1"}'
 
-        with patch("ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer") as kafka_producer_init_mock:
+        with patch(
+            "ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
             producer_mock = MagicMock()
             kafka_producer_init_mock.return_value = producer_mock
 
@@ -179,13 +195,17 @@ class DataPipelinePublisherTest(unittest.TestCase):
         topic_name = "KAFKATOPIC"
         values = {
             "ClusterName": "the cluster name",
-            "identity": {"identity": {"account_number": "NaN", "internal": {"org_id": "5000"}}},
+            "identity": {
+                "identity": {"account_number": "NaN", "internal": {"org_id": "5000"}}
+            },
             "timestamp": "2020-01-23T16:15:59.478901889Z",
         }
         input_msg = _mock_consumer_record(values)
         message_to_publish = '{"key1": "value1"}'
 
-        with patch("ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer") as kafka_producer_init_mock:
+        with patch(
+            "ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
             producer_mock = MagicMock()
             kafka_producer_init_mock.return_value = producer_mock
 
