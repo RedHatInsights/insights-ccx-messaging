@@ -46,3 +46,13 @@ class SHAPublisherTest(unittest.TestCase):
                 bootstrap_servers=["kafka_server1"], client_id="ccx-data-pipeline"
             )
             self.assertEqual(sut.topic, "a topic name")
+
+    def test_init_no_topic(self):
+        """Test SHAPublisher initializer without outgoing topic."""
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        with self.assertRaises(TypeError):
+            _ = SHAPublisher(**producer_kwargs)
