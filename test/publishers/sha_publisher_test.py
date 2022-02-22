@@ -70,14 +70,6 @@ class SHAPublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        values = {
-            "ClusterName": "the cluster name",
-            "identity": {
-                "identity": {"account_number": "3000", "internal": {"org_id": "5000"}}
-            },
-            "timestamp": "2020-01-23T16:15:59.478901889Z",
-            "request_id": "REQUEST_ID",
-        }
         input_msg = ""
         message_to_publish = '{"key1": "value1"}'
         expected_message = b'{"key1": "value1"}'
