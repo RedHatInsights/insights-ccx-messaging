@@ -96,6 +96,8 @@ class SHAPublisherTest(unittest.TestCase):
             "client_id": "ccx-data-pipeline",
         }
 
+        topic_name = "KAFKATOPIC"
+
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
         ) as kafka_producer_init_mock:
@@ -105,5 +107,31 @@ class SHAPublisherTest(unittest.TestCase):
             sut = SHAPublisher(outgoing_topic=topic_name, **producer_kwargs)
 
             err = CCXMessagingError("foobar")
+
+            sut.error("test", err)
+
+    def test_error_wrong_type(self):
+        """
+        Test Producer.error() method.
+        """
+        err = CCXMessagingError("foobar")
+        
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = SHAPublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            # some error with type different from CCXMessagingError
+            err = ArithmeticError("foobar")
 
             sut.error("test", err)
