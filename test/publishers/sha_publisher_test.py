@@ -16,6 +16,7 @@
 
 import unittest
 from unittest.mock import MagicMock, patch
+from collections import namedtuple
 
 
 from ccx_messaging.publishers.sha_publisher import SHAPublisher
