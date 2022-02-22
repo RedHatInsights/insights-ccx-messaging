@@ -56,3 +56,43 @@ class SHAPublisherTest(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             _ = SHAPublisher(**producer_kwargs)
+
+    def test_publish(self):
+        """
+        Test Producer.publish method.
+
+        The kafka.KafkaProducer class is mocked in order to avoid the usage
+        of the real library
+        """
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+        values = {
+            "ClusterName": "the cluster name",
+            "identity": {
+                "identity": {"account_number": "3000", "internal": {"org_id": "5000"}}
+            },
+            "timestamp": "2020-01-23T16:15:59.478901889Z",
+            "request_id": "REQUEST_ID",
+        }
+        input_msg = _mock_consumer_record(values)
+        message_to_publish = '{"key1": "value1"}'
+        expected_message = (
+            b'{"OrgID": 5000, "AccountNumber": 3000, "ClusterName": "the cluster name", '
+            b'"Report": {"key1": "value1"}, "LastChecked": "2020-01-23T16:15:59.478901889Z", '
+            b'"Version": 2, "RequestId": "REQUEST_ID"}\n'
+        )
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = DataPipelinePublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            sut.publish(input_msg, message_to_publish)
+            producer_mock.send.assert_called_with(topic_name, expected_message)
