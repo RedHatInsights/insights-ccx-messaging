@@ -80,11 +80,7 @@ class SHAPublisherTest(unittest.TestCase):
         }
         input_msg = ""
         message_to_publish = '{"key1": "value1"}'
-        expected_message = (
-            b'{"OrgID": 5000, "AccountNumber": 3000, "ClusterName": "the cluster name", '
-            b'"Report": {"key1": "value1"}, "LastChecked": "2020-01-23T16:15:59.478901889Z", '
-            b'"Version": 2, "RequestId": "REQUEST_ID"}\n'
-        )
+        expected_message = b'"Report": {"key1": "value1"}'
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
