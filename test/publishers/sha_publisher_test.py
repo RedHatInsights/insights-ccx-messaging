@@ -80,7 +80,7 @@ class SHAPublisherTest(unittest.TestCase):
         }
         input_msg = ""
         message_to_publish = '{"key1": "value1"}'
-        expected_message = b'"Report": {"key1": "value1"}'
+        expected_message = b'{"key1": "value1"}'
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
