@@ -18,7 +18,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 
-from ccx_messaging.publishers.data_pipeline_publisher import SHAPublisher
+from ccx_messaging.publishers.sha_publisher import SHAPublisher
 from ccx_messaging.error import CCXMessagingError
 
 class SHAPublisherTest(unittest.TestCase):
