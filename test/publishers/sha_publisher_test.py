@@ -21,6 +21,22 @@ from unittest.mock import MagicMock, patch
 from ccx_messaging.publishers.sha_publisher import SHAPublisher
 from ccx_messaging.error import CCXMessagingError
 
+
+InputMessage = namedtuple("InputMessage", "topic partition offset value")
+
+input_msg = InputMessage(
+    topic="topic name",
+    partition="partition name",
+    offset=1234,
+    value={
+        "url": "any/url",
+        "identity": {"identity": {"internal": {"org_id": "12345678"}}},
+        "timestamp": "2020-01-23T16:15:59.478901889Z",
+        "ClusterName": "clusterName",
+    },
+)
+
+
 class SHAPublisherTest(unittest.TestCase):
     """Test cases for testing the class SHAPublisher."""
 
@@ -98,6 +114,7 @@ class SHAPublisherTest(unittest.TestCase):
 
         topic_name = "KAFKATOPIC"
 
+
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
         ) as kafka_producer_init_mock:
@@ -108,7 +125,7 @@ class SHAPublisherTest(unittest.TestCase):
 
             err = CCXMessagingError("foobar")
 
-            sut.error("test", err)
+            sut.error(input_msg, err)
 
     def test_error_wrong_type(self):
         """
@@ -134,4 +151,4 @@ class SHAPublisherTest(unittest.TestCase):
             # some error with type different from CCXMessagingError
             err = ArithmeticError("foobar")
 
-            sut.error("test", err)
+            sut.error(input_msg, err)
