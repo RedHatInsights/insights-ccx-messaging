@@ -84,3 +84,26 @@ class SHAPublisherTest(unittest.TestCase):
 
             sut.publish(input_msg, message_to_publish)
             producer_mock.send.assert_called_with(topic_name, expected_message)
+
+    def test_error(self):
+        """
+        Test Producer.error() method.
+        """
+        err = CCXMessagingError("foobar")
+        
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = SHAPublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            err = CCXMessagingError("foobar")
+
+            sut.error("test", err)
