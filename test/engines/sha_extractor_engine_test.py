@@ -44,7 +44,7 @@ def test_process_no_extract():
         e.process(broker, path)
 
 
-def test_process_extract():
+def test_process_extract_wrong_data():
     """Basic test for SHAExtractorEngine."""
 
     formatter = jsonlogger
@@ -53,7 +53,22 @@ def test_process_extract():
     e.extract_tmp_dir = ""
 
     broker = None
-    path = "test/data.tar"
+    path = "test/wrong_data.tar"
+
+    result = e.process(broker, path)
+    assert result None
+
+
+def test_process_extract_correct_data():
+    """Basic test for SHAExtractorEngine."""
+
+    formatter = jsonlogger
+    e = SHAExtractorEngine(formatter)
+    e.watchers = []
+    e.extract_tmp_dir = ""
+
+    broker = None
+    path = "test/correct_data.tar"
 
     result = e.process(broker, path)
     assert result is not None
