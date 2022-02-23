@@ -22,6 +22,7 @@ from collections import namedtuple
 from ccx_messaging.publishers.sha_publisher import SHAPublisher
 from ccx_messaging.error import CCXMessagingError
 
+from unicode_encode_error_thower import UnicodeEncodeErrorThrower
 
 InputMessage = namedtuple("InputMessage", "topic partition offset value")
 
@@ -117,14 +118,13 @@ class SHAPublisherTest(unittest.TestCase):
         Test Producer.error() method.
         """
         err = CCXMessagingError("foobar")
-        
+
         producer_kwargs = {
             "bootstrap_servers": ["kafka_server1"],
             "client_id": "ccx-data-pipeline",
         }
 
         topic_name = "KAFKATOPIC"
-
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
@@ -143,7 +143,7 @@ class SHAPublisherTest(unittest.TestCase):
         Test Producer.error() method.
         """
         err = CCXMessagingError("foobar")
-        
+
         producer_kwargs = {
             "bootstrap_servers": ["kafka_server1"],
             "client_id": "ccx-data-pipeline",
