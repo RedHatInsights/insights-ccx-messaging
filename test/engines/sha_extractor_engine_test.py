@@ -50,10 +50,10 @@ def test_process_extract():
     formatter = jsonlogger
     e = SHAExtractorEngine(formatter)
     e.watchers = []
-    e.extract_tmp_dir = "test"
+    e.extract_tmp_dir = ""
 
     broker = None
-    path = ""
+    path = "test/data.tar"
 
     result = e.process(broker, path)
     assert result is not None
