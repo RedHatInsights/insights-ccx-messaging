@@ -81,7 +81,7 @@ class SHAPublisherTest(unittest.TestCase):
             "client_id": "ccx-data-pipeline",
         }
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             _ = SHAPublisher(outgoing_topic=None, **producer_kwargs)
 
     def test_publish(self):
