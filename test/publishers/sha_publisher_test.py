@@ -64,8 +64,8 @@ class SHAPublisherTest(unittest.TestCase):
             )
             self.assertEqual(sut.topic, "a topic name")
 
-    def test_init_no_topic(self):
-        """Test SHAPublisher initializer without outgoing topic."""
+    def test_init_improper_params(self):
+        """Test SHAPublisher initializer without improper parameters."""
         producer_kwargs = {
             "bootstrap_servers": ["kafka_server1"],
             "client_id": "ccx-data-pipeline",
@@ -73,6 +73,16 @@ class SHAPublisherTest(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             _ = SHAPublisher(**producer_kwargs)
+
+    def test_init_none_topic(self):
+        """Test SHAPublisher initializer without outgoing topic."""
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        with self.assertRaises(TypeError):
+            _ = SHAPublisher(outgoing_topic=None, **producer_kwargs)
 
     def test_publish(self):
         """
