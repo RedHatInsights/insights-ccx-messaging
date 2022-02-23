@@ -15,6 +15,7 @@
 """Module for testing the engines module."""
 
 from pythonjsonlogger import jsonlogger
+import pytest
 
 from ccx_messaging.engines.sha_extractor_engine import SHAExtractorEngine
 
@@ -39,4 +40,5 @@ def test_process():
     broker = None
     path = ""
 
-    e.process(broker, path)
+    with pytest.raises(Exception):
+        e.process(broker, path)
