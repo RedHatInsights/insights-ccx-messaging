@@ -16,6 +16,7 @@
 
 import unittest
 from unittest.mock import MagicMock, patch
+from collections import namedtuple
 
 from kafka.consumer.fetcher import ConsumerRecord
 
@@ -244,7 +245,7 @@ class DataPipelinePublisherTest(unittest.TestCase):
 
 
         with patch(
-            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+            "ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer"
         ) as kafka_producer_init_mock:
             producer_mock = MagicMock()
             kafka_producer_init_mock.return_value = producer_mock
@@ -269,7 +270,7 @@ class DataPipelinePublisherTest(unittest.TestCase):
         topic_name = "KAFKATOPIC"
 
         with patch(
-            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+            "ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer"
         ) as kafka_producer_init_mock:
             producer_mock = MagicMock()
             kafka_producer_init_mock.return_value = producer_mock
