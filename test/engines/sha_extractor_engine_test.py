@@ -56,7 +56,7 @@ def test_process_extract_wrong_data():
     path = "test/wrong_data.tar"
 
     result = e.process(broker, path)
-    assert result None
+    assert result is None
 
 
 def test_process_extract_correct_data():
