@@ -163,3 +163,31 @@ class SHAPublisherTest(unittest.TestCase):
             err = ArithmeticError("foobar")
 
             sut.error(input_msg, err)
+
+    def test_publish_wrong_message_encoding(self):
+        """
+        Test Producer.publish method when message can't be encoded to UTF-8.
+
+        The kafka.KafkaProducer class is mocked in order to avoid the usage
+        of the real library
+        """
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+        input_msg = ""
+        message_to_publish = UnicodeEncodeErrorThrower()
+        expected_message = b'{"key1": "value1"}'
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            with self.assertRaises(CCXMessagingError):
+                sut.publish(input_msg, message_to_publish)
+
+            producer_mock.send.assert_called_with(topic_name, expected_message)
