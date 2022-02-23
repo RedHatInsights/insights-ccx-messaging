@@ -72,7 +72,7 @@ class DataPipelinePublisherTest(unittest.TestCase):
             )
             self.assertEqual(sut.topic, "a topic name")
 
-    def test_init_no_topic(self):
+    def test_init_improper_params(self):
         """Test DataPipelinePublisher initializer without outgoing topic."""
         producer_kwargs = {
             "bootstrap_servers": ["kafka_server1"],
@@ -81,6 +81,16 @@ class DataPipelinePublisherTest(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             _ = DataPipelinePublisher(**producer_kwargs)
+
+    def test_init_none_topic(self):
+        """Test DataPipelinePublisher initializer without outgoing topic."""
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        with self.assertRaises(KeyError):
+            _ = DataPipelinePublisher(outgoing_topic=None, **producer_kwargs)
 
     # pylint: disable=no-self-use
     def test_publish_no_request_id(self):
