@@ -22,6 +22,7 @@ from collections import namedtuple
 from ccx_messaging.publishers.sha_publisher import SHAPublisher
 from ccx_messaging.error import CCXMessagingError
 
+from .unicode_encode_error_thower import UnicodeEncodeErrorThrower
 
 InputMessage = namedtuple("InputMessage", "topic partition offset value")
 
@@ -117,14 +118,13 @@ class SHAPublisherTest(unittest.TestCase):
         Test Producer.error() method.
         """
         err = CCXMessagingError("foobar")
-        
+
         producer_kwargs = {
             "bootstrap_servers": ["kafka_server1"],
             "client_id": "ccx-data-pipeline",
         }
 
         topic_name = "KAFKATOPIC"
-
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
@@ -143,7 +143,7 @@ class SHAPublisherTest(unittest.TestCase):
         Test Producer.error() method.
         """
         err = CCXMessagingError("foobar")
-        
+
         producer_kwargs = {
             "bootstrap_servers": ["kafka_server1"],
             "client_id": "ccx-data-pipeline",
@@ -163,3 +163,31 @@ class SHAPublisherTest(unittest.TestCase):
             err = ArithmeticError("foobar")
 
             sut.error(input_msg, err)
+
+    def test_publish_wrong_message_encoding(self):
+        """
+        Test Producer.publish method when message can't be encoded to UTF-8.
+
+        The kafka.KafkaProducer class is mocked in order to avoid the usage
+        of the real library
+        """
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+        input_msg = ""
+        message_to_publish = UnicodeEncodeErrorThrower()
+        expected_message = b'{"key1": "value1"}'
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = SHAPublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            with self.assertRaises(CCXMessagingError):
+                sut.publish(input_msg, message_to_publish)

@@ -1,4 +1,4 @@
-# Copyright 2020 Red Hat, Inc
+# Copyright 2022 Red Hat, Inc
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -245,14 +245,13 @@ class DataPipelinePublisherTest(unittest.TestCase):
         Test Producer.error() method.
         """
         err = CCXMessagingError("foobar")
-        
+
         producer_kwargs = {
             "bootstrap_servers": ["kafka_server1"],
             "client_id": "ccx-data-pipeline",
         }
 
         topic_name = "KAFKATOPIC"
-
 
         with patch(
             "ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer"
@@ -271,7 +270,7 @@ class DataPipelinePublisherTest(unittest.TestCase):
         Test Producer.error() method.
         """
         err = CCXMessagingError("foobar")
-        
+
         producer_kwargs = {
             "bootstrap_servers": ["kafka_server1"],
             "client_id": "ccx-data-pipeline",
