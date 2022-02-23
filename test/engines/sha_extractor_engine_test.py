@@ -26,3 +26,17 @@ def test_init():
 
     # just basic check
     assert e is not None
+
+
+def test_process():
+    """Basic test for SHAExtractorEngine."""
+
+    formatter = jsonlogger
+    e = SHAExtractorEngine(formatter)
+    e.watchers = []
+    e.extract_tmp_dir = ""
+
+    broker = None
+    path = ""
+
+    e.process(broker, path)
