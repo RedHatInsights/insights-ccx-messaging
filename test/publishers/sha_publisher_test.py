@@ -22,7 +22,7 @@ from collections import namedtuple
 from ccx_messaging.publishers.sha_publisher import SHAPublisher
 from ccx_messaging.error import CCXMessagingError
 
-from unicode_encode_error_thower import UnicodeEncodeErrorThrower
+from .unicode_encode_error_thower import UnicodeEncodeErrorThrower
 
 InputMessage = namedtuple("InputMessage", "topic partition offset value")
 
@@ -187,7 +187,7 @@ class SHAPublisherTest(unittest.TestCase):
             producer_mock = MagicMock()
             kafka_producer_init_mock.return_value = producer_mock
 
+            sut = SHAPublisher(outgoing_topic=topic_name, **producer_kwargs)
+
             with self.assertRaises(CCXMessagingError):
                 sut.publish(input_msg, message_to_publish)
-
-            producer_mock.send.assert_called_with(topic_name, expected_message)
