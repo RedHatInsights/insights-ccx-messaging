@@ -29,16 +29,31 @@ def test_init():
     assert e is not None
 
 
-def test_process():
+def test_process_no_extract():
     """Basic test for SHAExtractorEngine."""
 
     formatter = jsonlogger
     e = SHAExtractorEngine(formatter)
     e.watchers = []
-    e.extract_tmp_dir = ""
+    e.extract_tmp_dir = "not-exist"
+
+    broker = None
+    path = "not-exist"
+
+    with pytest.raises(Exception):
+        e.process(broker, path)
+
+
+def test_process_extract():
+    """Basic test for SHAExtractorEngine."""
+
+    formatter = jsonlogger
+    e = SHAExtractorEngine(formatter)
+    e.watchers = []
+    e.extract_tmp_dir = "test"
 
     broker = None
     path = ""
 
-    with pytest.raises(Exception):
-        e.process(broker, path)
+    result = e.process(broker, path)
+    assert result is not None
