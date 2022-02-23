@@ -23,6 +23,21 @@ from ccx_messaging.publishers.data_pipeline_publisher import DataPipelinePublish
 from ccx_messaging.error import CCXMessagingError
 
 
+InputMessage = namedtuple("InputMessage", "topic partition offset value")
+
+input_msg = InputMessage(
+    topic="topic name",
+    partition="partition name",
+    offset=1234,
+    value={
+        "url": "any/url",
+        "identity": {"identity": {"internal": {"org_id": "12345678"}}},
+        "timestamp": "2020-01-23T16:15:59.478901889Z",
+        "ClusterName": "clusterName",
+    },
+)
+
+
 def _mock_consumer_record(value):
     """Construct a value-only `ConsumerRecord`."""
     return ConsumerRecord(
@@ -213,3 +228,55 @@ class DataPipelinePublisherTest(unittest.TestCase):
 
             with self.assertRaises(CCXMessagingError):
                 sut.publish(input_msg, message_to_publish)
+
+    def test_error(self):
+        """
+        Test Producer.error() method.
+        """
+        err = CCXMessagingError("foobar")
+        
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = DataPipelinePublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            err = CCXMessagingError("foobar")
+
+            sut.error(input_msg, err)
+
+    def test_error_wrong_type(self):
+        """
+        Test Producer.error() method.
+        """
+        err = CCXMessagingError("foobar")
+        
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = DataPipelinePublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            # some error with type different from CCXMessagingError
+            err = ArithmeticError("foobar")
+
+            sut.error(input_msg, err)
