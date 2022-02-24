@@ -126,7 +126,7 @@ class SHAPublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        message_to_publish = ''
+        message_to_publish = '{}'
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
