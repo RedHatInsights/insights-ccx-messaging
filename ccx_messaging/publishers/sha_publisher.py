@@ -15,6 +15,7 @@
 """Module that implements a custom Kafka publisher."""
 
 import logging
+import json
 
 from insights_messaging.publishers import Publisher
 from kafka import KafkaProducer
