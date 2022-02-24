@@ -42,16 +42,27 @@ class SHAPublisher(Publisher):
         if self.topic is None:
             raise KeyError("outgoing_topic")
 
-        self.producer = KafkaProducer(
-            bootstrap_servers=self.bootstrap_servers, **kwargs
-        )
-        LOG.info(
-            "Producing to topic '%s' on brokers %s", self.topic, self.bootstrap_servers
-        )
+        self.producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers, **kwargs)
+        LOG.info("Producing to topic '%s' on brokers %s", self.topic, self.bootstrap_servers)
         self.outdata_schema_version = 2
 
-    def publish(self, message, response):
-        """Publish the SHA records in the received JSON."""
+    def publish(self, input_msg, response):
+        """
+        Publish an EOL-terminated JSON message to the output Kafka topic.
+
+        The input_msg contains content of message read from incoming Kafka
+        topic. Such message should contains account info, cluster ID etc.
+
+        The response is assumed to be a string representing a valid JSON object
+        (it is read from file config/workload_info.json).
+
+        Outgoing message is constructed by joining input_msg with response.
+
+        A newline character will be appended to it, it will be converted into
+        a byte array using UTF-8 encoding and the result of that will be sent
+        to the producer to produce a message in the output Kafka topic.
+        """
+        # Response is already a string, no need to JSON dump.
         if response is not None:
             try:
                 LOG.debug("Sending response to the %s topic.", self.topic)
@@ -60,7 +71,7 @@ class SHAPublisher(Publisher):
                 LOG.debug("Message has been sent successfully.")
             except UnicodeEncodeError as err:
                 raise CCXMessagingError(
-                    f"Error encoding the response to publish: {message}"
+                    f"Error encoding the response to publish: {input_msg}"
                 ) from err
 
     def error(self, input_msg, ex):
