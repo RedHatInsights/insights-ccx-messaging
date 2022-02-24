@@ -32,7 +32,8 @@ input_msg = InputMessage(
     offset=1234,
     value={
         "url": "any/url",
-        "identity": {"identity": {"internal": {"org_id": "12345678"}}},
+        "identity": {"identity": {"internal": {"org_id": "12345678"},
+                                  "account_number": "999999"}},
         "timestamp": "2020-01-23T16:15:59.478901889Z",
         "ClusterName": "clusterName",
     },
@@ -98,9 +99,8 @@ class SHAPublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        input_msg = ""
         message_to_publish = '{"key1": "value1"}'
-        expected_message = b'{"key1": "value1"}'
+        expected_message = b'{"OrgID": 12345678, "AccountNumber": 999999, "ClusterName": "clusterName", "Images": {"key1": "value1"}, "LastChecked": "2020-01-23T16:15:59.478901889Z", "Version": 2, "RequestId": null}\n'
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
@@ -112,6 +112,110 @@ class SHAPublisherTest(unittest.TestCase):
 
             sut.publish(input_msg, message_to_publish)
             producer_mock.send.assert_called_with(topic_name, expected_message)
+
+    def test_publish_wrong_input_message(self):
+        """
+        Test Producer.publish method.
+
+        The kafka.KafkaProducer class is mocked in order to avoid the usage
+        of the real library
+        """
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+        message_to_publish = ''
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = SHAPublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            with self.assertRaises(Exception):
+                sut.publish(input_msg, message_to_publish)
+
+    def test_publish_wrong_org_id(self):
+        """
+        Test Producer.publish method.
+
+        The kafka.KafkaProducer class is mocked in order to avoid the usage
+        of the real library
+        """
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+        message_to_publish = ''
+
+        input_msg = InputMessage(
+            topic="topic name",
+            partition="partition name",
+            offset=1234,
+            value={
+                "url": "any/url",
+                "identity": {"identity": {"internal": {"org_id": "*** not an integer ***"},
+                                          "account_number": "999999"}},
+                "timestamp": "2020-01-23T16:15:59.478901889Z",
+                "ClusterName": "clusterName",
+            },
+        )
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = SHAPublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            with self.assertRaises(CCXMessagingError):
+                sut.publish(input_msg, message_to_publish)
+
+    def test_publish_wrong_account_number(self):
+        """
+        Test Producer.publish method.
+
+        The kafka.KafkaProducer class is mocked in order to avoid the usage
+        of the real library
+        """
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+        message_to_publish = ''
+
+        input_msg = InputMessage(
+            topic="topic name",
+            partition="partition name",
+            offset=1234,
+            value={
+                "url": "any/url",
+                "identity": {"identity": {"internal": {"org_id": "123456"},
+                                          "account_number": "*** not an integer ***"}},
+                "timestamp": "2020-01-23T16:15:59.478901889Z",
+                "ClusterName": "clusterName",
+            },
+        )
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = SHAPublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            with self.assertRaises(CCXMessagingError):
+                sut.publish(input_msg, message_to_publish)
 
     def test_error(self):
         """
@@ -164,7 +268,7 @@ class SHAPublisherTest(unittest.TestCase):
 
             sut.error(input_msg, err)
 
-    def test_publish_wrong_message_encoding(self):
+    def _test_publish_wrong_message_encoding(self):
         """
         Test Producer.publish method when message can't be encoded to UTF-8.
 

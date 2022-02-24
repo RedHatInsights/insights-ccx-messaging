@@ -15,6 +15,7 @@
 """Module that implements a custom Kafka publisher."""
 
 import logging
+import json
 
 from insights_messaging.publishers import Publisher
 from kafka import KafkaProducer
@@ -42,21 +43,62 @@ class SHAPublisher(Publisher):
         if self.topic is None:
             raise KeyError("outgoing_topic")
 
-        self.producer = KafkaProducer(
-            bootstrap_servers=self.bootstrap_servers, **kwargs
-        )
-        LOG.info(
-            "Producing to topic '%s' on brokers %s", self.topic, self.bootstrap_servers
-        )
+        self.producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers, **kwargs)
+        LOG.info("Producing to topic '%s' on brokers %s", self.topic, self.bootstrap_servers)
         self.outdata_schema_version = 2
 
-    def publish(self, message, response):
-        """Publish the SHA records in the received JSON."""
+    def publish(self, input_msg, response):
+        """
+        Publish an EOL-terminated JSON message to the output Kafka topic.
+
+        The input_msg contains content of message read from incoming Kafka
+        topic. Such message should contains account info, cluster ID etc.
+
+        The response is assumed to be a string representing a valid JSON object
+        (it is read from file config/workload_info.json).
+
+        Outgoing message is constructed by joining input_msg with response.
+
+        A newline character will be appended to it, it will be converted into
+        a byte array using UTF-8 encoding and the result of that will be sent
+        to the producer to produce a message in the output Kafka topic.
+        """
+        # output message in form of a dictionary
+        output_msg = {}
+
+        # read all required attributes from input_msg
+        try:
+            org_id = int(input_msg.value["identity"]["identity"]["internal"]["org_id"])
+        except ValueError as err:
+            raise CCXMessagingError(f"Error extracting the OrgID: {err}") from err
+
+        try:
+            account_number = int(input_msg.value["identity"]["identity"]["account_number"])
+        except ValueError as err:
+            raise CCXMessagingError(f"Error extracting the Account number: {err}") from err
+
+        # outgoing message in form of JSON
+        message = ""
+
         if response is not None:
             try:
+                output_msg = {
+                    "OrgID": org_id,
+                    "AccountNumber": account_number,
+                    "ClusterName": input_msg.value["ClusterName"],
+                    "Images": json.loads(response),
+                    "LastChecked": input_msg.value["timestamp"],
+                    "Version": self.outdata_schema_version,
+                    "RequestId": input_msg.value.get("request_id"),
+                }
+
+                # convert dictionary to JSON (string)
+                message = json.dumps(output_msg) + "\n"
+
                 LOG.debug("Sending response to the %s topic.", self.topic)
+
                 # Convert message string into a byte array.
-                self.producer.send(self.topic, response.encode("utf-8"))
+                self.producer.send(self.topic, message.encode("utf-8"))
                 LOG.debug("Message has been sent successfully.")
             except UnicodeEncodeError as err:
                 raise CCXMessagingError(
