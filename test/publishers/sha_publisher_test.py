@@ -126,7 +126,85 @@ class SHAPublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        message_to_publish = '{}'
+        message_to_publish = ''
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = SHAPublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            with self.assertRaises(Exception):
+                sut.publish(input_msg, message_to_publish)
+
+    def test_publish_wrong_org_id(self):
+        """
+        Test Producer.publish method.
+
+        The kafka.KafkaProducer class is mocked in order to avoid the usage
+        of the real library
+        """
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+        message_to_publish = ''
+
+        input_msg = InputMessage(
+            topic="topic name",
+            partition="partition name",
+            offset=1234,
+            value={
+                "url": "any/url",
+                "identity": {"identity": {"internal": {"org_id": "*** not an integer ***"},
+                                          "account_number": "999999"}},
+                "timestamp": "2020-01-23T16:15:59.478901889Z",
+                "ClusterName": "clusterName",
+            },
+        )
+
+        with patch(
+            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
+        ) as kafka_producer_init_mock:
+            producer_mock = MagicMock()
+            kafka_producer_init_mock.return_value = producer_mock
+
+            sut = SHAPublisher(outgoing_topic=topic_name, **producer_kwargs)
+
+            with self.assertRaises(CCXMessagingError):
+                sut.publish(input_msg, message_to_publish)
+
+    def test_publish_wrong_account_number(self):
+        """
+        Test Producer.publish method.
+
+        The kafka.KafkaProducer class is mocked in order to avoid the usage
+        of the real library
+        """
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+        }
+
+        topic_name = "KAFKATOPIC"
+        message_to_publish = ''
+
+        input_msg = InputMessage(
+            topic="topic name",
+            partition="partition name",
+            offset=1234,
+            value={
+                "url": "any/url",
+                "identity": {"identity": {"internal": {"org_id": "123456"},
+                                          "account_number": "*** not an integer ***"}},
+                "timestamp": "2020-01-23T16:15:59.478901889Z",
+                "ClusterName": "clusterName",
+            },
+        )
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
