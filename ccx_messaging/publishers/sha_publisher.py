@@ -62,16 +62,46 @@ class SHAPublisher(Publisher):
         a byte array using UTF-8 encoding and the result of that will be sent
         to the producer to produce a message in the output Kafka topic.
         """
-        # Response is already a string, no need to JSON dump.
+        # output message in form of a dictionary
+        output_msg = {}
+
+        # read all required attributes from input_msg
+        try:
+            org_id = int(input_msg.value["identity"]["identity"]["internal"]["org_id"])
+        except ValueError as err:
+            raise CCXMessagingError(f"Error extracting the OrgID: {err}") from err
+
+        try:
+            account_number = int(input_msg.value["identity"]["identity"]["account_number"])
+        except ValueError as err:
+            raise CCXMessagingError(f"Error extracting the Account number: {err}") from err
+
+        # outgoing message in form of JSON
+        message = ""
+
         if response is not None:
             try:
+                output_msg = {
+                    "OrgID": org_id,
+                    "AccountNumber": account_number,
+                    "ClusterName": input_msg.value["ClusterName"],
+                    "Images": json.loads(response),
+                    "LastChecked": input_msg.value["timestamp"],
+                    "Version": self.outdata_schema_version,
+                    "RequestId": input_msg.value.get("request_id"),
+                }
+
+                # convert dictionary to JSON (string)
+                message = json.dumps(output_msg) + "\n"
+
                 LOG.debug("Sending response to the %s topic.", self.topic)
+
                 # Convert message string into a byte array.
-                self.producer.send(self.topic, response.encode("utf-8"))
+                self.producer.send(self.topic, message.encode("utf-8"))
                 LOG.debug("Message has been sent successfully.")
             except UnicodeEncodeError as err:
                 raise CCXMessagingError(
-                    f"Error encoding the response to publish: {input_msg}"
+                    f"Error encoding the response to publish: {message}"
                 ) from err
 
     def error(self, input_msg, ex):
