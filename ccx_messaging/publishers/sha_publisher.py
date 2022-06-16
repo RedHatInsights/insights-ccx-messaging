@@ -95,6 +95,7 @@ class SHAPublisher(Publisher):
                 # convert dictionary to JSON (string)
                 message = json.dumps(output_msg) + "\n"
 
+                LOG.debug("Message to be sent: %s", message)
                 LOG.debug("Sending response to the %s topic.", self.topic)
 
                 # Convert message string into a byte array.
