@@ -319,3 +319,75 @@ class Consumer(ICMConsumer):
                 )
             # To do the minimum interruptions possible, sleep for one hour
             time.sleep(MAX_ELAPSED_TIME_BETWEEN_MESSAGES)
+
+
+class AnemicConsumer(Consumer):
+    """
+    Consumer implementation based on base Kafka class.
+
+    This consumer retrieves a message at a time from a configure source (which is Kafka),
+    verifies if the message should be processed by it, and if so, extracts an URL from it,
+    downloads an archive using the configured downloader, and then passes the file to an
+    internal engine for further processing.
+    """
+
+    OTHER_SERVICE_DEBUG_MESSAGE = "Message is for another service. Ignoring"
+
+    def __init__(
+        self,
+        publisher,
+        downloader,
+        engine,
+        group_id=None,
+        incoming_topic=None,
+        platform_service=None,
+        bootstrap_servers=None,
+        max_poll_records=None,
+        max_poll_interval_ms=None,
+        heartbeat_interval_ms=None,
+        session_timeout_ms=None,
+        dead_letter_queue_topic=None,
+        max_record_age=7200,
+        retry_backoff_ms=1000,
+        processing_timeout_s=0,
+        **kwargs,
+    ):
+        super().__init__(publisher, downloader, engine, group_id, incoming_topic,
+                         bootstrap_servers, max_poll_records, max_poll_interval_ms,
+                         heartbeat_interval_ms, session_timeout_ms,
+                         dead_letter_queue_topic, max_record_age, retry_backoff_ms,
+                         processing_timeout_s, **kwargs)
+        self.platform_service = platform_service # we only handle buckit, but this could be a set of service names for future proofing
+
+    def deserialize(self, bytes_):
+        """
+        Deserialize JSON message received from Kafka.
+
+        Returns:
+            dict: Deserialized input message if successful.
+            DataPipelineError: Exception containing error message if anything failed.
+
+            The exception is returned instead of being thrown in order to prevent
+            breaking the message handling / polling loop in `Consumer.run`.
+        """
+        LOG.debug("Deserializing incoming bytes (%s)", self.log_pattern)
+
+        if isinstance(bytes_, (str, bytes, bytearray)):
+            try:
+                msg = json.loads(bytes_)
+                if "service" not in msg or "service" in msg and msg["service"] != self.platform_service:
+                    LOG.debug(AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE)
+                    return ""
+                LOG.debug(f"Received message for {self.platform_service} service.")
+                return super().deserialize(bytes_)
+
+            except json.JSONDecodeError as ex:
+                return CCXMessagingError(f"Unable to decode received message: {ex}")
+
+            except jsonschema.ValidationError as ex:
+                return CCXMessagingError(f"Invalid input message JSON schema: {ex}")
+        else:
+            return CCXMessagingError(
+                f"Unexpected input message type: {bytes_.__class__.__name__}"
+            )
+
