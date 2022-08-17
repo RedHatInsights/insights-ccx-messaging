@@ -22,17 +22,17 @@ import time
 from ccx_messaging.watchers.stats_watcher import StatsWatcher
 
 
-_INVALID_PORTS = [None, "8000", 8000.0, 80, 70000]
+_INVALID_PORTS = [None, "8000", 8000.0, 70000]
 
 
 @pytest.mark.parametrize("value", _INVALID_PORTS)
 def test_stats_watcher_initialize_invalid_port(value):
     """Test passing invalid data types or values to the `StatsWatcher` initializer fails."""
-    with pytest.raises((TypeError, PermissionError, OverflowError)):
+    with pytest.raises((TypeError, PermissionError, OverflowError, OSError)):
         _ = StatsWatcher(value)
 
 
-_VALID_PORTS = [dict(), {"prometheus_port": 9500}]
+_VALID_PORTS = [dict(), {"prometheus_port": 9500}, {"prometheus_port": 80}]
 
 
 @pytest.mark.parametrize("value", _VALID_PORTS)
