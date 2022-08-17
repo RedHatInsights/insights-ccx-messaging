@@ -1,10 +1,11 @@
 app-common-python==0.1.8
 boto3==1.14.27
-insights-core>=3.0.235
-git+https://github.com/RedHatInsights/insights-core-messaging@1.2.0
+insights-core==3.0.277
+git+https://github.com/RedHatInsights/insights-core-messaging@1.2.2
 jsonschema==3.2.0
 kafka-python==2.0.1
 python-json-logger==0.1.11
 requests==2.24.0
 sentry-sdk==0.19.5
 watchtower==0.8.0
+prometheus_client==0.14.1
