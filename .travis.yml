@@ -10,6 +10,8 @@ python:
 # needed to work correctly with Python 3 shebang
 env: SKIP_INTERPRETER=true
 install:
+  - pip install --upgrade setuptools
+  - pip install --upgrade wheel
   - pip install pycodestyle
   - pip install pydocstyle
   - pip install pytest-cov
