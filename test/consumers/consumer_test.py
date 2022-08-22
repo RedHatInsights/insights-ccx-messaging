@@ -59,7 +59,7 @@ _INVALID_TYPE_VALUES = [None, 42, 3.14, True, [], {}]
 @pytest.mark.parametrize("value", _INVALID_TYPE_VALUES)
 def test_deserialize_invalid_type(value):
     """Test that passing invalid data type to `deserialize` raises an exception."""
-    deserialized = Consumer.deserialize(Consumer(None, None, None), value)
+    deserialized = Consumer.deserialize(Consumer(None, None, None, None), value)
     assert isinstance(deserialized, CCXMessagingError)
     assert str(deserialized).startswith("Unexpected input message type: ")
 
@@ -106,7 +106,7 @@ _INVALID_MESSAGES = [
 @pytest.mark.parametrize("msg", _INVALID_MESSAGES)
 def test_deserialize_invalid_format_str(msg):
     """Test that passing a malformed message to `deserialize` raises an exception."""
-    deserialized = Consumer.deserialize(Consumer(None, None, None), msg[0])
+    deserialized = Consumer.deserialize(Consumer(None, None, None, None), msg[0])
     assert isinstance(deserialized, CCXMessagingError)
     assert str(deserialized).startswith(msg[1])
 
@@ -115,7 +115,7 @@ def test_deserialize_invalid_format_str(msg):
 def test_deserialize_invalid_format_bytes(msg):
     """Test that passing a malformed message to `deserialize` raises an exception."""
     deserialized = Consumer.deserialize(
-        Consumer(None, None, None), msg[0].encode("utf-8")
+        Consumer(None, None, None, None), msg[0].encode("utf-8")
     )
     assert isinstance(deserialized, CCXMessagingError)
     assert str(deserialized).startswith(msg[1])
@@ -125,7 +125,7 @@ def test_deserialize_invalid_format_bytes(msg):
 def test_deserialize_invalid_format_bytearray(msg):
     """Test that passing a malformed message to `deserialize` raises an exception."""
     deserialized = Consumer.deserialize(
-        Consumer(None, None, None), bytearray(msg[0].encode("utf-8"))
+        Consumer(None, None, None, None), bytearray(msg[0].encode("utf-8"))
     )
     assert isinstance(deserialized, CCXMessagingError)
     assert str(deserialized).startswith(msg[1])
@@ -173,13 +173,13 @@ _VALID_MESSAGES = [
 @pytest.mark.parametrize("msg,value", _VALID_MESSAGES)
 def test_deserialize_valid_str(msg, value):
     """Test that proper string JSON input messages are correctly deserialized."""
-    assert Consumer.deserialize(Consumer(None, None, None), msg) == value
+    assert Consumer.deserialize(Consumer(None, None, None, None), msg) == value
 
 
 @pytest.mark.parametrize("msg,value", _VALID_MESSAGES)
 def test_deserialize_valid_bytes(msg, value):
     """Test that proper bytes JSON input messages are correctly deserialized."""
-    retval = Consumer.deserialize(Consumer(None, None, None), msg.encode("utf-8"))
+    retval = Consumer.deserialize(Consumer(None, None, None, None), msg.encode("utf-8"))
     assert retval == value
 
 
@@ -187,7 +187,7 @@ def test_deserialize_valid_bytes(msg, value):
 def test_deserialize_valid_bytearray(msg, value):
     """Test that proper bytearray JSON input messages are correctly deserialized."""
     retval = Consumer.deserialize(
-        Consumer(None, None, None), bytearray(msg.encode("utf-8"))
+        Consumer(None, None, None, None), bytearray(msg.encode("utf-8"))
     )
     assert retval == value
 
@@ -213,7 +213,7 @@ _INVALID_RECORD_VALUES = [
 )
 def test_handles_invalid(value):
     """Test that `Consumer` refuses to handle malformed input messages."""
-    consumer = Consumer(None, None, None)
+    consumer = Consumer(None, None, None, None)
     assert not consumer.handles(mock_consumer_record(value))
 
 
@@ -228,7 +228,7 @@ _VALID_RECORD_VALUES = [
 @patch("insights_messaging.consumers.Consumer.__init__", lambda *a, **k: None)
 def test_handles_valid(value):
     """Test that `Consumer` accepts handling of correctly formatted input messages."""
-    sut = Consumer(None, None, None)
+    sut = Consumer(None, None, None, None)
     assert sut.handles(mock_consumer_record(value))
 
 
@@ -259,9 +259,9 @@ def test_consumer_init_direct(topic, group, server):
     """Test of our Consumer constructor, using direct configuration options."""
     with patch("insights_messaging.consumers.Consumer.__init__") as mock_consumer_init:
         with patch("os.environ", new=dict()):
-            Consumer(None, None, None, group, topic, [server])
+            Consumer(None, None, None, topic, group_id=group, bootstrap_servers=[server])
 
-            mock_consumer_init.assert_called_with(None, None, None)
+            mock_consumer_init.assert_called_with(None, None, None, requeuer=None)
 
 
 MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST = 2
@@ -287,7 +287,7 @@ def test_elapsed_time_thread_no_warning_when_message_received():
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = Consumer(None, None, None)
+        sut = Consumer(None, None, None, None)
         assert sut.check_elapsed_time_thread
         buf.truncate(0)  # Empty buffer to make sure this test does what it should do
         sut.last_received_message_time = time.time()
@@ -354,7 +354,7 @@ def test_process_message_timeout_no_kafka_requeuer():
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = Consumer(None, None, None)
+        sut = Consumer(None, None, None, None)
         sut.consumer = consumer_messages_to_process
         assert sut.processing_timeout == 0  # Should be 0 if not changed in config file
 
@@ -428,7 +428,7 @@ _VALID_MESSAGES_WITH_EXPECTED_SERVICE_HEADER = [
 @pytest.mark.parametrize("service", _VALID_SERVICES)
 def test_init_anemic_consumer(topic, group, server, service):
     """Test `AnemicConsumer` initialization."""
-    sut = AnemicConsumer(None, None, None, group, topic, service, [server])
+    sut = AnemicConsumer(None, None, None, topic, group_id=group, platform_service=service, bootstrap_servers=[server])
     assert sut.platform_service == service
     assert isinstance(sut.consumer, KafkaConsumer)
     assert sut.check_elapsed_time_thread.is_alive()
@@ -446,7 +446,7 @@ def test_anemic_consumer_deserialize_no_service(service):
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = AnemicConsumer(None, None, None, platform_service=platform_service)
+        sut = AnemicConsumer(None, None, None, None, platform_service=platform_service)
         deserialized = sut.deserialize(consumer_message[0])
         assert isinstance(deserialized, str)
         assert deserialized == ""
@@ -468,7 +468,7 @@ def test_anemic_consumer_deserialize_unexpected_service(service, msg):
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = AnemicConsumer(None, None, None, platform_service=platform_service)
+        sut = AnemicConsumer(None, None, None, None, platform_service=platform_service)
         deserialized = sut.deserialize(consumer_message[0])
         assert isinstance(deserialized, str)
         assert deserialized == ""
@@ -490,7 +490,7 @@ def test_anemic_consumer_deserialize_expected_service(service, msg, value):
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = AnemicConsumer(None, None, None, platform_service=platform_service)
+        sut = AnemicConsumer(None, None, None, None, platform_service=platform_service)
         deserialized = sut.deserialize(consumer_message)
         assert isinstance(deserialized, dict)
         assert deserialized == value

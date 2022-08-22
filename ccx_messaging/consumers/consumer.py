@@ -31,6 +31,7 @@ from kafka.consumer.fetcher import ConsumerRecord
 
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.schemas import INPUT_MESSAGE_SCHEMA, IDENTITY_SCHEMA
+from ccx_messaging.utils.kafka_config import producer_config
 
 
 LOG = logging.getLogger(__name__)
@@ -62,13 +63,7 @@ class Consumer(ICMConsumer):
         publisher,
         downloader,
         engine,
-        group_id=None,
-        incoming_topic=None,
-        bootstrap_servers=None,
-        max_poll_records=None,
-        max_poll_interval_ms=None,
-        heartbeat_interval_ms=None,
-        session_timeout_ms=None,
+        incoming_topic,
         dead_letter_queue_topic=None,
         max_record_age=7200,
         retry_backoff_ms=1000,
@@ -77,32 +72,33 @@ class Consumer(ICMConsumer):
     ):
         # pylint: disable=too-many-arguments
         """Construct a new external data pipeline Kafka consumer."""
+        bootstrap_servers = kwargs.get("bootstrap_servers", None)
         if isinstance(bootstrap_servers, str):
             bootstrap_servers = bootstrap_servers.split(",")
+
+        if bootstrap_servers:
+            kwargs["bootstrap_servers"] = bootstrap_servers
 
         LOG.info(
             "Consuming topic '%s' from brokers %s as group '%s'",
             incoming_topic,
-            bootstrap_servers,
-            group_id,
+            kwargs.get("bootstrap_servers", None),
+            kwargs.get("group_id", None),
         )
 
-        super().__init__(publisher, downloader, engine)
+        requeuer = kwargs.pop("requeuer", None)
+
+        super().__init__(publisher, downloader, engine, requeuer=requeuer)
 
         self.consumer = KafkaConsumer(
             incoming_topic,
-            group_id=group_id,
-            bootstrap_servers=bootstrap_servers,
             value_deserializer=self.deserialize,
             retry_backoff_ms=retry_backoff_ms,
-            max_poll_records=max_poll_records,
-            max_poll_interval_ms=max_poll_interval_ms,
-            heartbeat_interval_ms=heartbeat_interval_ms,
-            session_timeout_ms=session_timeout_ms,
+            **kwargs,
         )
 
         self.max_record_age = max_record_age
-        self.log_pattern = f"topic: {incoming_topic}, group_id: {group_id}"
+        self.log_pattern = f"topic: {incoming_topic}, group_id: {kwargs.get('group_id', None)}"
 
         self.last_received_message_time = time.time()
 
@@ -113,8 +109,13 @@ class Consumer(ICMConsumer):
 
         self.processing_timeout = processing_timeout_s
 
+        self.dlq_producer = None
         self.dead_letter_queue_topic = dead_letter_queue_topic
-        self.producer = KafkaProducer(bootstrap_servers=bootstrap_servers)
+
+        if self.dead_letter_queue_topic is not None:
+            dlq_producer_config = producer_config(kwargs)
+
+            self.dlq_producer = KafkaProducer(**dlq_producer_config)
 
     # pylint: disable=broad-except
     def run(self):
@@ -138,6 +139,9 @@ class Consumer(ICMConsumer):
 
     def process_dead_letter(self, msg):
         """Send unprocessed message to the dead letter queue topic."""
+        if not self.dlq_producer:
+            return
+
         if isinstance(msg, ConsumerRecord):
             self.producer.send(
                 self.dead_letter_queue_topic, str(msg.value).encode("utf-8")
@@ -338,25 +342,16 @@ class AnemicConsumer(Consumer):
         publisher,
         downloader,
         engine,
-        group_id=None,
-        incoming_topic=None,
+        incoming_topic,
         platform_service=None,
-        bootstrap_servers=None,
-        max_poll_records=None,
-        max_poll_interval_ms=None,
-        heartbeat_interval_ms=None,
-        session_timeout_ms=None,
         dead_letter_queue_topic=None,
         max_record_age=7200,
         retry_backoff_ms=1000,
         processing_timeout_s=0,
         **kwargs,
     ):
-        super().__init__(publisher, downloader, engine, group_id, incoming_topic,
-                         bootstrap_servers, max_poll_records, max_poll_interval_ms,
-                         heartbeat_interval_ms, session_timeout_ms,
-                         dead_letter_queue_topic, max_record_age, retry_backoff_ms,
-                         processing_timeout_s, **kwargs)
+        super().__init__(publisher, downloader, engine, incoming_topic, dead_letter_queue_topic,
+                         max_record_age, retry_backoff_ms, processing_timeout_s, **kwargs)
         self.platform_service = platform_service # we only handle buckit, but this could be a set of service names for future proofing
 
     def deserialize(self, bytes_):
@@ -390,4 +385,3 @@ class AnemicConsumer(Consumer):
             return CCXMessagingError(
                 f"Unexpected input message type: {bytes_.__class__.__name__}"
             )
-
