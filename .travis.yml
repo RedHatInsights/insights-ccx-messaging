@@ -19,11 +19,10 @@ install:
   - pip install -e .[dev] || pip install -e .
   - curl -Os https://uploader.codecov.io/latest/linux/codecov
   - chmod +x codecov
-script:
-  - make pycodestyle
-  - make pydocstyle
 
 script:
+#   - make pycodestyle
+#   - make pydocstyle
   - pytest -v --cov=ccx_messaging --cov-fail-under=70
   - pytest -v --cov=ccx_messaging --cov-report=xml
   - ./codecov -t c5c72a0d-fa95-4f38-8015-9aadbaf46466
