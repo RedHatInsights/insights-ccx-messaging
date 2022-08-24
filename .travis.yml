@@ -4,9 +4,7 @@ python:
   - "3.7"
   - "3.8"
   - "3.9"
-  - "3.10"
-  - "3.11-dev"
-  - "nightly"
+  - "3.10.6"
 
 # Pycodestyle part
 # needed to work correctly with Python 3 shebang
