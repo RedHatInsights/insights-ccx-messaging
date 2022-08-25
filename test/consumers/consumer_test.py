@@ -427,7 +427,7 @@ def test_anemic_consumer_deserialize():
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = AnemicConsumer(None, None, None, platform_service="any")
+        sut = AnemicConsumer(None, None, None, None, platform_service="any")
         deserialized = sut.deserialize(consumer_message[0])
         assert isinstance(deserialized, dict)
         assert deserialized.get('url') == ""
@@ -453,7 +453,7 @@ def test_anemic_consumer_run_no_service_in_header(service):
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = AnemicConsumer(None, None, None, platform_service=service)
+        sut = AnemicConsumer(None, None, None, None, platform_service=service)
         sut.consumer = _VALID_MESSAGES_WITH_NO_SERVICE_HEADER
         sut.run()
         assert AnemicConsumer.NO_SERVICE_DEBUG_MESSAGE in buf.getvalue()
@@ -471,7 +471,7 @@ def test_anemic_consumer_run_unexpected_service(service):
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = AnemicConsumer(None, None, None, platform_service=service)
+        sut = AnemicConsumer(None, None, None, None, platform_service=service)
         sut.consumer = _VALID_MESSAGES_WITH_UNEXPECTED_SERVICE_HEADER
         sut.run()
         assert AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(b'some_unexpected_service') in buf.getvalue()
@@ -495,7 +495,7 @@ def test_anemic_consumer_run_expected_service(service):
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = AnemicConsumer(None, None, None, platform_service=service)
+        sut = AnemicConsumer(None, None, None, None, platform_service=service)
         sut.consumer = _VALID_MESSAGES_WITH_EXPECTED_SERVICE_HEADER
         sut.run()
         logs = buf.getvalue()

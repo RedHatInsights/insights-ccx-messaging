@@ -387,3 +387,23 @@ class AnemicConsumer(Consumer):
             return CCXMessagingError(
                 f"Unexpected input message type: {bytes_.__class__.__name__}"
             )
+
+    def run(self):
+        """Execute the consumer logic."""
+        signal(SIGALRM, handle_message_processing_timeout)
+        for msg in self.consumer:
+            headers = dict(msg.headers)
+            if not headers:
+                LOG.debug(AnemicConsumer.NO_HEADER_DEBUG_MESSAGE)
+                continue
+            service = headers.get('service')
+            if service:
+                if service != self.platform_service:
+                    LOG.debug(AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(service))
+                    continue
+                LOG.debug(AnemicConsumer.EXPECTED_SERVICE_DEBUG_MESSAGE)
+                msg_value = self._validate(msg.value)
+                msg = msg._replace(value=msg_value)
+                self._consume(msg)
+            else:
+                LOG.debug(AnemicConsumer.NO_SERVICE_DEBUG_MESSAGE)
