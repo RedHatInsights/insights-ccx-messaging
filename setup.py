@@ -16,4 +16,4 @@
 
 from setuptools import setup
 
-setup()
+setup(use_scm_version={"local_scheme": "node-and-timestamp"})
