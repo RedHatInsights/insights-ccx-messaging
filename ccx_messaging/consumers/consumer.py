@@ -117,25 +117,29 @@ class Consumer(ICMConsumer):
 
             self.dlq_producer = KafkaProducer(**dlq_producer_config)
 
+    def _consume(self, msg):
+        try:
+            alarm(self.processing_timeout)
+            if self.handles(msg):
+                self.process(msg)
+            else:
+                self.process_dead_letter(msg)
+            alarm(0)
+        except TimeoutError as ex:
+            LOG.exception(ex)
+            self.process_dead_letter(msg)
+            self.fire("on_process_timeout")
+        except Exception as ex:
+            LOG.exception(ex)
+            self.process_dead_letter(msg)
+
     # pylint: disable=broad-except
     def run(self):
         """Execute the consumer logic."""
         signal(SIGALRM, handle_message_processing_timeout)
         for msg in self.consumer:
-            try:
-                alarm(self.processing_timeout)
-                if self.handles(msg):
-                    self.process(msg)
-                else:
-                    self.process_dead_letter(msg)
-                alarm(0)
-            except TimeoutError as ex:
-                LOG.exception(ex)
-                self.process_dead_letter(msg)
-                self.fire("on_process_timeout")
-            except Exception as ex:
-                LOG.exception(ex)
-                self.process_dead_letter(msg)
+            self._consume(msg)
+
 
     def process_dead_letter(self, msg):
         """Send unprocessed message to the dead letter queue topic."""
@@ -149,6 +153,40 @@ class Consumer(ICMConsumer):
         else:
             # just add at least some record in case that the message is not of the expected type
             self.producer.send(self.dead_letter_queue_topic, str(msg).encode("utf-8"))
+
+    def _validate(self, msg):
+        try:
+            jsonschema.validate(instance=msg, schema=INPUT_MESSAGE_SCHEMA)
+            LOG.debug("JSON schema validated (%s)", self.log_pattern)
+            b64_identity = msg["b64_identity"]
+
+            if isinstance(b64_identity, str):
+                b64_identity = b64_identity.encode()
+
+            decoded_identity = json.loads(base64.b64decode(b64_identity))
+            jsonschema.validate(instance=decoded_identity, schema=IDENTITY_SCHEMA)
+            LOG.debug("Identity schema validated (%s)", self.log_pattern)
+
+            msg["ClusterName"] = (
+                decoded_identity.get("identity", {})
+                    .get("system", {})
+                    .get("cluster_id", None)
+            )
+
+            msg["identity"] = decoded_identity
+            del msg["b64_identity"]
+            return msg
+
+        except json.JSONDecodeError as ex:
+            return CCXMessagingError(f"Unable to decode received message: {ex}")
+
+        except jsonschema.ValidationError as ex:
+            return CCXMessagingError(f"Invalid input message JSON schema: {ex}")
+
+        except binascii.Error as ex:
+            return CCXMessagingError(
+                f"Base64 encoded identity could not be parsed: {ex}"
+            )
 
     def deserialize(self, bytes_):
         """
@@ -165,39 +203,9 @@ class Consumer(ICMConsumer):
 
         if isinstance(bytes_, (str, bytes, bytearray)):
             try:
-                msg = json.loads(bytes_)
-                jsonschema.validate(instance=msg, schema=INPUT_MESSAGE_SCHEMA)
-                LOG.debug("JSON schema validated (%s)", self.log_pattern)
-                b64_identity = msg["b64_identity"]
-
-                if isinstance(b64_identity, str):
-                    b64_identity = b64_identity.encode()
-
-                decoded_identity = json.loads(base64.b64decode(b64_identity))
-                jsonschema.validate(instance=decoded_identity, schema=IDENTITY_SCHEMA)
-                LOG.debug("Identity schema validated (%s)", self.log_pattern)
-
-                msg["ClusterName"] = (
-                    decoded_identity.get("identity", {})
-                    .get("system", {})
-                    .get("cluster_id", None)
-                )
-
-                msg["identity"] = decoded_identity
-                del msg["b64_identity"]
-                return msg
-
+                return self._validate(json.loads(bytes_))
             except json.JSONDecodeError as ex:
                 return CCXMessagingError(f"Unable to decode received message: {ex}")
-
-            except jsonschema.ValidationError as ex:
-                return CCXMessagingError(f"Invalid input message JSON schema: {ex}")
-
-            except binascii.Error as ex:
-                return CCXMessagingError(
-                    f"Base64 encoded identity could not be parsed: {ex}"
-                )
-
         else:
             return CCXMessagingError(
                 f"Unexpected input message type: {bytes_.__class__.__name__}"
@@ -335,7 +343,10 @@ class AnemicConsumer(Consumer):
     internal engine for further processing.
     """
 
-    OTHER_SERVICE_DEBUG_MESSAGE = "Message is for another service. Ignoring"
+    EXPECTED_SERVICE_DEBUG_MESSAGE = "Received message for expected service."
+    OTHER_SERVICE_DEBUG_MESSAGE = "Message is for {} service. Ignoring"
+    NO_SERVICE_DEBUG_MESSAGE = "Message does not specify destination service. Ignoring"
+    NO_HEADER_DEBUG_MESSAGE = "Message does not contain headers. Ignoring"
 
     def __init__(
         self,
@@ -352,7 +363,7 @@ class AnemicConsumer(Consumer):
     ):
         super().__init__(publisher, downloader, engine, incoming_topic, dead_letter_queue_topic,
                          max_record_age, retry_backoff_ms, processing_timeout_s, **kwargs)
-        self.platform_service = platform_service # we only handle buckit, but this could be a set of service names for future proofing
+        self.platform_service = platform_service.encode("utf-8")
 
     def deserialize(self, bytes_):
         """
@@ -369,18 +380,9 @@ class AnemicConsumer(Consumer):
 
         if isinstance(bytes_, (str, bytes, bytearray)):
             try:
-                msg = json.loads(bytes_)
-                if "service" not in msg or "service" in msg and msg["service"] != self.platform_service:
-                    LOG.debug(AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE)
-                    return ""
-                LOG.debug(f"Received message for {self.platform_service} service.")
-                return super().deserialize(bytes_)
-
+                return json.loads(bytes_)
             except json.JSONDecodeError as ex:
                 return CCXMessagingError(f"Unable to decode received message: {ex}")
-
-            except jsonschema.ValidationError as ex:
-                return CCXMessagingError(f"Invalid input message JSON schema: {ex}")
         else:
             return CCXMessagingError(
                 f"Unexpected input message type: {bytes_.__class__.__name__}"

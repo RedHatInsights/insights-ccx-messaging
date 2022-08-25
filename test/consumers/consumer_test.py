@@ -23,6 +23,7 @@ from unittest.mock import patch
 import pytest
 
 from kafka import KafkaConsumer, KafkaProducer
+from kafka.consumer.fetcher import ConsumerRecord
 
 from ccx_messaging.consumers.consumer import Consumer
 from ccx_messaging.consumers.consumer import AnemicConsumer
@@ -393,35 +394,17 @@ _VALID_SERVICES = [
 ]
 
 _VALID_MESSAGES_WITH_UNEXPECTED_SERVICE_HEADER = [
-    (
-        '{"url": "",'
-        '"b64_identity": "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIxMjM0NTY3OCJ9fX0K",'
-        '"timestamp": "2020-01-23T16:15:59.478901889Z",'
-        '"service": "an_unexpected_service_name"}',
-        {
-            "url": "",
-            "identity": {"identity": {"internal": {"org_id": "12345678"}}},
-            "timestamp": "2020-01-23T16:15:59.478901889Z",
-            "ClusterName": None,
-        },
-    )
+ConsumerRecord(topic='platform.upload.announce', partition=0, offset=24, timestamp=1661327909633, timestamp_type=0, key=None, value={'account': '0369233', 'category': 'archive', 'service': 'test_service', 'timestamp': '2022-08-24T07:58:29.6326987Z'}, headers=[('service', b'some_unexpected_service')], checksum=1234, serialized_key_size=12, serialized_value_size=1, serialized_header_size=1)
 ]
 
 _VALID_MESSAGES_WITH_EXPECTED_SERVICE_HEADER = [
-    (
-        '{"url": "",'
-        '"b64_identity": "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIxMjM0NTY3OCJ9fX0K",'
-        '"timestamp": "2020-01-23T16:15:59.478901889Z",'
-        '"service": "test_service"}',
-        {
-            "url": "",
-            "identity": {"identity": {"internal": {"org_id": "12345678"}}},
-            "timestamp": "2020-01-23T16:15:59.478901889Z",
-            "ClusterName": None,
-            "service": "test_service",
-        },
-    )
+    ConsumerRecord(topic='platform.upload.announce', partition=0, offset=24, timestamp=1661327909633, timestamp_type=0, key=None, value={'account': '0369233', 'category': 'archive', 'service': 'test_service', 'timestamp': '2022-08-24T07:58:29.6326987Z'}, headers=[('service', b'test_service')], checksum=1234, serialized_key_size=12, serialized_value_size=1, serialized_header_size=1)
 ]
+
+_VALID_MESSAGES_WITH_NO_SERVICE_HEADER = [
+    ConsumerRecord(topic='platform.upload.announce', partition=0, offset=24, timestamp=1661327909633, timestamp_type=0, key=None, value={'account': '0369233', 'category': 'archive', 'service': 'test_service', 'timestamp': '2022-08-24T07:58:29.6326987Z'}, headers=[('some_header', 'some_value')], checksum=1234, serialized_key_size=12, serialized_value_size=1, serialized_header_size=1)
+]
+
 @pytest.mark.parametrize("topic", _VALID_TOPICS)
 @pytest.mark.parametrize("group", _VALID_GROUPS)
 @pytest.mark.parametrize("server", _VALID_SERVERS)
@@ -429,15 +412,13 @@ _VALID_MESSAGES_WITH_EXPECTED_SERVICE_HEADER = [
 def test_init_anemic_consumer(topic, group, server, service):
     """Test `AnemicConsumer` initialization."""
     sut = AnemicConsumer(None, None, None, topic, group_id=group, platform_service=service, bootstrap_servers=[server])
-    assert sut.platform_service == service
+    assert sut.platform_service == service.encode("utf-8")
     assert isinstance(sut.consumer, KafkaConsumer)
     assert sut.check_elapsed_time_thread.is_alive()
 
 
-@pytest.mark.parametrize("service", _VALID_SERVICES)
-def test_anemic_consumer_deserialize_no_service(service):
-    """Test run method of `AnemicConsumer` with no service in received message."""
-    platform_service = service
+def test_anemic_consumer_deserialize():
+    """Test deserialize method of `AnemicConsumer`"""
     consumer_message = _VALID_MESSAGES[0]
     buf = io.StringIO()
     log_handler = logging.StreamHandler(buf)
@@ -446,54 +427,79 @@ def test_anemic_consumer_deserialize_no_service(service):
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = AnemicConsumer(None, None, None, None, platform_service=platform_service)
+        sut = AnemicConsumer(None, None, None, platform_service="any")
         deserialized = sut.deserialize(consumer_message[0])
-        assert isinstance(deserialized, str)
-        assert deserialized == ""
-        assert AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE in buf.getvalue()
-
-    logger.removeHandler(log_handler)
-
-
-@pytest.mark.parametrize("service", _VALID_SERVICES)
-@pytest.mark.parametrize("msg", _VALID_MESSAGES_WITH_UNEXPECTED_SERVICE_HEADER)
-def test_anemic_consumer_deserialize_unexpected_service(service, msg):
-    """Test run method of `AnemicConsumer` with unexpected service in received message."""
-    platform_service = service
-    consumer_message = msg
-    buf = io.StringIO()
-    log_handler = logging.StreamHandler(buf)
-    logger = logging.getLogger()
-    logger.level = logging.DEBUG
-    logger.addHandler(log_handler)
-
-    with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = AnemicConsumer(None, None, None, None, platform_service=platform_service)
-        deserialized = sut.deserialize(consumer_message[0])
-        assert isinstance(deserialized, str)
-        assert deserialized == ""
-        assert AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE in buf.getvalue()
-
-    logger.removeHandler(log_handler)
-
-
-@pytest.mark.parametrize("service", _VALID_SERVICES)
-@pytest.mark.parametrize("msg,value", _VALID_MESSAGES_WITH_EXPECTED_SERVICE_HEADER)
-def test_anemic_consumer_deserialize_expected_service(service, msg, value):
-    """Test deserialize method of `AnemicConsumer` with expected service in received message."""
-    platform_service = service
-    consumer_message = msg
-    buf = io.StringIO()
-    log_handler = logging.StreamHandler(buf)
-    logger = logging.getLogger()
-    logger.level = logging.DEBUG
-    logger.addHandler(log_handler)
-
-    with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = AnemicConsumer(None, None, None, None, platform_service=platform_service)
-        deserialized = sut.deserialize(consumer_message)
         assert isinstance(deserialized, dict)
-        assert deserialized == value
-        assert AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE not in buf.getvalue()
+        assert deserialized.get('url') == ""
+        assert deserialized.get('b64_identity') == "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIxMjM0NTY3OCJ9fX0K"
+        assert deserialized.get('timestamp') == "2020-01-23T16:15:59.478901889Z"
 
+    logger.removeHandler(log_handler)
+
+
+@patch("ccx_messaging.consumers.consumer.Consumer.handles", lambda *a, **k: True)
+@patch("ccx_messaging.consumers.consumer.Consumer.fire", lambda *a, **k: None)
+@patch(
+    "ccx_messaging.consumers.consumer.Consumer.get_stringfied_record",
+    lambda *a, **k: None,
+)
+@pytest.mark.parametrize("service", _VALID_SERVICES)
+def test_anemic_consumer_run_no_service_in_header(service):
+    """Test run method of `AnemicConsumer` with no service in received message's header."""
+    buf = io.StringIO()
+    log_handler = logging.StreamHandler(buf)
+    logger = logging.getLogger()
+    logger.level = logging.DEBUG
+    logger.addHandler(log_handler)
+
+    with patch("ccx_messaging.consumers.consumer.LOG", logger):
+        sut = AnemicConsumer(None, None, None, platform_service=service)
+        sut.consumer = _VALID_MESSAGES_WITH_NO_SERVICE_HEADER
+        sut.run()
+        assert AnemicConsumer.NO_SERVICE_DEBUG_MESSAGE in buf.getvalue()
+
+    logger.removeHandler(log_handler)
+
+
+@pytest.mark.parametrize("service", _VALID_SERVICES)
+def test_anemic_consumer_run_unexpected_service(service):
+    """Test run method of `AnemicConsumer` with unexpected service in received message's header."""
+    buf = io.StringIO()
+    log_handler = logging.StreamHandler(buf)
+    logger = logging.getLogger()
+    logger.level = logging.DEBUG
+    logger.addHandler(log_handler)
+
+    with patch("ccx_messaging.consumers.consumer.LOG", logger):
+        sut = AnemicConsumer(None, None, None, platform_service=service)
+        sut.consumer = _VALID_MESSAGES_WITH_UNEXPECTED_SERVICE_HEADER
+        sut.run()
+        assert AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(b'some_unexpected_service') in buf.getvalue()
+
+    logger.removeHandler(log_handler)
+
+
+@patch("ccx_messaging.consumers.consumer.Consumer.handles", lambda *a, **k: True)
+@patch("ccx_messaging.consumers.consumer.Consumer.fire", lambda *a, **k: None)
+@patch(
+    "ccx_messaging.consumers.consumer.Consumer.get_stringfied_record",
+    lambda *a, **k: None,
+)
+@pytest.mark.parametrize("service", _VALID_SERVICES)
+def test_anemic_consumer_run_expected_service(service):
+    """Test run method of `AnemicConsumer` with expected service in received message's header."""
+    buf = io.StringIO()
+    log_handler = logging.StreamHandler(buf)
+    logger = logging.getLogger()
+    logger.level = logging.DEBUG
+    logger.addHandler(log_handler)
+
+    with patch("ccx_messaging.consumers.consumer.LOG", logger):
+        sut = AnemicConsumer(None, None, None, platform_service=service)
+        sut.consumer = _VALID_MESSAGES_WITH_EXPECTED_SERVICE_HEADER
+        sut.run()
+        logs = buf.getvalue()
+        assert AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE not in logs
+        assert AnemicConsumer.NO_SERVICE_DEBUG_MESSAGE not in logs
+        assert AnemicConsumer.EXPECTED_SERVICE_DEBUG_MESSAGE in logs
     logger.removeHandler(log_handler)
