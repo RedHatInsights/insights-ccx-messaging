@@ -28,11 +28,12 @@ jobs:
       - run: pip install --upgrade importlib-metadata
       - run: pip install -r requirements.txt
       - run: pip install -e .[dev] || pip install -e .
-      - run: curl -Os https://uploader.codecov.io/latest/linux/codecov
-      - run: chmod +x codecov
       - name: Pytest Coverage
         run: pytest -v --cov=ccx_messaging --cov-fail-under=70
       - name: Coverage export
         run: pytest -v --cov=ccx_messaging --cov-report=xml
       - name: Upload coverage
-        run: ./codecov -t c5c72a0d-fa95-4f38-8015-9aadbaf46466
+        uses: codecov/codecov-action@v3
+        if: ${{ matrix.python-version == "3.6" }}
+        with:
+          token: c5c72a0d-fa95-4f38-8015-9aadbaf46466
