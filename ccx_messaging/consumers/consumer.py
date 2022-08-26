@@ -147,12 +147,12 @@ class Consumer(ICMConsumer):
             return
 
         if isinstance(msg, ConsumerRecord):
-            self.producer.send(
+            self.dlq_producer.send(
                 self.dead_letter_queue_topic, str(msg.value).encode("utf-8")
             )
         else:
             # just add at least some record in case that the message is not of the expected type
-            self.producer.send(self.dead_letter_queue_topic, str(msg).encode("utf-8"))
+            self.dlq_producer.send(self.dead_letter_queue_topic, str(msg).encode("utf-8"))
 
     def _validate(self, msg):
         try:
