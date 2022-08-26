@@ -51,7 +51,7 @@ def apply_clowder_config(manifest):
     config["service"]["consumer"]["kwargs"].update(kafka_broker_config)
     config["service"]["publisher"]["kwargs"].update(kafka_broker_config)
 
-    pt_watcher = "ccx_data_pipeline.watchers.payload_tracker_watcher.PayloadTrackerWatcher"
+    pt_watcher = "ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher"
     for watcher in config["service"]["watchers"]:
         if watcher["name"] == pt_watcher:
             watcher["kwargs"].update(kafka_broker_config)
