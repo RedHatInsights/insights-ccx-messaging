@@ -47,6 +47,9 @@ class PayloadTrackerWatcher(ConsumerWatcher):
     def _publish_status(self, input_msg, status, status_msg=None):
         """Send an status update to payload tracker topic."""
         request_id = input_msg.value.get("request_id")
+        identity_field = input_msg.value.get("identity", {}).get("identity", {})
+        org_id = identity_field.get("internal", {}).get("org_id")
+        account = identity_field.get("account_number")
 
         if request_id is None:
             LOG.warning("The received record doesn't contain a request_id. It won't be reported")
@@ -58,6 +61,12 @@ class PayloadTrackerWatcher(ConsumerWatcher):
             "status": status,
             "date": datetime.datetime.now().isoformat(),
         }
+
+        if org_id:
+            tracker_msg["org_id"] = org_id
+
+        if account:
+            tracker_msg["account"] = account
 
         if status_msg:
             tracker_msg["status_msg"] = status_msg
