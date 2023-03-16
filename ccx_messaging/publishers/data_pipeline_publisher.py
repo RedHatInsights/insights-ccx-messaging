@@ -43,12 +43,8 @@ class DataPipelinePublisher(Publisher):
         if self.topic is None:
             raise KeyError("outgoing_topic")
 
-        self.producer = KafkaProducer(
-            bootstrap_servers=self.bootstrap_servers, **kwargs
-        )
-        LOG.info(
-            "Producing to topic '%s' on brokers %s", self.topic, self.bootstrap_servers
-        )
+        self.producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers, **kwargs)
+        LOG.info("Producing to topic '%s' on brokers %s", self.topic, self.bootstrap_servers)
         self.outdata_schema_version = 2
 
     def publish(self, input_msg, response):
@@ -70,9 +66,7 @@ class DataPipelinePublisher(Publisher):
         try:
             account_number = int(input_msg["identity"]["identity"]["account_number"])
         except ValueError as err:
-            raise CCXMessagingError(
-                f"Error extracting the Account number: {err}"
-            ) from err
+            raise CCXMessagingError(f"Error extracting the Account number: {err}") from err
 
         message = ""
         try:
@@ -116,9 +110,7 @@ class DataPipelinePublisher(Publisher):
             )
 
         except UnicodeEncodeError as err:
-            raise CCXMessagingError(
-                f"Error encoding the response to publish: {message}"
-            ) from err
+            raise CCXMessagingError(f"Error encoding the response to publish: {message}") from err
 
     def error(self, input_msg, ex):
         """Handle pipeline errors by logging them."""

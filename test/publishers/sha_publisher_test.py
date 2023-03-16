@@ -57,9 +57,7 @@ class SHAPublisherTest(unittest.TestCase):
             "client_id": "ccx-data-pipeline",
         }
 
-        with patch(
-            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
-        ) as kafka_producer_mock:
+        with patch("ccx_messaging.publishers.sha_publisher.KafkaProducer") as kafka_producer_mock:
             sut = SHAPublisher(**producer_kwargs)
 
             kafka_producer_mock.assert_called_with(
@@ -231,9 +229,7 @@ class SHAPublisherTest(unittest.TestCase):
                 sut.publish(input_msg, message_to_publish)
 
     def test_error(self):
-        """
-        Test Producer.error() method.
-        """
+        """Test Producer.error() method."""
         err = CCXMessagingError("foobar")
 
         producer_kwargs = {
@@ -256,9 +252,7 @@ class SHAPublisherTest(unittest.TestCase):
             sut.error(input_msg, err)
 
     def test_error_wrong_type(self):
-        """
-        Test Producer.error() method.
-        """
+        """Test Producer.error() method."""
         err = CCXMessagingError("foobar")
 
         producer_kwargs = {

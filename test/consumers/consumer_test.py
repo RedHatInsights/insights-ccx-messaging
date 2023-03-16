@@ -115,9 +115,7 @@ def test_deserialize_invalid_format_str(msg):
 @pytest.mark.parametrize("msg", _INVALID_MESSAGES)
 def test_deserialize_invalid_format_bytes(msg):
     """Test that passing a malformed message to `deserialize` raises an exception."""
-    deserialized = Consumer.deserialize(
-        Consumer(None, None, None, None), msg[0].encode("utf-8")
-    )
+    deserialized = Consumer.deserialize(Consumer(None, None, None, None), msg[0].encode("utf-8"))
     assert isinstance(deserialized, CCXMessagingError)
     assert str(deserialized).startswith(msg[1])
 
@@ -187,9 +185,7 @@ def test_deserialize_valid_bytes(msg, value):
 @pytest.mark.parametrize("msg,value", _VALID_MESSAGES)
 def test_deserialize_valid_bytearray(msg, value):
     """Test that proper bytearray JSON input messages are correctly deserialized."""
-    retval = Consumer.deserialize(
-        Consumer(None, None, None, None), bytearray(msg.encode("utf-8"))
-    )
+    retval = Consumer.deserialize(Consumer(None, None, None, None), bytearray(msg.encode("utf-8")))
     assert retval == value
 
 
@@ -260,9 +256,7 @@ def test_consumer_init_direct(topic, group, server):
     """Test of our Consumer constructor, using direct configuration options."""
     with patch("insights_messaging.consumers.Consumer.__init__") as mock_consumer_init:
         with patch("os.environ", new=dict()):
-            Consumer(
-                None, None, None, topic, group_id=group, bootstrap_servers=[server]
-            )
+            Consumer(None, None, None, topic, group_id=group, bootstrap_servers=[server])
 
             mock_consumer_init.assert_called_with(None, None, None, requeuer=None)
 
@@ -481,7 +475,7 @@ def test_init_anemic_consumer(topic, group, server, service):
 
 
 def test_anemic_consumer_deserialize():
-    """Test deserialize method of `AnemicConsumer`"""
+    """Test deserialize method of `AnemicConsumer`."""
     consumer_message = _VALID_MESSAGES[0]
     buf = io.StringIO()
     log_handler = logging.StreamHandler(buf)
@@ -541,9 +535,7 @@ def test_anemic_consumer_run_unexpected_service(service):
         sut.consumer = _VALID_MESSAGES_WITH_UNEXPECTED_SERVICE_HEADER
         sut.run()
         assert (
-            AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(
-                b"some_unexpected_service"
-            )
+            AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(b"some_unexpected_service")
             in buf.getvalue()
         )
 

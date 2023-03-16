@@ -39,9 +39,7 @@ def parse_human_input(file_size):
         "Ti": 2**40,
     }
 
-    match = re.match(
-        r"^(?P<quantity>\d+(\.\d+)?)\s*(?P<units>[KMGT]?i?B?)?$", file_size
-    )
+    match = re.match(r"^(?P<quantity>\d+(\.\d+)?)\s*(?P<units>[KMGT]?i?B?)?$", file_size)
 
     if match is None:
         raise ValueError(f"The file size cannot be parsed as a file size: {file_size}")
@@ -53,9 +51,7 @@ def parse_human_input(file_size):
     units = units.rstrip("B") if units is not None else ""
 
     if units != "" and units not in multipliers:
-        raise ValueError(
-            f"The file size cannot be parsed because its units: {parsed.get('units')}"
-        )
+        raise ValueError(f"The file size cannot be parsed because its units: {parsed.get('units')}")
 
     multiplier = multipliers.get(units, 1)  # if multiplier == "", then 1
     quantity = quantity * multiplier

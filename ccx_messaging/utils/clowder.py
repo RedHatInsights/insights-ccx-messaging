@@ -29,9 +29,7 @@ def apply_clowder_config(manifest):
     config = yaml.load(manifest, Loader=Loader)
 
     # Find the Payload Tracker watcher, as it might be affected by config changes
-    pt_watcher_name = (
-        "ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher"
-    )
+    pt_watcher_name = "ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher"
     watcher = None
     for watcher in config["service"]["watchers"]:
         if watcher["name"] == pt_watcher_name:
@@ -83,23 +81,17 @@ def apply_clowder_config(manifest):
         topic_cfg = app_common_python.KafkaTopics[consumer_topic]
         config["service"]["consumer"]["kwargs"]["incoming_topic"] = topic_cfg.name
     else:
-        logger.warn(
-            "The consumer topic cannot be found in Clowder mapping. It can cause errors"
-        )
+        logger.warn("The consumer topic cannot be found in Clowder mapping. It can cause errors")
 
     if dlq_topic in app_common_python.KafkaTopics:
         topic_cfg = app_common_python.KafkaTopics[dlq_topic]
-        config["service"]["consumer"]["kwargs"][
-            "dead_letter_queue_topic"
-        ] = topic_cfg.name
+        config["service"]["consumer"]["kwargs"]["dead_letter_queue_topic"] = topic_cfg.name
 
     if producer_topic in app_common_python.KafkaTopics:
         topic_cfg = app_common_python.KafkaTopics[producer_topic]
         config["service"]["publisher"]["kwargs"]["outgoing_topic"] = topic_cfg.name
     else:
-        logger.warn(
-            "The publisher topic cannot be found in Clowder mapping. It can cause errors"
-        )
+        logger.warn("The publisher topic cannot be found in Clowder mapping. It can cause errors")
 
     if payload_tracker_topic in app_common_python.KafkaTopics:
         topic_cfg = app_common_python.KafkaTopics[payload_tracker_topic]

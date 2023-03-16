@@ -50,9 +50,7 @@ def _prepare_kafka_mock(producer_init_mock):
 
 @pytest.mark.parametrize("bootstrap_value", _INVALID_SERVERS)
 @pytest.mark.parametrize("topic_value", _INVALID_TOPICS)
-def test_payload_tracker_watcher_invalid_initialize_invalid_servers(
-    bootstrap_value, topic_value
-):
+def test_payload_tracker_watcher_invalid_initialize_invalid_servers(bootstrap_value, topic_value):
     """Test passing invalid data types or values to the `PayloadTrackerWatcher` initializer."""
     with pytest.raises((TypeError, PermissionError, OverflowError, KeyError)):
         _ = PayloadTrackerWatcher(bootstrap_value, topic_value)

@@ -43,12 +43,8 @@ class SHAPublisher(Publisher):
         if self.topic is None:
             raise KeyError("outgoing_topic")
 
-        self.producer = KafkaProducer(
-            bootstrap_servers=self.bootstrap_servers, **kwargs
-        )
-        LOG.info(
-            "Producing to topic '%s' on brokers %s", self.topic, self.bootstrap_servers
-        )
+        self.producer = KafkaProducer(bootstrap_servers=self.bootstrap_servers, **kwargs)
+        LOG.info("Producing to topic '%s' on brokers %s", self.topic, self.bootstrap_servers)
         self.outdata_schema_version = 2
 
     def publish(self, input_msg, response):
@@ -76,9 +72,7 @@ class SHAPublisher(Publisher):
         try:
             account_number = int(input_msg["identity"]["identity"]["account_number"])
         except ValueError as err:
-            raise CCXMessagingError(
-                f"Error extracting the Account number: {err}"
-            ) from err
+            raise CCXMessagingError(f"Error extracting the Account number: {err}") from err
 
         # outgoing message in form of JSON
         message = ""

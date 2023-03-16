@@ -91,7 +91,6 @@ def test_stats_watcher_on_recv():
 
 def test_stats_watcher_on_download():
     """Test the on_download() method."""
-
     # construct watcher object
     w = StatsWatcher(prometheus_port=8002)
     init_timestamps(w)
@@ -139,7 +138,6 @@ def test_stats_watcher_on_process():
 
 def test_stats_watcher_on_process_timeout():
     """Test the on_process_timeout() method."""
-
     # construct watcher object
     w = StatsWatcher(prometheus_port=8004)
     init_timestamps(w)

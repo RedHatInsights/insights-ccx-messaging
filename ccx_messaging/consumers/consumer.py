@@ -69,8 +69,7 @@ class Consumer(ICMConsumer):
         retry_backoff_ms=1000,
         processing_timeout_s=0,
         **kwargs,
-    ):
-        # pylint: disable=too-many-arguments
+    ):  # pylint: disable=too-many-arguments
         """Construct a new external data pipeline Kafka consumer."""
         bootstrap_servers = kwargs.get("bootstrap_servers", None)
         if isinstance(bootstrap_servers, str):
@@ -98,9 +97,7 @@ class Consumer(ICMConsumer):
         )
 
         self.max_record_age = max_record_age
-        self.log_pattern = (
-            f"topic: {incoming_topic}, group_id: {kwargs.get('group_id', None)}"
-        )
+        self.log_pattern = f"topic: {incoming_topic}, group_id: {kwargs.get('group_id', None)}"
 
         self.last_received_message_time = time.time()
 
@@ -148,14 +145,10 @@ class Consumer(ICMConsumer):
             return
 
         if isinstance(msg, ConsumerRecord):
-            self.dlq_producer.send(
-                self.dead_letter_queue_topic, str(msg.value).encode("utf-8")
-            )
+            self.dlq_producer.send(self.dead_letter_queue_topic, str(msg.value).encode("utf-8"))
         else:
             # just add at least some record in case that the message is not of the expected type
-            self.dlq_producer.send(
-                self.dead_letter_queue_topic, str(msg).encode("utf-8")
-            )
+            self.dlq_producer.send(self.dead_letter_queue_topic, str(msg).encode("utf-8"))
 
     def _validate(self, msg):
         try:
@@ -171,9 +164,7 @@ class Consumer(ICMConsumer):
             LOG.debug("Identity schema validated (%s)", self.log_pattern)
 
             msg["ClusterName"] = (
-                decoded_identity.get("identity", {})
-                .get("system", {})
-                .get("cluster_id", None)
+                decoded_identity.get("identity", {}).get("system", {}).get("cluster_id", None)
             )
 
             msg["identity"] = decoded_identity
@@ -187,9 +178,7 @@ class Consumer(ICMConsumer):
             return CCXMessagingError(f"Invalid input message JSON schema: {ex}")
 
         except binascii.Error as ex:
-            return CCXMessagingError(
-                f"Base64 encoded identity could not be parsed: {ex}"
-            )
+            return CCXMessagingError(f"Base64 encoded identity could not be parsed: {ex}")
 
     def deserialize(self, bytes_):
         """
@@ -210,9 +199,7 @@ class Consumer(ICMConsumer):
             except json.JSONDecodeError as ex:
                 return CCXMessagingError(f"Unable to decode received message: {ex}")
         else:
-            return CCXMessagingError(
-                f"Unexpected input message type: {bytes_.__class__.__name__}"
-            )
+            return CCXMessagingError(f"Unexpected input message type: {bytes_.__class__.__name__}")
 
     def _handles_timestamp_check(self, input_msg):
         if not isinstance(input_msg.timestamp, int):
@@ -228,9 +215,7 @@ class Consumer(ICMConsumer):
 
         # Kafka record timestamp is int64 in milliseconds.
         if (input_msg.timestamp / 1000) < (time.time() - self.max_record_age):
-            LOG.debug(
-                "Skipping old message (%s)", Consumer.get_stringfied_record(input_msg)
-            )
+            LOG.debug("Skipping old message (%s)", Consumer.get_stringfied_record(input_msg))
             return False
 
         return True
@@ -305,9 +290,7 @@ class Consumer(ICMConsumer):
         # The `handles` method should prevent this from
         # being called if the input message format is wrong.
         except Exception as ex:
-            raise CCXMessagingError(
-                f"Unable to extract URL from input message: {ex}"
-            ) from ex
+            raise CCXMessagingError(f"Unable to extract URL from input message: {ex}") from ex
 
     @staticmethod
     def get_stringfied_record(input_record):
@@ -325,16 +308,11 @@ class Consumer(ICMConsumer):
         and sends an alert if it is the case
         """
         while True:
-            if (
-                time.time() - self.last_received_message_time
-                >= MAX_ELAPSED_TIME_BETWEEN_MESSAGES
-            ):
+            if time.time() - self.last_received_message_time >= MAX_ELAPSED_TIME_BETWEEN_MESSAGES:
                 last_received_time_str = time.strftime(
                     "%Y-%m-%d- %H:%M:%S", time.gmtime(self.last_received_message_time)
                 )
-                LOG.warning(
-                    "No new messages in the queue since %s", last_received_time_str
-                )
+                LOG.warning("No new messages in the queue since %s", last_received_time_str)
             # To do the minimum interruptions possible, sleep for one hour
             time.sleep(MAX_ELAPSED_TIME_BETWEEN_MESSAGES)
 
@@ -367,6 +345,7 @@ class AnemicConsumer(Consumer):
         processing_timeout_s=0,
         **kwargs,
     ):
+        """Initialize an `AnemicConsumer` object."""
         super().__init__(
             publisher,
             downloader,
@@ -399,9 +378,7 @@ class AnemicConsumer(Consumer):
             except json.JSONDecodeError as ex:
                 return CCXMessagingError(f"Unable to decode received message: {ex}")
         else:
-            return CCXMessagingError(
-                f"Unexpected input message type: {bytes_.__class__.__name__}"
-            )
+            return CCXMessagingError(f"Unexpected input message type: {bytes_.__class__.__name__}")
 
     def run(self):
         """Execute the consumer logic."""
@@ -414,9 +391,7 @@ class AnemicConsumer(Consumer):
             service = headers.get("service")
             if service:
                 if service != self.platform_service:
-                    LOG.debug(
-                        AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(service)
-                    )
+                    LOG.debug(AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(service))
                     continue
                 LOG.debug(AnemicConsumer.EXPECTED_SERVICE_DEBUG_MESSAGE)
                 msg_value = self._validate(msg.value)

@@ -55,9 +55,7 @@ class KafkaConsumer(Consumer):
         self.consumer.subscribe([incoming_topic])
 
         # Self handled vars
-        self.log_pattern = (
-            f"topic: {incoming_topic}, group_id: {kwargs.get('group_id', None)}"
-        )
+        self.log_pattern = f"topic: {incoming_topic}, group_id: {kwargs.get('group_id', None)}"
 
         # Service to filter in messages
         self.platform_service = platform_service
@@ -113,9 +111,7 @@ class KafkaConsumer(Consumer):
         destination_service = headers.get("service", b"").decode()
 
         if destination_service != self.platform_service:
-            LOG.debug(
-                "Message filtered: wrong detination service: %s", destination_service
-            )
+            LOG.debug("Message filtered: wrong detination service: %s", destination_service)
             return False
 
         return True
@@ -172,15 +168,9 @@ class KafkaConsumer(Consumer):
             raise CCXMessagingError("Unable to read incoming message: %s", value)
 
         deseralized_msg = parse_ingress_message(value)
-        LOG.debug(
-            "JSON message deserialized (%s): %s", self.log_pattern, deseralized_msg
-        )
+        LOG.debug("JSON message deserialized (%s): %s", self.log_pattern, deseralized_msg)
 
-        cluster_id = (
-            deseralized_msg.get("identity", {})
-            .get("system", {})
-            .get("cluster_id", None)
-        )
+        cluster_id = deseralized_msg.get("identity", {}).get("system", {}).get("cluster_id", None)
         deseralized_msg["cluster_name"] = cluster_id
         return deseralized_msg
 
@@ -192,16 +182,11 @@ class KafkaConsumer(Consumer):
         and sends an alert if it is the case
         """
         while True:
-            if (
-                time.time() - self.last_received_message_time
-                >= MAX_ELAPSED_TIME_BETWEEN_MESSAGES
-            ):
+            if time.time() - self.last_received_message_time >= MAX_ELAPSED_TIME_BETWEEN_MESSAGES:
                 last_received_time_str = time.strftime(
                     "%Y-%m-%d- %H:%M:%S", time.gmtime(self.last_received_message_time)
                 )
-                LOG.warning(
-                    "No new messages in the queue since %s", last_received_time_str
-                )
+                LOG.warning("No new messages in the queue since %s", last_received_time_str)
             # To do the minimum interruptions possible, sleep for one hour
             time.sleep(MAX_ELAPSED_TIME_BETWEEN_MESSAGES)
 
@@ -212,11 +197,13 @@ class KafkaConsumer(Consumer):
 
         if isinstance(msg, Message):
             self.dlq_producer.send(
-                self.dead_letter_queue_topic, msg.value(),
+                self.dead_letter_queue_topic,
+                msg.value(),
             )
 
         else:
             # just add at least some record in case that the message is not of the expected type
             self.dlq_producer.send(
-                self.dead_letter_queue_topic, str(msg).encode("utf-8"),
+                self.dead_letter_queue_topic,
+                str(msg).encode("utf-8"),
             )
