@@ -65,7 +65,9 @@ class ClusterIdWatcher(EngineWatcher, ConsumerWatcher):
 
                 except ValueError:
                     self.last_record.value["ClusterName"] = None
-                    LOG.warning("The cluster id is not an UUID. Skipping its extraction")
+                    LOG.warning(
+                        "The cluster id is not an UUID. Skipping its extraction"
+                    )
 
         except FileNotFoundError:
             self.last_record.value["ClusterName"] = None

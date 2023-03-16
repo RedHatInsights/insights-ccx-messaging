@@ -98,7 +98,9 @@ class Consumer(ICMConsumer):
         )
 
         self.max_record_age = max_record_age
-        self.log_pattern = f"topic: {incoming_topic}, group_id: {kwargs.get('group_id', None)}"
+        self.log_pattern = (
+            f"topic: {incoming_topic}, group_id: {kwargs.get('group_id', None)}"
+        )
 
         self.last_received_message_time = time.time()
 
@@ -140,7 +142,6 @@ class Consumer(ICMConsumer):
         for msg in self.consumer:
             self._consume(msg)
 
-
     def process_dead_letter(self, msg):
         """Send unprocessed message to the dead letter queue topic."""
         if not self.dlq_producer:
@@ -152,7 +153,9 @@ class Consumer(ICMConsumer):
             )
         else:
             # just add at least some record in case that the message is not of the expected type
-            self.dlq_producer.send(self.dead_letter_queue_topic, str(msg).encode("utf-8"))
+            self.dlq_producer.send(
+                self.dead_letter_queue_topic, str(msg).encode("utf-8")
+            )
 
     def _validate(self, msg):
         try:
@@ -169,8 +172,8 @@ class Consumer(ICMConsumer):
 
             msg["ClusterName"] = (
                 decoded_identity.get("identity", {})
-                    .get("system", {})
-                    .get("cluster_id", None)
+                .get("system", {})
+                .get("cluster_id", None)
             )
 
             msg["identity"] = decoded_identity
@@ -322,7 +325,10 @@ class Consumer(ICMConsumer):
         and sends an alert if it is the case
         """
         while True:
-            if time.time() - self.last_received_message_time >= MAX_ELAPSED_TIME_BETWEEN_MESSAGES:
+            if (
+                time.time() - self.last_received_message_time
+                >= MAX_ELAPSED_TIME_BETWEEN_MESSAGES
+            ):
                 last_received_time_str = time.strftime(
                     "%Y-%m-%d- %H:%M:%S", time.gmtime(self.last_received_message_time)
                 )
@@ -361,8 +367,17 @@ class AnemicConsumer(Consumer):
         processing_timeout_s=0,
         **kwargs,
     ):
-        super().__init__(publisher, downloader, engine, incoming_topic, dead_letter_queue_topic,
-                         max_record_age, retry_backoff_ms, processing_timeout_s, **kwargs)
+        super().__init__(
+            publisher,
+            downloader,
+            engine,
+            incoming_topic,
+            dead_letter_queue_topic,
+            max_record_age,
+            retry_backoff_ms,
+            processing_timeout_s,
+            **kwargs,
+        )
         self.platform_service = platform_service.encode("utf-8")
 
     def deserialize(self, bytes_):
@@ -396,10 +411,12 @@ class AnemicConsumer(Consumer):
             if not headers:
                 LOG.debug(AnemicConsumer.NO_HEADER_DEBUG_MESSAGE)
                 continue
-            service = headers.get('service')
+            service = headers.get("service")
             if service:
                 if service != self.platform_service:
-                    LOG.debug(AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(service))
+                    LOG.debug(
+                        AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(service)
+                    )
                     continue
                 LOG.debug(AnemicConsumer.EXPECTED_SERVICE_DEBUG_MESSAGE)
                 msg_value = self._validate(msg.value)

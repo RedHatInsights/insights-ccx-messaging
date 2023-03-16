@@ -14,25 +14,18 @@
 
 """Tests for error classes."""
 
-import pytest
-from collections import namedtuple
-
 from ccx_messaging.error import CCXMessagingError
 
 
-InputMessage = namedtuple("InputMessage", "topic partition offset value")
-
-input_msg = InputMessage(
-    topic="topic name",
-    partition="partition name",
-    offset=1234,
-    value={
-        "url": "any/url",
-        "identity": {"identity": {"internal": {"org_id": "12345678"}}},
-        "timestamp": "2020-01-23T16:15:59.478901889Z",
-        "ClusterName": "clusterName",
-    },
-)
+input_msg = {
+    "topic": "topic name",
+    "partition": "partition name",
+    "offset": 1234,
+    "url": "any/url",
+    "identity": {"identity": {"internal": {"org_id": "12345678"}}},
+    "timestamp": "2020-01-23T16:15:59.478901889Z",
+    "cluster_name": "clusterName",
+}
 
 
 def test_error_formatting():

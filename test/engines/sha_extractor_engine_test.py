@@ -14,16 +14,16 @@
 
 """Module for testing the engines module."""
 
-from pythonjsonlogger import jsonlogger
+from insights.formats.text import HumanReadableFormat
 import pytest
 
 from ccx_messaging.engines.sha_extractor_engine import SHAExtractorEngine
 
+
 def test_init():
     """Test the SHAExtractorEngine constructor."""
 
-    formatter = jsonlogger
-    e = SHAExtractorEngine(formatter)
+    e = SHAExtractorEngine(HumanReadableFormat)
 
     # just basic check
     assert e is not None
@@ -32,8 +32,7 @@ def test_init():
 def test_process_no_extract():
     """Basic test for SHAExtractorEngine."""
 
-    formatter = jsonlogger
-    e = SHAExtractorEngine(formatter)
+    e = SHAExtractorEngine(HumanReadableFormat)
     e.watchers = []
     e.extract_tmp_dir = "not-exist"
 
@@ -47,8 +46,7 @@ def test_process_no_extract():
 def test_process_extract_wrong_data():
     """Basic test for SHAExtractorEngine."""
 
-    formatter = jsonlogger
-    e = SHAExtractorEngine(formatter)
+    e = SHAExtractorEngine(HumanReadableFormat)
     e.watchers = []
     e.extract_tmp_dir = ""
 
@@ -62,8 +60,7 @@ def test_process_extract_wrong_data():
 def test_process_extract_correct_data():
     """Basic test for SHAExtractorEngine."""
 
-    formatter = jsonlogger
-    e = SHAExtractorEngine(formatter)
+    e = SHAExtractorEngine(HumanReadableFormat)
     e.watchers = []
     e.extract_tmp_dir = ""
 

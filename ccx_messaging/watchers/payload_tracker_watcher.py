@@ -28,7 +28,9 @@ LOG = logging.getLogger(__name__)
 class PayloadTrackerWatcher(ConsumerWatcher):
     """`Watcher` implementation to handle Payload Tracker updates."""
 
-    def __init__(self, bootstrap_servers, topic, service_name="ccx-data-pipeline", **kwargs):
+    def __init__(
+        self, bootstrap_servers, topic, service_name="ccx-data-pipeline", **kwargs
+    ):
         """Construct a `PayloadTrackerWatcher` object."""
         self.topic = topic
 
@@ -52,7 +54,9 @@ class PayloadTrackerWatcher(ConsumerWatcher):
         account = identity_field.get("account_number")
 
         if request_id is None:
-            LOG.warning("The received record doesn't contain a request_id. It won't be reported")
+            LOG.warning(
+                "The received record doesn't contain a request_id. It won't be reported"
+            )
             return
 
         tracker_msg = {
