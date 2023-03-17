@@ -66,8 +66,7 @@ def init_timestamps(w):
 
 def test_stats_watcher_on_recv():
     """Test the on_recv() method."""
-    input_msg_mock = MagicMock()
-    input_msg_mock.value = {"identity": {}}
+    input_msg = {"identity": {}}
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8001)
@@ -77,7 +76,7 @@ def test_stats_watcher_on_recv():
     check_initial_metrics_state(w)
 
     # change metrics
-    w.on_recv(input_msg_mock)
+    w.on_recv(input_msg)
 
     # test new metrics values
     assert w._recv_total._value.get() == 1
@@ -113,8 +112,7 @@ def test_stats_watcher_on_download():
 
 def test_stats_watcher_on_process():
     """Test the on_process() method."""
-    input_msg_mock = MagicMock()
-    input_msg_mock.value = {"identity": {}}
+    input_msg = {"identity": {}}
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8003)
@@ -124,7 +122,7 @@ def test_stats_watcher_on_process():
     check_initial_metrics_state(w)
 
     # change metrics
-    w.on_process(input_msg_mock, "{result}")
+    w.on_process(input_msg, "{result}")
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
@@ -157,15 +155,14 @@ def test_stats_watcher_on_process_timeout():
 
 def test_stats_watcher_on_consumer_success():
     """Test the on_consumer_success() method."""
-    input_msg_mock = MagicMock()
-    input_msg_mock.value = {"identity": {}}
+    input_msg = {"identity": {}}
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8005)
     init_timestamps(w)
 
     # change metrics
-    w.on_consumer_success(input_msg_mock, "broker", "{result}")
+    w.on_consumer_success(input_msg, "broker", "{result}")
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
@@ -179,15 +176,14 @@ def test_stats_watcher_on_consumer_success():
 
 def test_stats_watcher_on_consumer_failure():
     """Test the on_consumer_failure() method."""
-    input_msg_mock = MagicMock()
-    input_msg_mock.value = {"identity": {}}
+    input_msg = {"identity": {}}
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8006)
     init_timestamps(w)
 
     # change metrics
-    w.on_consumer_failure(input_msg_mock, Exception("something"))
+    w.on_consumer_failure(input_msg, Exception("something"))
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
@@ -202,7 +198,7 @@ def test_stats_watcher_on_consumer_failure():
     w._downloaded_time = None
 
     # change metrics again
-    w.on_consumer_failure(input_msg_mock, Exception("something"))
+    w.on_consumer_failure(input_msg, Exception("something"))
 
     # metric should change
     assert w._failures_total._value.get() == 2
@@ -211,7 +207,7 @@ def test_stats_watcher_on_consumer_failure():
     w._processed_time = None
 
     # change metrics again
-    w.on_consumer_failure(input_msg_mock, Exception("something"))
+    w.on_consumer_failure(input_msg, Exception("something"))
 
     # metric should change again
     assert w._failures_total._value.get() == 3
@@ -221,7 +217,7 @@ def test_stats_watcher_on_consumer_failure():
     w._processed_time = None
 
     # change metrics again
-    w.on_consumer_failure(input_msg_mock, Exception("something"))
+    w.on_consumer_failure(input_msg, Exception("something"))
 
     # metric should change again
     assert w._failures_total._value.get() == 4
@@ -229,15 +225,14 @@ def test_stats_watcher_on_consumer_failure():
 
 def test_stats_watcher_on_not_handled():
     """Test the on_not_handled() method."""
-    input_msg_mock = MagicMock()
-    input_msg_mock.value = {"identity": {}}
+    input_msg = {"identity": {}}
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8007)
     init_timestamps(w)
 
     # change metrics
-    w.on_not_handled(input_msg_mock)
+    w.on_not_handled(input_msg)
 
     # test new metrics values
     assert w._recv_total._value.get() == 0

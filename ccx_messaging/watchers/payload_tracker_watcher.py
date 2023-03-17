@@ -46,8 +46,8 @@ class PayloadTrackerWatcher(ConsumerWatcher):
 
     def _publish_status(self, input_msg, status, status_msg=None):
         """Send an status update to payload tracker topic."""
-        request_id = input_msg.value.get("request_id")
-        identity_field = input_msg.value.get("identity", {}).get("identity", {})
+        request_id = input_msg.get("request_id")
+        identity_field = input_msg.get("identity", {}).get("identity", {})
         org_id = identity_field.get("internal", {}).get("org_id")
         account = identity_field.get("account_number")
 
