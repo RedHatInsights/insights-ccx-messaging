@@ -77,9 +77,27 @@ class KafkaConsumer(Consumer):
             dlq_producer_config = producer_config(kwargs)
             self.dlq_producer = KafkaProducer(**dlq_producer_config)
 
-    def get_url(self, input_msg):
-        """Return the URL for the archive in order to be used by the appropriate downloader."""
-        return input_msg["url"]
+    def get_url(self, input_msg: dict) -> str:
+        """
+        Retrieve URL to storage (S3/Minio) from Kafka message.
+
+        Same as previous 2 methods, when we receive and figure out the
+        message format, we can modify this method
+        """
+        try:
+            url = input_msg["url"]
+            LOG.debug(
+                "Extracted URL from input message: %s (%s)",
+                url,
+                get_stringfied_record(input_msg),
+            )
+            return url
+
+        # This should never happen, but let's check it just to be absolutely sure.
+        # The `handles` method should prevent this from
+        # being called if the input message format is wrong.
+        except Exception as ex:
+            raise CCXMessagingError(f"Unable to extract URL from input message: {ex}") from ex
 
     def run(self):
         """Consume message and proccess."""
@@ -102,6 +120,9 @@ class KafkaConsumer(Consumer):
 
     def handles(self, msg: Message) -> bool:
         """Check headers, format and other characteristics that can make the message unusable."""
+        if not self.platform_service:
+            return True
+
         headers = msg.headers()
         if not headers:
             LOG.debug("Message filtered: no headers in message")
@@ -161,7 +182,14 @@ class KafkaConsumer(Consumer):
 
     def deserialize(self, msg: Message) -> dict:
         """Deserialize the message received from Kafka into a dictionary."""
-        value = msg.value()
+        if not msg:
+            raise CCXMessagingError("No incoming message: %s", msg)
+        
+        try:
+            value = msg.value()
+        except AttributeError as ex:
+            raise CCXMessagingError("Invalid incoming message type: %s", type(msg)) from ex
+        
         LOG.debug("Deserializing incoming message(%s): %s", self.log_pattern, value)
 
         if not value:
@@ -207,3 +235,11 @@ class KafkaConsumer(Consumer):
                 self.dead_letter_queue_topic,
                 str(msg).encode("utf-8"),
             )
+
+
+def get_stringfied_record(input_record: dict) -> str:
+    """Retrieve a string with information about the received record ready to log."""
+    return (
+        f"topic: '{input_record.get('topic')}', partition: {input_record.get('partition')}, "
+        f"offset: {input_record.get('offset')}, timestamp: {input_record.get('timestamp')}"
+    )

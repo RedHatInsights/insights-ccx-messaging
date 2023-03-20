@@ -23,6 +23,11 @@ def parse_identity(encoded_identity: bytes) -> dict:
         jsonschema.validate(instance=identity, schema=IDENTITY_SCHEMA)
         return identity
 
+    except TypeError as ex:
+        raise CCXMessagingError(
+            "Bad argument type %s", encoded_identity
+        ) from ex
+
     except binascii.Error as ex:
         raise CCXMessagingError(
             f"Base64 encoded identity could not be parsed: {encoded_identity}"
@@ -40,6 +45,9 @@ def parse_ingress_message(message: bytes) -> dict:
     try:
         deserialized_message = json.loads(message)
         jsonschema.validate(instance=deserialized_message, schema=INPUT_MESSAGE_SCHEMA)
+
+    except TypeError as ex:
+        raise CCXMessagingError(f"Incorrect message type: {message}") from ex
 
     except json.JSONDecodeError as ex:
         raise CCXMessagingError(f"Unable to decode received message: {message}") from ex
