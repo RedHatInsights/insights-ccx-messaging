@@ -24,9 +24,7 @@ def parse_identity(encoded_identity: bytes) -> dict:
         return identity
 
     except TypeError as ex:
-        raise CCXMessagingError(
-            "Bad argument type %s", encoded_identity
-        ) from ex
+        raise CCXMessagingError("Bad argument type %s", encoded_identity) from ex
 
     except binascii.Error as ex:
         raise CCXMessagingError(

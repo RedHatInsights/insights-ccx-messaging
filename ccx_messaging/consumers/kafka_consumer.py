@@ -184,12 +184,12 @@ class KafkaConsumer(Consumer):
         """Deserialize the message received from Kafka into a dictionary."""
         if not msg:
             raise CCXMessagingError("No incoming message: %s", msg)
-        
+
         try:
             value = msg.value()
         except AttributeError as ex:
             raise CCXMessagingError("Invalid incoming message type: %s", type(msg)) from ex
-        
+
         LOG.debug("Deserializing incoming message(%s): %s", self.log_pattern, value)
 
         if not value:

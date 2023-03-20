@@ -14,7 +14,7 @@
 
 """Module containing unit tests for the `ConsumerWatcher` class."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 import time

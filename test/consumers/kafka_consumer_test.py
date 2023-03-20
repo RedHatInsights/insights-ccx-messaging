@@ -18,38 +18,28 @@ import logging
 import io
 import time
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
-
-# from kafka import KafkaConsumer, KafkaProducer
-# from kafka.consumer.fetcher import ConsumerRecord
-from confluent_kafka import Consumer
 
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
 
-from test.utils import (
-    mock_consumer_record,
-    mock_consumer_process_no_action_catch_exception,
-)
-
 
 class KafkaMessage:
     """Test double for the confluent_kafka.Message class."""
+
     def __init__(self, msg, headers=None):
         """Initialize a KafkaMessage test double."""
         self.msg = msg
         self._headers = headers
+        self.topic = lambda: "topic"
+        self.partition = lambda: 0
+        self.offset = lambda: 0
+        self.value = lambda: self.msg
+        self.error = lambda: None
+        self.headers = lambda: self._headers
 
-    def value(self):
-        return self.msg
-    
-    def error(self):
-        return None
-
-    def headers(self):
-        return self._headers
 
 # _REGEX_BAD_SCHEMA = r"^Unable to extract URL from input message: "
 _INVALID_TYPE_VALUES = [
@@ -82,11 +72,9 @@ _INVALID_MESSAGES = [
     # incorrect content of b64_identity (org_id missing)
     '{"url": "https://s3.com/hash", "b64_identity": "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im1pc'
     '3Npbmdfb3JnX2lkIjogIjEyMzQ1Njc4In19fQo=", "timestamp": "2020-01-23T16:15:59.478901889Z"}',
-
     # incorrect format of base64 encoding
     '{"url": "https://s3.com/hash", "b64_identity": "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ1'
     '9pZCI6ICIxMjM0NTY3OCJ9Cg=", "timestamp": "2020-01-23T16:15:59.478901889Z"}',
- 
     # org_id not string
     '{"url": "https://s3.com/hash", "b64_identity": "eyJpZGVudGl0eSI6IHsKICAgICJhY2NvdW50X251bW'
     "JlciI6ICI5ODc2NTQzIiwKICAgICJhdXRoX3R5cGUiOiAiYmFzaWMtYXV0aCIsCiAgICAiaW50ZXJuYWwiOiB7CiAg"
@@ -177,7 +165,7 @@ _NO_HANDLE_HEADERS = [
     None,
     {},
     {"not_expected_key": b"ignored_value"},
-    {"service": b"this is not my service"}
+    {"service": b"this is not my service"},
 ]
 
 _HANDLE_HEADER = {"service": b"some_service"}
@@ -204,6 +192,7 @@ def test_platform_filter_platform_service(consumer_mock):
     """Test that filter by platform behaves as expected."""
     sut = KafkaConsumer(None, None, None, None, platform_service=PLATFORM_SERVICE)
     assert sut.handles(KafkaMessage("{}", _HANDLE_HEADER))
+
 
 # This would have been a valid input, but it's supposed to be a `dict`, not `str`.
 _DICT_STR = '{"url": "bucket/file"}'
@@ -314,7 +303,9 @@ def test_elapsed_time_thread_warning_when_no_message_received(consumer_mock):
     logger.addHandler(log_handler)
 
     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-        sut = KafkaConsumer(None, None, None, "topic", group_id="group", bootstrap_servers=["server"])
+        sut = KafkaConsumer(
+            None, None, None, "topic", group_id="group", bootstrap_servers=["server"]
+        )
         assert sut.check_elapsed_time_thread
         alert_time = time.strftime(
             "%Y-%m-%d- %H:%M:%S", time.gmtime(sut.last_received_message_time)
@@ -327,222 +318,74 @@ def test_elapsed_time_thread_warning_when_no_message_received(consumer_mock):
     logger.removeHandler(log_handler)
 
 
-# @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
-# @patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.handles", lambda *a, **k: True)
-# @patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.fire", lambda *a, **k: None)
-# @patch(
-#     "ccx_messaging.consumers.kafka_consumer.get_stringfied_record",
-#     lambda *a, **k: None,
-# )
-# def test_process_message_timeout_no_kafka_requeuer(mock_consumer):
-#     """Test timeout mechanism that wraps the process function."""
-#     breakpoint()
-#     process_message_timeout = 2
-#     process_message_timeout_elapsed = 3
-#     process_message_timeout_not_elapsed = 1
-#     consumer_messages_to_process = _VALID_MESSAGES[0]
-#     expected_alert_message = "Couldn't process message in the given time frame."
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_process_msg_not_handled():
+    """Test the `process_msg` method in the `KafkaConsumer` class.
 
-#     buf = io.StringIO()
-#     log_handler = logging.StreamHandler(buf)
+    This method will check that neither sut.deserialize or sut.process are called
+    """
+    sut = KafkaConsumer(None, None, None, None)
+    sut.deserialize = MagicMock()
+    sut.process = MagicMock()
+    sut.handles = lambda *a: False
 
-#     logger = logging.getLogger()
-#     logger.level = logging.DEBUG
-#     logger.addHandler(log_handler)
+    sut.process_msg(None)
+    assert not sut.deserialize.called
+    assert not sut.process.called
 
-#     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-#         sut = KafkaConsumer(None, None, None, None)
-#         sut.consumer.consume.return_value = [KafkaMessage(consumer_messages_to_process[0])]
-#         assert sut.processing_timeout == 0  # Should be 0 if not changed in config file
-
-#         with patch(
-#             "ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process",
-#             lambda *a, **k: mock_consumer_process_no_action_catch_exception(0),
-#         ):
-#             sut.run()
-#             assert expected_alert_message not in buf.getvalue()
-
-#         sut.processing_timeout = process_message_timeout
-
-#         with patch(
-#             "ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process",
-#             lambda *a, **k: mock_consumer_process_no_action_catch_exception(
-#                 process_message_timeout_not_elapsed
-#             ),
-#         ):
-#             sut.run()
-#             assert expected_alert_message not in buf.getvalue()
-
-#         with patch(
-#             "ccx_messaging.consumers.consumer.Consumer.process",
-#             lambda *a, **k: mock_consumer_process_no_action_catch_exception(
-#                 process_message_timeout_elapsed
-#             ),
-#         ):
-#             sut.run()
-#             assert expected_alert_message in buf.getvalue()
-
-#     logger.removeHandler(log_handler)
+    sut.process_msg(KafkaMessage("any message that won't be handled"))
+    assert not sut.deserialize.called
+    assert not sut.process.called
 
 
-# _VALID_SERVICES = [("test_service")]
+@pytest.mark.parametrize("value,expected", _VALID_MESSAGES)
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+@patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.handles", lambda *a, **k: True)
+@patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.fire", lambda *a, **k: None)
+@patch(
+    "ccx_messaging.consumers.kafka_consumer.get_stringfied_record",
+    lambda *a, **k: None,
+)
+def test_process_msg_handled(value, expected):
+    """Check if `process_msg` behaves as expected."""
+    sut = KafkaConsumer(None, None, None, None)
+    input_msg = KafkaMessage(value)
+    expected.update(
+        {
+            "topic": input_msg.topic(),
+            "partition": input_msg.partition(),
+            "offset": input_msg.offset(),
+        }
+    )
 
-# _VALID_MESSAGES_WITH_UNEXPECTED_SERVICE_HEADER = [
-#     ConsumerRecord(
-#         topic="platform.upload.announce",
-#         partition=0,
-#         offset=24,
-#         timestamp=1661327909633,
-#         timestamp_type=0,
-#         key=None,
-#         value={
-#             "account": "0369233",
-#             "category": "archive",
-#             "service": "test_service",
-#             "timestamp": "2022-08-24T07:58:29.6326987Z",
-#         },
-#         headers=[("service", b"some_unexpected_service")],
-#         checksum=1234,
-#         serialized_key_size=12,
-#         serialized_value_size=1,
-#         serialized_header_size=1,
-#     )
-# ]
-
-# _VALID_MESSAGES_WITH_EXPECTED_SERVICE_HEADER = [
-#     ConsumerRecord(
-#         topic="platform.upload.announce",
-#         partition=0,
-#         offset=24,
-#         timestamp=1661327909633,
-#         timestamp_type=0,
-#         key=None,
-#         value={
-#             "account": "0369233",
-#             "category": "archive",
-#             "service": "test_service",
-#             "timestamp": "2022-08-24T07:58:29.6326987Z",
-#         },
-#         headers=[("service", b"test_service")],
-#         checksum=1234,
-#         serialized_key_size=12,
-#         serialized_value_size=1,
-#         serialized_header_size=1,
-#     )
-# ]
-
-# _VALID_MESSAGES_WITH_NO_SERVICE_HEADER = [
-#     ConsumerRecord(
-#         topic="platform.upload.announce",
-#         partition=0,
-#         offset=24,
-#         timestamp=1661327909633,
-#         timestamp_type=0,
-#         key=None,
-#         value={
-#             "account": "0369233",
-#             "category": "archive",
-#             "service": "test_service",
-#             "timestamp": "2022-08-24T07:58:29.6326987Z",
-#         },
-#         headers=[("some_header", "some_value")],
-#         checksum=1234,
-#         serialized_key_size=12,
-#         serialized_value_size=1,
-#         serialized_header_size=1,
-#     )
-# ]
+    with patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process") as process_mock:
+        sut.process_msg(input_msg)
+        process_mock.assert_called_with(expected)
 
 
-# def test_anemic_consumer_deserialize():
-#     """Test deserialize method of `AnemicConsumer`."""
-#     consumer_message = _VALID_MESSAGES[0]
-#     buf = io.StringIO()
-#     log_handler = logging.StreamHandler(buf)
-#     logger = logging.getLogger()
-#     logger.level = logging.DEBUG
-#     logger.addHandler(log_handler)
+@pytest.mark.parametrize("value,expected", _VALID_MESSAGES)
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+@patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.handles", lambda *a, **k: True)
+@patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.fire", lambda *a, **k: None)
+@patch(
+    "ccx_messaging.consumers.kafka_consumer.get_stringfied_record",
+    lambda *a, **k: None,
+)
+def test_non_processed_to_dlq(value, expected):
+    """Check that, if in some point an exception is raised, DLQ will handle it."""
+    sut = KafkaConsumer(None, None, None, None)
+    input_msg = KafkaMessage(value)
 
-#     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-#         sut = AnemicConsumer(None, None, None, None, platform_service="any")
-#         deserialized = sut.deserialize(consumer_message[0])
-#         assert isinstance(deserialized, dict)
-#         assert deserialized.get("url") == ""
-#         assert (
-#             deserialized.get("b64_identity")
-#             == "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIxMjM0NTY3OCJ9fX0K"
-#         )
-#         assert deserialized.get("timestamp") == "2020-01-23T16:15:59.478901889Z"
+    with patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process") as process_mock:
+        with patch(
+            "ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process_dead_letter"
+        ) as process_dlq_mock:
+            process_mock.side_effect = [CCXMessagingError, TimeoutError, IndexError]
+            sut.process_msg(input_msg)
+            process_dlq_mock.assert_called_with(input_msg)
 
-#     logger.removeHandler(log_handler)
+            sut.process_msg(input_msg)
+            process_dlq_mock.assert_called_with(input_msg)
 
-
-# @patch("ccx_messaging.consumers.consumer.Consumer.handles", lambda *a, **k: True)
-# @patch("ccx_messaging.consumers.consumer.Consumer.fire", lambda *a, **k: None)
-# @patch(
-#     "ccx_messaging.consumers.consumer.Consumer.get_stringfied_record",
-#     lambda *a, **k: None,
-# )
-# @pytest.mark.parametrize("service", _VALID_SERVICES)
-# def test_anemic_consumer_run_no_service_in_header(service):
-#     """Test run method of `AnemicConsumer` with no service in received message's header."""
-#     buf = io.StringIO()
-#     log_handler = logging.StreamHandler(buf)
-#     logger = logging.getLogger()
-#     logger.level = logging.DEBUG
-#     logger.addHandler(log_handler)
-
-#     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-#         sut = AnemicConsumer(None, None, None, None, platform_service=service)
-#         sut.consumer = _VALID_MESSAGES_WITH_NO_SERVICE_HEADER
-#         sut.run()
-#         assert AnemicConsumer.NO_SERVICE_DEBUG_MESSAGE in buf.getvalue()
-
-#     logger.removeHandler(log_handler)
-
-
-# @pytest.mark.parametrize("service", _VALID_SERVICES)
-# def test_anemic_consumer_run_unexpected_service(service):
-#     """Test run method of `AnemicConsumer` with unexpected service in received message's header."""
-#     buf = io.StringIO()
-#     log_handler = logging.StreamHandler(buf)
-#     logger = logging.getLogger()
-#     logger.level = logging.DEBUG
-#     logger.addHandler(log_handler)
-
-#     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-#         sut = AnemicConsumer(None, None, None, None, platform_service=service)
-#         sut.consumer = _VALID_MESSAGES_WITH_UNEXPECTED_SERVICE_HEADER
-#         sut.run()
-#         assert (
-#             AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(b"some_unexpected_service")
-#             in buf.getvalue()
-#         )
-
-#     logger.removeHandler(log_handler)
-
-
-# @patch("ccx_messaging.consumers.consumer.Consumer.handles", lambda *a, **k: True)
-# @patch("ccx_messaging.consumers.consumer.Consumer.fire", lambda *a, **k: None)
-# @patch(
-#     "ccx_messaging.consumers.consumer.Consumer.get_stringfied_record",
-#     lambda *a, **k: None,
-# )
-# @pytest.mark.parametrize("service", _VALID_SERVICES)
-# def test_anemic_consumer_run_expected_service(service):
-#     """Test run method of `AnemicConsumer` with expected service in received message's header."""
-#     buf = io.StringIO()
-#     log_handler = logging.StreamHandler(buf)
-#     logger = logging.getLogger()
-#     logger.level = logging.DEBUG
-#     logger.addHandler(log_handler)
-
-#     with patch("ccx_messaging.consumers.consumer.LOG", logger):
-#         sut = AnemicConsumer(None, None, None, None, platform_service=service)
-#         sut.consumer = _VALID_MESSAGES_WITH_EXPECTED_SERVICE_HEADER
-#         sut.run()
-#         logs = buf.getvalue()
-#         assert AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE not in logs
-#         assert AnemicConsumer.NO_SERVICE_DEBUG_MESSAGE not in logs
-#         assert AnemicConsumer.EXPECTED_SERVICE_DEBUG_MESSAGE in logs
-#     logger.removeHandler(log_handler)
+            sut.process_msg(input_msg)
+            process_dlq_mock.assert_called_with(input_msg)

@@ -34,11 +34,3 @@ repos:
   hooks:
     - id: pydocstyle
       language_version: python3
-# - repo: local
-#   hooks:
-#     - id: pylint
-#       name: pylint
-#       entry: pylint
-#       language: system
-#       types: [python]
-#       args: [--disable=fixme]
