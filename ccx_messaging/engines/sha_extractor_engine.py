@@ -15,6 +15,7 @@
 """Module that defines an Engine class for processing a downloaded archive."""
 
 import logging
+import os.path
 
 from insights.core.archives import extract
 from insights.core.hydration import initialize_broker
@@ -26,16 +27,6 @@ log = logging.getLogger(__name__)
 class SHAExtractorEngine(ICMEngine):
     """Engine for extraction of downloading tar archive and selecting a file to be processed."""
 
-    def __init__(
-        self,
-        formatter,
-        target_components=None,
-        extract_timeout=None,
-        extract_tmp_dir=None,
-    ):
-        """`Engine` initializer."""
-        super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
-
     def process(self, broker, path):
         """
         Retrieve SHA records from a downloaded archive.
@@ -43,8 +34,8 @@ class SHAExtractorEngine(ICMEngine):
         The archive is extracted and if the SHA records are found, the JSON is retrieved
         from the file and returned as the method output. Otherwise, None is returned.
         """
-        for w in self.watchers:
-            w.watch_broker(broker)
+        for watcher in self.watchers:
+            watcher.watch_broker(broker)
 
         try:
             self.fire("pre_extract", broker, path)
@@ -57,8 +48,9 @@ class SHAExtractorEngine(ICMEngine):
                 self.fire("on_extract", ctx, broker, extraction)
 
                 try:
-                    with open(extraction.tmp_dir + "/config/workload_info.json") as f:
-                        result = f.read()
+                    filename = os.path.join(extraction.tmp_dir, "config", "workload_info.json")
+                    with open(filename, encoding="utf-8") as stream:
+                        result = stream.read()
                         log.debug("workload info found, starting publishing process")
                         self.fire("on_engine_success", broker, result)
                         return result

@@ -50,25 +50,25 @@ class ClusterIdWatcher(EngineWatcher, ConsumerWatcher):
             )
             return
 
-        if self.last_record.value.get("ClusterName", None) is not None:
+        if self.last_record.get("cluster_name", None) is not None:
             return
 
         id_file_path = os.path.join(extraction.tmp_dir, "config", "id")
 
         try:
-            with open(id_file_path, "r") as id_file:
+            with open(id_file_path) as id_file:
                 cluster_uuid = id_file.read(ClusterIdWatcher.CLUSTER_ID_LENGTH)
 
                 try:
                     UUID(cluster_uuid)
-                    self.last_record.value["ClusterName"] = cluster_uuid
+                    self.last_record["cluster_name"] = cluster_uuid
 
                 except ValueError:
-                    self.last_record.value["ClusterName"] = None
+                    self.last_record["cluster_name"] = None
                     LOG.warning("The cluster id is not an UUID. Skipping its extraction")
 
         except FileNotFoundError:
-            self.last_record.value["ClusterName"] = None
+            self.last_record["cluster_name"] = None
             LOG.warning(
                 "The archive doesn't contain a valid Cluster Id file. Skipping its extraction"
             )

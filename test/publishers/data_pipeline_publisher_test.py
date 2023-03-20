@@ -16,7 +16,6 @@
 
 import unittest
 from unittest.mock import MagicMock, patch
-from collections import namedtuple
 
 from kafka.consumer.fetcher import ConsumerRecord
 
@@ -24,26 +23,20 @@ from ccx_messaging.publishers.data_pipeline_publisher import DataPipelinePublish
 from ccx_messaging.error import CCXMessagingError
 
 
-InputMessage = namedtuple("InputMessage", "topic partition offset value")
-
-input_msg = InputMessage(
-    topic="topic name",
-    partition="partition name",
-    offset=1234,
-    value={
-        "url": "any/url",
-        "identity": {"identity": {"internal": {"org_id": "12345678"}}},
-        "timestamp": "2020-01-23T16:15:59.478901889Z",
-        "ClusterName": "clusterName",
-    },
-)
+input_msg = {
+    "topic": "topic name",
+    "partition": "partition name",
+    "offset": 1234,
+    "url": "any/url",
+    "identity": {"identity": {"internal": {"org_id": "12345678"}}},
+    "timestamp": "2020-01-23T16:15:59.478901889Z",
+    "cluster_name": "clusterName",
+}
 
 
 def _mock_consumer_record(value):
     """Construct a value-only `ConsumerRecord`."""
-    return ConsumerRecord(
-        None, None, None, None, None, None, value, None, None, None, None, None
-    )
+    return ConsumerRecord(None, None, None, None, None, None, value, None, None, None, None, None)
 
 
 class DataPipelinePublisherTest(unittest.TestCase):
@@ -106,14 +99,11 @@ class DataPipelinePublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        values = {
-            "ClusterName": "the cluster name",
-            "identity": {
-                "identity": {"account_number": "3000", "internal": {"org_id": "5000"}}
-            },
+        input_msg = {
+            "cluster_name": "the cluster name",
+            "identity": {"identity": {"account_number": "3000", "internal": {"org_id": "5000"}}},
             "timestamp": "2020-01-23T16:15:59.478901889Z",
         }
-        input_msg = _mock_consumer_record(values)
         message_to_publish = '{"key1": "value1"}'
         expected_message = (
             b'{"OrgID": 5000, "AccountNumber": 3000, "ClusterName": "the cluster name", '
@@ -145,15 +135,12 @@ class DataPipelinePublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        values = {
-            "ClusterName": "the cluster name",
-            "identity": {
-                "identity": {"account_number": "3000", "internal": {"org_id": "5000"}}
-            },
+        input_msg = {
+            "cluster_name": "the cluster name",
+            "identity": {"identity": {"account_number": "3000", "internal": {"org_id": "5000"}}},
             "timestamp": "2020-01-23T16:15:59.478901889Z",
             "request_id": "REQUEST_ID",
         }
-        input_msg = _mock_consumer_record(values)
         message_to_publish = '{"key1": "value1"}'
         expected_message = (
             b'{"OrgID": 5000, "AccountNumber": 3000, "ClusterName": "the cluster name", '
@@ -185,14 +172,11 @@ class DataPipelinePublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        values = {
-            "ClusterName": "the cluster name",
-            "identity": {
-                "identity": {"account_number": "3000", "internal": {"org_id": "NaN"}}
-            },
+        input_msg = {
+            "cluster_name": "the cluster name",
+            "identity": {"identity": {"account_number": "3000", "internal": {"org_id": "NaN"}}},
             "timestamp": "2020-01-23T16:15:59.478901889Z",
         }
-        input_msg = _mock_consumer_record(values)
         message_to_publish = '{"key1": "value1"}'
 
         with patch(
@@ -219,14 +203,11 @@ class DataPipelinePublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        values = {
-            "ClusterName": "the cluster name",
-            "identity": {
-                "identity": {"account_number": "NaN", "internal": {"org_id": "5000"}}
-            },
+        input_msg = {
+            "cluster_name": "the cluster name",
+            "identity": {"identity": {"account_number": "NaN", "internal": {"org_id": "5000"}}},
             "timestamp": "2020-01-23T16:15:59.478901889Z",
         }
-        input_msg = _mock_consumer_record(values)
         message_to_publish = '{"key1": "value1"}'
 
         with patch(
@@ -241,9 +222,7 @@ class DataPipelinePublisherTest(unittest.TestCase):
                 sut.publish(input_msg, message_to_publish)
 
     def test_error(self):
-        """
-        Test Producer.error() method.
-        """
+        """Test Producer.error() method."""
         err = CCXMessagingError("foobar")
 
         producer_kwargs = {
@@ -266,9 +245,7 @@ class DataPipelinePublisherTest(unittest.TestCase):
             sut.error(input_msg, err)
 
     def test_error_wrong_type(self):
-        """
-        Test Producer.error() method.
-        """
+        """Test Producer.error() method."""
         err = CCXMessagingError("foobar")
 
         producer_kwargs = {

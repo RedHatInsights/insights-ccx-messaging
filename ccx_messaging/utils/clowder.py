@@ -14,7 +14,6 @@
 
 """Clowder integration functions."""
 import logging
-from tempfile import NamedTemporaryFile
 
 import yaml
 import app_common_python
@@ -46,15 +45,22 @@ def apply_clowder_config(manifest):
 
     if clowder_broker_config.cacert:
         # Current Kafka library is not able to handle the CA file, only a path to it
-        kafka_broker_config["ssl_cafile"] = app_common_python.LoadedConfig.kafka_ca()
+        # FIXME: Duplicating parameters in order to be used by both Kafka libraries
+        ssl_ca_location = app_common_python.LoadedConfig.kafka_ca()
+        kafka_broker_config["ssl_cafile"] = ssl_ca_location
+        kafka_broker_config["ssl.ca.location"] = ssl_ca_location
 
     if BrokerConfigAuthtypeEnum.valueAsString(clowder_broker_config.authtype) == "sasl":
         kafka_broker_config.update(
             {
                 "sasl_mechanism": clowder_broker_config.sasl.saslMechanism,
+                "sasl.mechanism": clowder_broker_config.sasl.saslMechanism,
                 "sasl_plain_username": clowder_broker_config.sasl.username,
+                "sasl.username": clowder_broker_config.sasl.username,
                 "sasl_plain_password": clowder_broker_config.sasl.password,
+                "sasl.password": clowder_broker_config.sasl.password,
                 "security_protocol": clowder_broker_config.sasl.securityProtocol,
+                "security.protocol": clowder_broker_config.sasl.securityProtocol,
             }
         )
 
@@ -75,28 +81,25 @@ def apply_clowder_config(manifest):
         topic_cfg = app_common_python.KafkaTopics[consumer_topic]
         config["service"]["consumer"]["kwargs"]["incoming_topic"] = topic_cfg.name
     else:
-        logger.warn(
-            "The consumer topic cannot be found in Clowder mapping. It can cause errors"
-        )
+        logger.warn("The consumer topic cannot be found in Clowder mapping. It can cause errors")
 
     if dlq_topic in app_common_python.KafkaTopics:
         topic_cfg = app_common_python.KafkaTopics[dlq_topic]
         config["service"]["consumer"]["kwargs"]["dead_letter_queue_topic"] = topic_cfg.name
-    
+
     if producer_topic in app_common_python.KafkaTopics:
         topic_cfg = app_common_python.KafkaTopics[producer_topic]
         config["service"]["publisher"]["kwargs"]["outgoing_topic"] = topic_cfg.name
     else:
-        logger.warn(
-            "The publisher topic cannot be found in Clowder mapping. It can cause errors"
-        )
-    
+        logger.warn("The publisher topic cannot be found in Clowder mapping. It can cause errors")
+
     if payload_tracker_topic in app_common_python.KafkaTopics:
         topic_cfg = app_common_python.KafkaTopics[payload_tracker_topic]
         watcher["kwargs"]["topic"] = topic_cfg.name
     else:
         logger.warn(
-            "The Payload Tracker watcher topic cannot be found in Clowder mapping. It can cause errors"
+            "The Payload Tracker watcher topic cannot be found in Clowder mapping. "
+            "It can cause errors",
         )
 
     return config

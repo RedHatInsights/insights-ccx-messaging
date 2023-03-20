@@ -37,9 +37,7 @@ class StatsWatcher(ConsumerWatcher):
             "ccx_consumer_received_total", "Counter of received Kafka messages"
         )
 
-        self._downloaded_total = Counter(
-            "ccx_downloaded_total", "Counter of downloaded items"
-        )
+        self._downloaded_total = Counter("ccx_downloaded_total", "Counter of downloaded items")
 
         self._processed_total = Counter(
             "ccx_engine_processed_total", "Counter of files processed by the OCP Engine"

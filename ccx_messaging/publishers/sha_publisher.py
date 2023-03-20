@@ -65,12 +65,12 @@ class SHAPublisher(Publisher):
         """
         # read all required attributes from input_msg
         try:
-            org_id = int(input_msg.value["identity"]["identity"]["internal"]["org_id"])
+            org_id = int(input_msg["identity"]["identity"]["internal"]["org_id"])
         except ValueError as err:
             raise CCXMessagingError(f"Error extracting the OrgID: {err}") from err
 
         try:
-            account_number = int(input_msg.value["identity"]["identity"]["account_number"])
+            account_number = int(input_msg["identity"]["identity"]["account_number"])
         except ValueError as err:
             raise CCXMessagingError(f"Error extracting the Account number: {err}") from err
 
@@ -79,15 +79,15 @@ class SHAPublisher(Publisher):
 
         if response is not None:
             try:
-                msg_timestamp = input_msg.value["timestamp"]
+                msg_timestamp = input_msg["timestamp"]
                 output_msg = {
                     "OrgID": org_id,
                     "AccountNumber": account_number,
-                    "ClusterName": input_msg.value["ClusterName"],
+                    "ClusterName": input_msg["cluster_name"],
                     "Images": json.loads(response),
                     "LastChecked": msg_timestamp,
                     "Version": self.outdata_schema_version,
-                    "RequestId": input_msg.value.get("request_id"),
+                    "RequestId": input_msg.get("request_id"),
                 }
 
                 # convert dictionary to JSON (string)
@@ -115,9 +115,9 @@ class SHAPublisher(Publisher):
                     "Partition: %s; "
                     "Offset: %s; "
                     "LastChecked: %s",
-                    input_msg.topic,
-                    input_msg.partition,
-                    input_msg.offset,
+                    input_msg["topic"],
+                    input_msg["partition"],
+                    input_msg["offset"],
                     msg_timestamp,
                 )
             except UnicodeEncodeError as err:

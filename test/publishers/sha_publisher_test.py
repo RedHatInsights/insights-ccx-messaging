@@ -16,28 +16,29 @@
 
 import unittest
 from unittest.mock import MagicMock, patch
-from collections import namedtuple
-
 
 from ccx_messaging.publishers.sha_publisher import SHAPublisher
 from ccx_messaging.error import CCXMessagingError
 
 from .unicode_encode_error_thower import UnicodeEncodeErrorThrower
 
-InputMessage = namedtuple("InputMessage", "topic partition offset value")
 
-input_msg = InputMessage(
-    topic="topic name",
-    partition="partition name",
-    offset=1234,
-    value={
-        "url": "any/url",
-        "identity": {"identity": {"internal": {"org_id": "12345678"},
-                                  "account_number": "999999"}},
-        "timestamp": "2020-01-23T16:15:59.478901889Z",
-        "ClusterName": "clusterName",
+input_msg = {
+    "topic": "topic name",
+    "partition": "partition name",
+    "offset": 1234,
+    "url": "any/url",
+    "identity": {
+        "identity": {
+            "internal": {
+                "org_id": "12345678",
+            },
+            "account_number": "999999",
+        },
     },
-)
+    "timestamp": "2020-01-23T16:15:59.478901889Z",
+    "cluster_name": "clusterName",
+}
 
 
 class SHAPublisherTest(unittest.TestCase):
@@ -56,9 +57,7 @@ class SHAPublisherTest(unittest.TestCase):
             "client_id": "ccx-data-pipeline",
         }
 
-        with patch(
-            "ccx_messaging.publishers.sha_publisher.KafkaProducer"
-        ) as kafka_producer_mock:
+        with patch("ccx_messaging.publishers.sha_publisher.KafkaProducer") as kafka_producer_mock:
             sut = SHAPublisher(**producer_kwargs)
 
             kafka_producer_mock.assert_called_with(
@@ -100,7 +99,11 @@ class SHAPublisherTest(unittest.TestCase):
 
         topic_name = "KAFKATOPIC"
         message_to_publish = '{"key1": "value1"}'
-        expected_message = b'{"OrgID": 12345678, "AccountNumber": 999999, "ClusterName": "clusterName", "Images": {"key1": "value1"}, "LastChecked": "2020-01-23T16:15:59.478901889Z", "Version": 2, "RequestId": null}\n'
+        expected_message = (
+            b'{"OrgID": 12345678, "AccountNumber": 999999, "ClusterName": "clusterName", '
+            b'"Images": {"key1": "value1"}, "LastChecked": "2020-01-23T16:15:59.478901889Z", '
+            b'"Version": 2, "RequestId": null}\n'
+        )
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
@@ -126,7 +129,7 @@ class SHAPublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        message_to_publish = ''
+        message_to_publish = ""
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
@@ -152,20 +155,24 @@ class SHAPublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        message_to_publish = ''
+        message_to_publish = ""
 
-        input_msg = InputMessage(
-            topic="topic name",
-            partition="partition name",
-            offset=1234,
-            value={
-                "url": "any/url",
-                "identity": {"identity": {"internal": {"org_id": "*** not an integer ***"},
-                                          "account_number": "999999"}},
-                "timestamp": "2020-01-23T16:15:59.478901889Z",
-                "ClusterName": "clusterName",
+        input_msg = {
+            "topic": "topic name",
+            "partition": "partition name",
+            "offset": 1234,
+            "url": "any/url",
+            "identity": {
+                "identity": {
+                    "internal": {
+                        "org_id": "*** not an integer ***",
+                    },
+                    "account_number": "999999",
+                },
             },
-        )
+            "timestamp": "2020-01-23T16:15:59.478901889Z",
+            "cluster_name": "clusterName",
+        }
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
@@ -191,20 +198,24 @@ class SHAPublisherTest(unittest.TestCase):
         }
 
         topic_name = "KAFKATOPIC"
-        message_to_publish = ''
+        message_to_publish = ""
 
-        input_msg = InputMessage(
-            topic="topic name",
-            partition="partition name",
-            offset=1234,
-            value={
-                "url": "any/url",
-                "identity": {"identity": {"internal": {"org_id": "123456"},
-                                          "account_number": "*** not an integer ***"}},
-                "timestamp": "2020-01-23T16:15:59.478901889Z",
-                "ClusterName": "clusterName",
+        input_msg = {
+            "topic": "topic name",
+            "partition": "partition name",
+            "offset": 1234,
+            "url": "any/url",
+            "identity": {
+                "identity": {
+                    "internal": {
+                        "org_id": "123456",
+                    },
+                    "account_number": "*** not an integer ***",
+                },
             },
-        )
+            "timestamp": "2020-01-23T16:15:59.478901889Z",
+            "cluster_name": "clusterName",
+        }
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"
@@ -218,9 +229,7 @@ class SHAPublisherTest(unittest.TestCase):
                 sut.publish(input_msg, message_to_publish)
 
     def test_error(self):
-        """
-        Test Producer.error() method.
-        """
+        """Test Producer.error() method."""
         err = CCXMessagingError("foobar")
 
         producer_kwargs = {
@@ -243,9 +252,7 @@ class SHAPublisherTest(unittest.TestCase):
             sut.error(input_msg, err)
 
     def test_error_wrong_type(self):
-        """
-        Test Producer.error() method.
-        """
+        """Test Producer.error() method."""
         err = CCXMessagingError("foobar")
 
         producer_kwargs = {
@@ -283,7 +290,6 @@ class SHAPublisherTest(unittest.TestCase):
         topic_name = "KAFKATOPIC"
         input_msg = ""
         message_to_publish = UnicodeEncodeErrorThrower()
-        expected_message = b'{"key1": "value1"}'
 
         with patch(
             "ccx_messaging.publishers.sha_publisher.KafkaProducer"

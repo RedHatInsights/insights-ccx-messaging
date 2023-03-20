@@ -115,9 +115,7 @@ def test_deserialize_invalid_format_str(msg):
 @pytest.mark.parametrize("msg", _INVALID_MESSAGES)
 def test_deserialize_invalid_format_bytes(msg):
     """Test that passing a malformed message to `deserialize` raises an exception."""
-    deserialized = Consumer.deserialize(
-        Consumer(None, None, None, None), msg[0].encode("utf-8")
-    )
+    deserialized = Consumer.deserialize(Consumer(None, None, None, None), msg[0].encode("utf-8"))
     assert isinstance(deserialized, CCXMessagingError)
     assert str(deserialized).startswith(msg[1])
 
@@ -187,9 +185,7 @@ def test_deserialize_valid_bytes(msg, value):
 @pytest.mark.parametrize("msg,value", _VALID_MESSAGES)
 def test_deserialize_valid_bytearray(msg, value):
     """Test that proper bytearray JSON input messages are correctly deserialized."""
-    retval = Consumer.deserialize(
-        Consumer(None, None, None, None), bytearray(msg.encode("utf-8"))
-    )
+    retval = Consumer.deserialize(Consumer(None, None, None, None), bytearray(msg.encode("utf-8")))
     assert retval == value
 
 
@@ -389,21 +385,74 @@ def test_process_message_timeout_no_kafka_requeuer():
     logger.removeHandler(log_handler)
 
 
-_VALID_SERVICES = [
-    ("test_service")
-]
+_VALID_SERVICES = [("test_service")]
 
 _VALID_MESSAGES_WITH_UNEXPECTED_SERVICE_HEADER = [
-ConsumerRecord(topic='platform.upload.announce', partition=0, offset=24, timestamp=1661327909633, timestamp_type=0, key=None, value={'account': '0369233', 'category': 'archive', 'service': 'test_service', 'timestamp': '2022-08-24T07:58:29.6326987Z'}, headers=[('service', b'some_unexpected_service')], checksum=1234, serialized_key_size=12, serialized_value_size=1, serialized_header_size=1)
+    ConsumerRecord(
+        topic="platform.upload.announce",
+        partition=0,
+        offset=24,
+        timestamp=1661327909633,
+        timestamp_type=0,
+        key=None,
+        value={
+            "account": "0369233",
+            "category": "archive",
+            "service": "test_service",
+            "timestamp": "2022-08-24T07:58:29.6326987Z",
+        },
+        headers=[("service", b"some_unexpected_service")],
+        checksum=1234,
+        serialized_key_size=12,
+        serialized_value_size=1,
+        serialized_header_size=1,
+    )
 ]
 
 _VALID_MESSAGES_WITH_EXPECTED_SERVICE_HEADER = [
-    ConsumerRecord(topic='platform.upload.announce', partition=0, offset=24, timestamp=1661327909633, timestamp_type=0, key=None, value={'account': '0369233', 'category': 'archive', 'service': 'test_service', 'timestamp': '2022-08-24T07:58:29.6326987Z'}, headers=[('service', b'test_service')], checksum=1234, serialized_key_size=12, serialized_value_size=1, serialized_header_size=1)
+    ConsumerRecord(
+        topic="platform.upload.announce",
+        partition=0,
+        offset=24,
+        timestamp=1661327909633,
+        timestamp_type=0,
+        key=None,
+        value={
+            "account": "0369233",
+            "category": "archive",
+            "service": "test_service",
+            "timestamp": "2022-08-24T07:58:29.6326987Z",
+        },
+        headers=[("service", b"test_service")],
+        checksum=1234,
+        serialized_key_size=12,
+        serialized_value_size=1,
+        serialized_header_size=1,
+    )
 ]
 
 _VALID_MESSAGES_WITH_NO_SERVICE_HEADER = [
-    ConsumerRecord(topic='platform.upload.announce', partition=0, offset=24, timestamp=1661327909633, timestamp_type=0, key=None, value={'account': '0369233', 'category': 'archive', 'service': 'test_service', 'timestamp': '2022-08-24T07:58:29.6326987Z'}, headers=[('some_header', 'some_value')], checksum=1234, serialized_key_size=12, serialized_value_size=1, serialized_header_size=1)
+    ConsumerRecord(
+        topic="platform.upload.announce",
+        partition=0,
+        offset=24,
+        timestamp=1661327909633,
+        timestamp_type=0,
+        key=None,
+        value={
+            "account": "0369233",
+            "category": "archive",
+            "service": "test_service",
+            "timestamp": "2022-08-24T07:58:29.6326987Z",
+        },
+        headers=[("some_header", "some_value")],
+        checksum=1234,
+        serialized_key_size=12,
+        serialized_value_size=1,
+        serialized_header_size=1,
+    )
 ]
+
 
 @pytest.mark.parametrize("topic", _VALID_TOPICS)
 @pytest.mark.parametrize("group", _VALID_GROUPS)
@@ -411,14 +460,22 @@ _VALID_MESSAGES_WITH_NO_SERVICE_HEADER = [
 @pytest.mark.parametrize("service", _VALID_SERVICES)
 def test_init_anemic_consumer(topic, group, server, service):
     """Test `AnemicConsumer` initialization."""
-    sut = AnemicConsumer(None, None, None, topic, group_id=group, platform_service=service, bootstrap_servers=[server])
+    sut = AnemicConsumer(
+        None,
+        None,
+        None,
+        topic,
+        group_id=group,
+        platform_service=service,
+        bootstrap_servers=[server],
+    )
     assert sut.platform_service == service.encode("utf-8")
     assert isinstance(sut.consumer, KafkaConsumer)
     assert sut.check_elapsed_time_thread.is_alive()
 
 
 def test_anemic_consumer_deserialize():
-    """Test deserialize method of `AnemicConsumer`"""
+    """Test deserialize method of `AnemicConsumer`."""
     consumer_message = _VALID_MESSAGES[0]
     buf = io.StringIO()
     log_handler = logging.StreamHandler(buf)
@@ -430,9 +487,12 @@ def test_anemic_consumer_deserialize():
         sut = AnemicConsumer(None, None, None, None, platform_service="any")
         deserialized = sut.deserialize(consumer_message[0])
         assert isinstance(deserialized, dict)
-        assert deserialized.get('url') == ""
-        assert deserialized.get('b64_identity') == "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIxMjM0NTY3OCJ9fX0K"
-        assert deserialized.get('timestamp') == "2020-01-23T16:15:59.478901889Z"
+        assert deserialized.get("url") == ""
+        assert (
+            deserialized.get("b64_identity")
+            == "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIxMjM0NTY3OCJ9fX0K"
+        )
+        assert deserialized.get("timestamp") == "2020-01-23T16:15:59.478901889Z"
 
     logger.removeHandler(log_handler)
 
@@ -474,7 +534,10 @@ def test_anemic_consumer_run_unexpected_service(service):
         sut = AnemicConsumer(None, None, None, None, platform_service=service)
         sut.consumer = _VALID_MESSAGES_WITH_UNEXPECTED_SERVICE_HEADER
         sut.run()
-        assert AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(b'some_unexpected_service') in buf.getvalue()
+        assert (
+            AnemicConsumer.OTHER_SERVICE_DEBUG_MESSAGE.format(b"some_unexpected_service")
+            in buf.getvalue()
+        )
 
     logger.removeHandler(log_handler)
 

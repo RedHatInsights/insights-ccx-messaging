@@ -59,26 +59,26 @@ class DataPipelinePublisher(Publisher):
         # Response is already a string, no need to JSON dump.
         output_msg = {}
         try:
-            org_id = int(input_msg.value["identity"]["identity"]["internal"]["org_id"])
+            org_id = int(input_msg["identity"]["identity"]["internal"]["org_id"])
         except ValueError as err:
             raise CCXMessagingError(f"Error extracting the OrgID: {err}") from err
 
         try:
-            account_number = int(input_msg.value["identity"]["identity"]["account_number"])
+            account_number = int(input_msg["identity"]["identity"]["account_number"])
         except ValueError as err:
             raise CCXMessagingError(f"Error extracting the Account number: {err}") from err
 
         message = ""
         try:
-            msg_timestamp = input_msg.value["timestamp"]
+            msg_timestamp = input_msg["timestamp"]
             output_msg = {
                 "OrgID": org_id,
                 "AccountNumber": account_number,
-                "ClusterName": input_msg.value["ClusterName"],
+                "ClusterName": input_msg["cluster_name"],
                 "Report": json.loads(response),
                 "LastChecked": msg_timestamp,
                 "Version": self.outdata_schema_version,
-                "RequestId": input_msg.value.get("request_id"),
+                "RequestId": input_msg.get("request_id"),
             }
 
             message = json.dumps(output_msg) + "\n"
@@ -103,9 +103,9 @@ class DataPipelinePublisher(Publisher):
                 "Partition: %s; "
                 "Offset: %s; "
                 "LastChecked: %s",
-                input_msg.topic,
-                input_msg.partition,
-                input_msg.offset,
+                input_msg.get("topic"),
+                input_msg.get("partition"),
+                input_msg.get("offset"),
                 msg_timestamp,
             )
 
