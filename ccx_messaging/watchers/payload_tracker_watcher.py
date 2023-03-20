@@ -20,6 +20,7 @@ import logging
 
 from kafka import KafkaProducer
 
+from ccx_messaging.utils.kafka_config import producer_config
 from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
 
 LOG = logging.getLogger(__name__)
@@ -35,7 +36,9 @@ class PayloadTrackerWatcher(ConsumerWatcher):
         if not self.topic:
             raise KeyError("topic")
 
-        self.kafka_prod = KafkaProducer(bootstrap_servers=bootstrap_servers, **kwargs)
+        self.kafka_prod = KafkaProducer(
+            bootstrap_servers=bootstrap_servers, **producer_config(kwargs)
+        )
         self.service_name = service_name
 
         LOG.info(

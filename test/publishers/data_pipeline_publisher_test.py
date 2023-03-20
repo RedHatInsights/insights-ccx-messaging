@@ -17,8 +17,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from kafka.consumer.fetcher import ConsumerRecord
-
 from ccx_messaging.publishers.data_pipeline_publisher import DataPipelinePublisher
 from ccx_messaging.error import CCXMessagingError
 
@@ -32,11 +30,6 @@ input_msg = {
     "timestamp": "2020-01-23T16:15:59.478901889Z",
     "cluster_name": "clusterName",
 }
-
-
-def _mock_consumer_record(value):
-    """Construct a value-only `ConsumerRecord`."""
-    return ConsumerRecord(None, None, None, None, None, None, value, None, None, None, None, None)
 
 
 class DataPipelinePublisherTest(unittest.TestCase):
@@ -73,7 +66,7 @@ class DataPipelinePublisherTest(unittest.TestCase):
         }
 
         with self.assertRaises(TypeError):
-            _ = DataPipelinePublisher(**producer_kwargs)
+            DataPipelinePublisher(**producer_kwargs)
 
     def test_init_none_topic(self):
         """Test DataPipelinePublisher initializer without outgoing topic."""
@@ -84,6 +77,22 @@ class DataPipelinePublisherTest(unittest.TestCase):
 
         with self.assertRaises(KeyError):
             _ = DataPipelinePublisher(outgoing_topic=None, **producer_kwargs)
+
+    def test_init_non_valid_params(self):
+        """Test DataPipelinePublisher initializer with improper Kafka config."""
+        producer_kwargs = {
+            "bootstrap_servers": ["kafka_server1"],
+            "client_id": "ccx-data-pipeline",
+            "client.id": "ccx-data-pipeline",
+        }
+
+        with patch(
+            "ccx_messaging.publishers.data_pipeline_publisher.KafkaProducer"
+        ) as kafka_producer_mock:
+            DataPipelinePublisher(outgoing_topic="topic", **producer_kwargs)
+            kafka_producer_mock.assert_called_with(
+                bootstrap_servers=["kafka_server1"], client_id="ccx-data-pipeline"
+            )
 
     # pylint: disable=no-self-use
     def test_publish_no_request_id(self):
