@@ -239,9 +239,13 @@ def test_consumer_init_direct(topic, group, server):
     """Test of our Consumer constructor, using direct configuration options."""
     with patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer") as mock_consumer_init:
         with patch("os.environ", new=dict()):
-            KafkaConsumer(None, None, None, topic, group_id=group, bootstrap_servers=[server])
+            kwargs = {
+                "group.id": group,
+                "bootstrap.servers": server,
+            }
+            KafkaConsumer(None, None, None, topic, **kwargs)
             config = {
-                "bootstrap.servers": [server],
+                "bootstrap.servers": server,
                 "group.id": group,
                 "retry.backoff.ms": 1000,
             }

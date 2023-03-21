@@ -10,7 +10,7 @@ from kafka import KafkaProducer
 
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.ingress import parse_ingress_message
-from ccx_messaging.utils.kafka_config import producer_config
+from ccx_messaging.utils.kafka_config import producer_config, translate_kafka_configuration
 
 
 LOG = logging.getLogger(__name__)
@@ -26,10 +26,10 @@ class KafkaConsumer(Consumer):
         downloader,
         engine,
         incoming_topic,
+        kafka_broker_config=None,
         platform_service=None,
         dead_letter_queue_topic=None,
         max_record_age=7200,
-        retry_backoff_ms=1000,
         processing_timeout_s=0,
         **kwargs,
     ):
@@ -37,25 +37,26 @@ class KafkaConsumer(Consumer):
         requeuer = kwargs.pop("requeuer", None)
         super().__init__(publisher, downloader, engine, requeuer=requeuer)
 
+        # Confluent initialization
         LOG.info(
             "Consuming topic '%s' from brokers %s as group '%s'",
             incoming_topic,
-            kwargs.get("bootstrap_servers", None),
-            kwargs.get("group_id", None),
+            kwargs.get("bootstrap.servers", None),
+            kwargs.get("group.id", None),
         )
 
-        # Confluent initialization
-        config = {
-            "bootstrap.servers": kwargs.get("bootstrap_servers", ""),
-            "group.id": kwargs.get("group_id", None),
-            "retry.backoff.ms": retry_backoff_ms,
-        }
+        if kafka_broker_config:
+            kwargs.update(kafka_broker_config)
 
-        self.consumer = ConfluentConsumer(config)
+        if "retry.backoff.ms" not in kwargs:
+            kwargs["retry.backoff.ms"] = 1000
+
+        LOG.debug("Confluent Kafka consumer configuration arguments: %s", kwargs)
+        self.consumer = ConfluentConsumer(kwargs)
         self.consumer.subscribe([incoming_topic])
 
         # Self handled vars
-        self.log_pattern = f"topic: {incoming_topic}, group_id: {kwargs.get('group_id', None)}"
+        self.log_pattern = f"topic: {incoming_topic}, group.id: {kwargs.get('group.id', None)}"
 
         # Service to filter in messages
         self.platform_service = platform_service
@@ -74,7 +75,8 @@ class KafkaConsumer(Consumer):
         self.dead_letter_queue_topic = dead_letter_queue_topic
 
         if self.dead_letter_queue_topic is not None:
-            dlq_producer_config = producer_config(kwargs)
+            config = translate_kafka_configuration(kafka_broker_config)
+            dlq_producer_config = producer_config(config)
             self.dlq_producer = KafkaProducer(**dlq_producer_config)
 
     def get_url(self, input_msg: dict) -> str:

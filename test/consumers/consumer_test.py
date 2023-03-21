@@ -29,7 +29,7 @@ from ccx_messaging.consumers.consumer import Consumer
 from ccx_messaging.consumers.consumer import AnemicConsumer
 from ccx_messaging.error import CCXMessagingError
 
-from test.utils import (
+from test.test_utils import (
     mock_consumer_record,
     mock_consumer_process_no_action_catch_exception,
 )

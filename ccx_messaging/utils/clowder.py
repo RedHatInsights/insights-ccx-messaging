@@ -30,52 +30,46 @@ def apply_clowder_config(manifest):
 
     # Find the Payload Tracker watcher, as it might be affected by config changes
     pt_watcher_name = "ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher"
-    watcher = None
+    pt_watcher = None
     for watcher in config["service"]["watchers"]:
         if watcher["name"] == pt_watcher_name:
+            pt_watcher = watcher
             break
 
     clowder_broker_config = app_common_python.LoadedConfig.kafka.brokers[0]
     kafka_url = f"{clowder_broker_config.hostname}:{clowder_broker_config.port}"
     logger.debug("Kafka URL: %s", kafka_url)
 
-    kafka_broker_config = {
-        "bootstrap_servers": kafka_url,
-    }
+    kafka_broker_config = {"bootstrap.servers": kafka_url}
 
     if clowder_broker_config.cacert:
         # Current Kafka library is not able to handle the CA file, only a path to it
         # FIXME: Duplicating parameters in order to be used by both Kafka libraries
         ssl_ca_location = app_common_python.LoadedConfig.kafka_ca()
-        kafka_broker_config["ssl_cafile"] = ssl_ca_location
         kafka_broker_config["ssl.ca.location"] = ssl_ca_location
 
     if BrokerConfigAuthtypeEnum.valueAsString(clowder_broker_config.authtype) == "sasl":
         kafka_broker_config.update(
             {
-                "sasl_mechanism": clowder_broker_config.sasl.saslMechanism,
-                "sasl.mechanism": clowder_broker_config.sasl.saslMechanism,
-                "sasl_plain_username": clowder_broker_config.sasl.username,
+                "sasl.mechanisms": clowder_broker_config.sasl.saslMechanism,
                 "sasl.username": clowder_broker_config.sasl.username,
-                "sasl_plain_password": clowder_broker_config.sasl.password,
                 "sasl.password": clowder_broker_config.sasl.password,
-                "security_protocol": clowder_broker_config.sasl.securityProtocol,
                 "security.protocol": clowder_broker_config.sasl.securityProtocol,
             }
         )
 
-    config["service"]["consumer"]["kwargs"].update(kafka_broker_config)
-    config["service"]["publisher"]["kwargs"].update(kafka_broker_config)
+    config["service"]["consumer"]["kwargs"]["kafka_broker_config"] = kafka_broker_config
+    config["service"]["publisher"]["kwargs"]["kafka_broker_config"] = kafka_broker_config
 
-    if watcher:
-        watcher["kwargs"].update(kafka_broker_config)
+    if pt_watcher:
+        pt_watcher["kwargs"]["kafka_broker_config"] = kafka_broker_config
 
     logger.info("Kafka configuration updated from Clowder configuration")
 
     consumer_topic = config["service"]["consumer"]["kwargs"].get("incoming_topic")
     dlq_topic = config["service"]["consumer"]["kwargs"].get("dead_letter_queue_topic")
-    producer_topic = config["service"]["publisher"]["kwargs"].pop("outgoing_topic")
-    payload_tracker_topic = watcher["kwargs"].pop("topic")
+    producer_topic = config["service"]["publisher"]["kwargs"].get("outgoing_topic")
+    payload_tracker_topic = pt_watcher["kwargs"].pop("topic") if pt_watcher else None
 
     if consumer_topic in app_common_python.KafkaTopics:
         topic_cfg = app_common_python.KafkaTopics[consumer_topic]
@@ -93,9 +87,9 @@ def apply_clowder_config(manifest):
     else:
         logger.warn("The publisher topic cannot be found in Clowder mapping. It can cause errors")
 
-    if payload_tracker_topic in app_common_python.KafkaTopics:
+    if pt_watcher and payload_tracker_topic in app_common_python.KafkaTopics:
         topic_cfg = app_common_python.KafkaTopics[payload_tracker_topic]
-        watcher["kwargs"]["topic"] = topic_cfg.name
+        pt_watcher["kwargs"]["topic"] = topic_cfg.name
     else:
         logger.warn(
             "The Payload Tracker watcher topic cannot be found in Clowder mapping. "
