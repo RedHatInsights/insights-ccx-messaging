@@ -39,7 +39,11 @@ def apply_clowder_config(manifest):
     kafka_url = f"{clowder_broker_config.hostname}:{clowder_broker_config.port}"
     logger.debug("Kafka URL: %s", kafka_url)
 
+    # Duplicating structs, both Kafka libraries use different syntax
     kafka_broker_config = {
+        "bootstrap.servers": kafka_url,
+    }
+    old_kafka_broker_config = {
         "bootstrap_servers": kafka_url,
     }
 
@@ -47,28 +51,33 @@ def apply_clowder_config(manifest):
         # Current Kafka library is not able to handle the CA file, only a path to it
         # FIXME: Duplicating parameters in order to be used by both Kafka libraries
         ssl_ca_location = app_common_python.LoadedConfig.kafka_ca()
-        kafka_broker_config["ssl_cafile"] = ssl_ca_location
+        old_kafka_broker_config["ssl_cafile"] = ssl_ca_location
         kafka_broker_config["ssl.ca.location"] = ssl_ca_location
 
     if BrokerConfigAuthtypeEnum.valueAsString(clowder_broker_config.authtype) == "sasl":
-        kafka_broker_config.update(
+        old_kafka_broker_config.update(
             {
                 "sasl_mechanism": clowder_broker_config.sasl.saslMechanism,
-                "sasl.mechanism": clowder_broker_config.sasl.saslMechanism,
                 "sasl_plain_username": clowder_broker_config.sasl.username,
-                "sasl.username": clowder_broker_config.sasl.username,
                 "sasl_plain_password": clowder_broker_config.sasl.password,
-                "sasl.password": clowder_broker_config.sasl.password,
                 "security_protocol": clowder_broker_config.sasl.securityProtocol,
+            }
+        )
+
+        kafka_broker_config.update(
+            {
+                "sasl.mechanism": clowder_broker_config.sasl.saslMechanism,
+                "sasl.username": clowder_broker_config.sasl.username,
+                "sasl.password": clowder_broker_config.sasl.password,
                 "security.protocol": clowder_broker_config.sasl.securityProtocol,
             }
         )
 
     config["service"]["consumer"]["kwargs"].update(kafka_broker_config)
-    config["service"]["publisher"]["kwargs"].update(kafka_broker_config)
+    config["service"]["publisher"]["kwargs"].update(old_kafka_broker_config)
 
     if watcher:
-        watcher["kwargs"].update(kafka_broker_config)
+        watcher["kwargs"].update(old_kafka_broker_config)
 
     logger.info("Kafka configuration updated from Clowder configuration")
 

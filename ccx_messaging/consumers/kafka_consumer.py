@@ -6,11 +6,9 @@ from threading import Thread
 
 from confluent_kafka import Consumer as ConfluentConsumer, KafkaException, Message
 from insights_messaging.consumers import Consumer
-from kafka import KafkaProducer
 
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.ingress import parse_ingress_message
-from ccx_messaging.utils.kafka_config import producer_config
 
 
 LOG = logging.getLogger(__name__)
@@ -45,13 +43,16 @@ class KafkaConsumer(Consumer):
         )
 
         # Confluent initialization
-        config = {
-            "bootstrap.servers": kwargs.get("bootstrap_servers", ""),
-            "group.id": kwargs.get("group_id", None),
-            "retry.backoff.ms": retry_backoff_ms,
-        }
+        
+        kwargs.update(
+            {
+                "bootstrap.servers": kwargs.get("bootstrap_servers", ""),
+                "group.id": kwargs.get("group_id", None),
+                "retry.backoff.ms": retry_backoff_ms,
+            }
+        )
 
-        self.consumer = ConfluentConsumer(config)
+        self.consumer = ConfluentConsumer(kwargs)
         self.consumer.subscribe([incoming_topic])
 
         # Self handled vars
@@ -74,8 +75,11 @@ class KafkaConsumer(Consumer):
         self.dead_letter_queue_topic = dead_letter_queue_topic
 
         if self.dead_letter_queue_topic is not None:
-            dlq_producer_config = producer_config(kwargs)
-            self.dlq_producer = KafkaProducer(**dlq_producer_config)
+            # dlq_producer_config = producer_config(kwargs)
+            # self.dlq_producer = KafkaProducer(**dlq_producer_config)
+            LOG.warning(
+                "DLQ is currently disabled while the libraries are migrated to Confluent Kafka."
+            )
 
     def get_url(self, input_msg: dict) -> str:
         """
