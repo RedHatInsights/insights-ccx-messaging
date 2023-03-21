@@ -44,15 +44,20 @@ class KafkaConsumer(Consumer):
 
         # Confluent initialization
         
-        kwargs.update(
+        config = kwargs.copy()
+        config.update(
             {
                 "bootstrap.servers": kwargs.get("bootstrap_servers", ""),
                 "group.id": kwargs.get("group_id", None),
                 "retry.backoff.ms": retry_backoff_ms,
             }
         )
+        if "bootstrap_servers" in config:
+            del config["bootstrap_servers"]
+        if "group_id" in config:
+            del config["group_id"]
 
-        self.consumer = ConfluentConsumer(kwargs)
+        self.consumer = ConfluentConsumer(config)
         self.consumer.subscribe([incoming_topic])
 
         # Self handled vars
