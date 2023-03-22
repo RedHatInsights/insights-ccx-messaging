@@ -31,7 +31,7 @@ from kafka.consumer.fetcher import ConsumerRecord
 
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.schemas import INPUT_MESSAGE_SCHEMA, IDENTITY_SCHEMA
-from ccx_messaging.utils.kafka_config import producer_config
+from ccx_messaging.utils.kafka_config import producer_config, translate_kafka_configuration
 
 
 LOG = logging.getLogger(__name__)
@@ -64,6 +64,7 @@ class Consumer(ICMConsumer):
         downloader,
         engine,
         incoming_topic,
+        kafka_broker_config=None,
         dead_letter_queue_topic=None,
         max_record_age=7200,
         retry_backoff_ms=1000,
@@ -89,6 +90,9 @@ class Consumer(ICMConsumer):
 
         super().__init__(publisher, downloader, engine, requeuer=requeuer)
 
+        kafka_broker_cfg = translate_kafka_configuration(kafka_broker_config)
+        kwargs.update(kafka_broker_cfg)
+
         self.consumer = KafkaConsumer(
             incoming_topic,
             value_deserializer=self.deserialize,
@@ -113,7 +117,6 @@ class Consumer(ICMConsumer):
 
         if self.dead_letter_queue_topic is not None:
             dlq_producer_config = producer_config(kwargs)
-
             self.dlq_producer = KafkaProducer(**dlq_producer_config)
 
     def _consume(self, msg):

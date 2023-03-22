@@ -20,7 +20,7 @@ import logging
 
 from kafka import KafkaProducer
 
-from ccx_messaging.utils.kafka_config import producer_config
+from ccx_messaging.utils.kafka_config import producer_config, translate_kafka_configuration
 from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
 
 LOG = logging.getLogger(__name__)
@@ -29,16 +29,29 @@ LOG = logging.getLogger(__name__)
 class PayloadTrackerWatcher(ConsumerWatcher):
     """`Watcher` implementation to handle Payload Tracker updates."""
 
-    def __init__(self, bootstrap_servers, topic, service_name="ccx-data-pipeline", **kwargs):
+    def __init__(
+        self,
+        bootstrap_servers,
+        topic,
+        service_name="ccx-data-pipeline",
+        kafka_broker_config=None,
+        **kwargs
+    ):
         """Construct a `PayloadTrackerWatcher` object."""
         self.topic = topic
 
         if not self.topic:
             raise KeyError("topic")
 
-        self.kafka_prod = KafkaProducer(
-            bootstrap_servers=bootstrap_servers, **producer_config(kwargs)
-        )
+        kafka_broker_cfg = translate_kafka_configuration(kafka_broker_config)
+        kwargs.update(kafka_broker_cfg)
+
+        if "bootstrap_servers" not in kwargs:
+            kwargs["bootstrap_servers"] = bootstrap_servers
+
+        kwargs = producer_config(kwargs)
+        LOG.debug("Kafka publisher for PayloadTrackerWatcher configuration arguments: %s", kwargs)
+        self.kafka_prod = KafkaProducer(**kwargs)
         self.service_name = service_name
 
         LOG.info(

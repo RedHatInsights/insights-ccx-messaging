@@ -21,7 +21,7 @@ from insights_messaging.publishers import Publisher
 from kafka import KafkaProducer
 
 from ccx_messaging.error import CCXMessagingError
-from ccx_messaging.utils.kafka_config import producer_config
+from ccx_messaging.utils.kafka_config import producer_config, translate_kafka_configuration
 
 LOG = logging.getLogger(__name__)
 
@@ -37,16 +37,24 @@ class DataPipelinePublisher(Publisher):
     Custom error handling for the whole pipeline is implemented here.
     """
 
-    def __init__(self, outgoing_topic, bootstrap_servers, **kwargs):
+    def __init__(self, outgoing_topic, bootstrap_servers, kafka_broker_config=None, **kwargs):
         """Construct a new `DataPipelinePublisher` given `kwargs` from the config YAML."""
         self.topic = outgoing_topic
         self.bootstrap_servers = bootstrap_servers
         if self.topic is None:
             raise KeyError("outgoing_topic")
 
-        self.producer = KafkaProducer(
-            bootstrap_servers=self.bootstrap_servers, **producer_config(kwargs)
-        )
+        kafka_broker_cfg = translate_kafka_configuration(kafka_broker_config)
+        kwargs.update(kafka_broker_cfg)
+
+        if "bootstrap_servers" not in kwargs:
+            kwargs["bootstrap_servers"] = self.bootstrap_servers
+        else:
+            self.bootstrap_servers = kwargs["bootstrap_servers"]
+
+        kwargs = producer_config(kwargs)
+        LOG.debug("Kafka publisher configuration arguments: %s", kwargs)
+        self.producer = KafkaProducer(**kwargs)
         LOG.info("Producing to topic '%s' on brokers %s", self.topic, self.bootstrap_servers)
         self.outdata_schema_version = 2
 
