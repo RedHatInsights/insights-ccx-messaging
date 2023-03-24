@@ -41,7 +41,7 @@ class RuleProcessingPublisher(Publisher):
         """Construct a new `RuleProcessingPublisher` given `kwargs` from the config YAML."""
         self.topic = outgoing_topic
         if type(self.topic) is not str:
-            raise CCXMessagingError("outgoing_topic should be an str")
+            raise CCXMessagingError("outgoing_topic should be a str")
 
         if kafka_broker_config:
             kwargs.update(kafka_broker_config)
