@@ -48,6 +48,15 @@ class KafkaPublisher(Publisher):
         if "bootstrap.servers" not in kwargs:
             raise KafkaException("Broker not configured")
 
+        log.debug(
+            "Confluent Kafka consumer configuration arguments: "
+            "Server: %s. "
+            "Topic: %s. "
+            "Security protocol: %s.",
+            kwargs.get("bootstrap.servers"),
+            self.topic,
+            kwargs.get("security.protocol"),
+        )
         self.producer = Producer(kwargs)
         log.info(
             "Producing to topic '%s' on brokers %s", self.topic, kwargs.get("bootstrap.servers")

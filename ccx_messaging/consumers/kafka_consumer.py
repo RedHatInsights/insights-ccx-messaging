@@ -51,7 +51,19 @@ class KafkaConsumer(Consumer):
         if "retry.backoff.ms" not in kwargs:
             kwargs["retry.backoff.ms"] = 1000
 
-        LOG.debug("Confluent Kafka consumer configuration arguments: %s", kwargs)
+        LOG.debug(
+            "Confluent Kafka consumer configuration arguments: "
+            "Group: %s. "
+            "Server: %s. "
+            "Topic: %s. "
+            "Security protocol: %s. "
+            "",
+            kwargs.get("group.id"),
+            kwargs.get("bootstrap.servers"),
+            incoming_topic,
+            kwargs.get("security.protocol"),
+        )
+
         self.consumer = ConfluentConsumer(kwargs)
         self.consumer.subscribe([incoming_topic])
 
