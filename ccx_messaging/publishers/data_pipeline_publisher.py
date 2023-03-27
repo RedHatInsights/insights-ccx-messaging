@@ -53,7 +53,17 @@ class DataPipelinePublisher(Publisher):
             self.bootstrap_servers = kwargs["bootstrap_servers"]
 
         kwargs = producer_config(kwargs)
-        LOG.debug("Kafka publisher configuration arguments: %s", kwargs)
+        LOG.debug(
+            "Confluent Kafka publisher configuration arguments: "
+            "Server: %s. "
+            "Topic: %s. "
+            "Security protocol: %s. "
+            "",
+            kwargs.get("bootstrap_servers"),
+            self.topic,
+            kwargs.get("security_protocol"),
+        )
+
         self.producer = KafkaProducer(**kwargs)
         LOG.info("Producing to topic '%s' on brokers %s", self.topic, self.bootstrap_servers)
         self.outdata_schema_version = 2
