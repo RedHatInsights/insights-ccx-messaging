@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for the RuleProcessingPublisher class."""
+"""Tests for the WorkloadInfoPublisher class."""
 
 import json
 from unittest.mock import MagicMock, patch
@@ -21,7 +21,7 @@ import pytest
 from confluent_kafka import KafkaException
 
 from ccx_messaging.error import CCXMessagingError
-from ccx_messaging.publishers.rule_processing_publisher import RuleProcessingPublisher
+from ccx_messaging.publishers.workloads_info_publisher import WorkloadInfoPublisher
 
 
 def test_init():
@@ -29,7 +29,7 @@ def test_init():
     kakfa_config = {
         "bootstrap.servers": "kafka:9092",
     }
-    RuleProcessingPublisher(outgoing_topic="topic name", **kakfa_config)
+    WorkloadInfoPublisher(outgoing_topic="topic name", **kakfa_config)
 
 
 INVALID_TOPIC_NAMES = [
@@ -47,7 +47,7 @@ INVALID_TOPIC_NAMES = [
 def test_init_invalid_topic(topic_name):
     """Check what happens when the output_topic parameter is not valid."""
     with pytest.raises(CCXMessagingError):
-        RuleProcessingPublisher(topic_name)
+        WorkloadInfoPublisher(topic_name)
 
 
 INVALID_KWARGS = [
@@ -61,7 +61,7 @@ INVALID_KWARGS = [
 def test_bad_initialization(kwargs):
     """Check that init fails when using not valid kwargs."""
     with pytest.raises(KafkaException):
-        RuleProcessingPublisher(outgoing_topic="topic", **kwargs)
+        WorkloadInfoPublisher(outgoing_topic="topic", **kwargs)
 
 
 @pytest.mark.parametrize("kafka_broker_cfg", INVALID_KWARGS)
@@ -69,7 +69,7 @@ def test_bad_initialization(kwargs):
 def test_bad_init_with_kafka_config(kafka_broker_cfg, kwargs):
     """Check that init fails when using not valid kwargs."""
     with pytest.raises(KafkaException):
-        RuleProcessingPublisher(outgoing_topic="topic", **kwargs)
+        WorkloadInfoPublisher(outgoing_topic="topic", **kwargs)
 
 
 INVALID_INPUT_MSGS = [
@@ -116,7 +116,7 @@ INVALID_INPUT_MSGS = [
 @pytest.mark.parametrize("wrong_input_msg", INVALID_INPUT_MSGS)
 def test_publish_bad_argument(wrong_input_msg):
     """Check that invalid messages passed by the framework are handled gracefully."""
-    sut = RuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
+    sut = WorkloadInfoPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
     sut.producer = MagicMock()
 
     with pytest.raises(CCXMessagingError):
@@ -150,7 +150,7 @@ def test_publish_valid():
                 "OrgID": 10,
                 "AccountNumber": 1,
                 "ClusterName": "uuid",
-                "Report": {},
+                "Images": {},
                 "LastChecked": "a timestamp",
                 "Version": 2,
                 "RequestId": "a request id",
@@ -158,7 +158,7 @@ def test_publish_valid():
         )
         + "\n"
     )
-    sut = RuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
+    sut = WorkloadInfoPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
     sut.producer = MagicMock()
 
     sut.publish(VALID_INPUT_MSG, report)
@@ -166,7 +166,6 @@ def test_publish_valid():
 
 
 INVALID_REPORTS = [
-    None,
     1,
     2.0,
     1 + 3j,
@@ -179,7 +178,7 @@ INVALID_REPORTS = [
 @pytest.mark.parametrize("invalid_report", INVALID_REPORTS)
 def test_publish_invalid_report(invalid_report):
     """Check the behaviour of publish when an invalid report is received."""
-    sut = RuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
+    sut = WorkloadInfoPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
     sut.producer = MagicMock()
 
     with pytest.raises(CCXMessagingError):
@@ -189,7 +188,7 @@ def test_publish_invalid_report(invalid_report):
 
 def test_error():
     """Check that error just prints a log."""
-    sut = RuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
+    sut = WorkloadInfoPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
 
     with patch("ccx_messaging.publishers.kafka_publisher.log") as log_mock:
         sut.error(VALID_INPUT_MSG, None)
