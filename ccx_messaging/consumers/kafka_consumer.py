@@ -4,13 +4,11 @@ import logging
 import time
 from threading import Thread
 
-from confluent_kafka import Consumer as ConfluentConsumer, KafkaException, Message
+from confluent_kafka import Consumer as ConfluentConsumer, KafkaException, Message, Producer
 from insights_messaging.consumers import Consumer
-from kafka import KafkaProducer
 
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.ingress import parse_ingress_message
-from ccx_messaging.utils.kafka_config import producer_config, translate_kafka_configuration
 
 
 LOG = logging.getLogger(__name__)
@@ -87,9 +85,7 @@ class KafkaConsumer(Consumer):
         self.dead_letter_queue_topic = dead_letter_queue_topic
 
         if self.dead_letter_queue_topic is not None:
-            config = translate_kafka_configuration(kafka_broker_config)
-            dlq_producer_config = producer_config(config)
-            self.dlq_producer = KafkaProducer(**dlq_producer_config)
+            self.dlq_producer = Producer(kwargs)
 
     def get_url(self, input_msg: dict) -> str:
         """
@@ -237,18 +233,10 @@ class KafkaConsumer(Consumer):
         if not self.dlq_producer:
             return
 
-        if isinstance(msg, Message):
-            self.dlq_producer.send(
-                self.dead_letter_queue_topic,
-                msg.value(),
-            )
-
-        else:
-            # just add at least some record in case that the message is not of the expected type
-            self.dlq_producer.send(
-                self.dead_letter_queue_topic,
-                str(msg).encode("utf-8"),
-            )
+        self.dlq_producer.send(
+            self.dead_letter_queue_topic,
+            msg.value(),
+        )
 
 
 def get_stringfied_record(input_record: dict) -> str:
