@@ -17,7 +17,6 @@
 import logging
 import io
 import time
-
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -393,3 +392,36 @@ def test_non_processed_to_dlq(value, expected):
 
             sut.process_msg(input_msg)
             process_dlq_mock.assert_called_with(input_msg)
+
+
+@pytest.mark.parametrize("value,expected", _VALID_MESSAGES)
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_process_dead_letter_no_configured(value, expected):
+    """Check that process_dead_letter method works as expected."""
+    sut = KafkaConsumer(None, None, None, None)
+    sut.dlq_producer = MagicMock()  # inject a mock producer
+    sut.dlq_producer.__bool__.return_value = False
+
+    input_message = KafkaMessage(value)
+
+    sut.process_dead_letter(input_message)
+    assert not sut.dlq_producer.send.called
+
+
+@pytest.mark.parametrize("value,expected", _VALID_MESSAGES)
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+@patch("ccx_messaging.consumers.kafka_consumer.Producer")
+def test_process_dead_letter_message(producer_init_mock, value, expected):
+    """Check behaviour when DLQ is properly configured."""
+    dlq_topic_name = "dlq_topic"
+    producer_mock = MagicMock()
+    producer_init_mock.return_value = producer_mock
+
+    sut = KafkaConsumer(None, None, None, None, dead_letter_queue_topic=dlq_topic_name)
+    assert producer_init_mock.called
+
+    message_mock = MagicMock()
+    message_mock.value.return_value = value
+
+    sut.process_dead_letter(message_mock)
+    producer_mock.send.assert_called_with(dlq_topic_name, value)
