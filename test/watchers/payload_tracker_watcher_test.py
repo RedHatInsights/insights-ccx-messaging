@@ -51,43 +51,72 @@ def _prepare_kafka_mock(producer_init_mock):
 def test_payload_tracker_watcher_invalid_initialize_invalid_servers(bootstrap_value, topic_value):
     """Test passing invalid data types or values to the `PayloadTrackerWatcher` initializer."""
     with pytest.raises((TypeError, PermissionError, OverflowError, KeyError)):
-        _ = PayloadTrackerWatcher(bootstrap_value, topic_value)
+        _ = PayloadTrackerWatcher(topic_value, **{"bootstrap.servers": bootstrap_value})
+
+
+@patch("ccx_messaging.watchers.payload_tracker_watcher.Producer")
+def test_payload_tracker_init_with_kafka_config(producer_init_mock):
+    """Check that passing a kafka_broker_config parameter updates the default ones."""
+    kafka_broker_cfg = {"bootstrap.servers": "valid_server"}
+
+    producer_mock = _prepare_kafka_mock(producer_init_mock)
+    sut = PayloadTrackerWatcher(
+        "valid_topic",
+        kafka_broker_config=kafka_broker_cfg,
+        **{"bootstrap.servers": "invalid_servicer"}
+    )
+
+    producer_init_mock.assert_called_with(**kafka_broker_cfg)
 
 
 @freeze_time("2020-05-07T14:00:00")
-@patch("ccx_messaging.watchers.payload_tracker_watcher.KafkaProducer")
+@patch("ccx_messaging.watchers.payload_tracker_watcher.Producer")
 def test_payload_tracker_watcher_publish_status(producer_init_mock):
     """Test publish_status method sends the expected value to Kafka."""
-    mocked_values = {"request_id": "some request id"}
+    mocked_values = {
+        "request_id": "some request id",
+        "identity": {
+            "identity": {
+                "internal": {
+                    "org_id": 1,
+                },
+                "account_number": 2,
+            }
+        },
+    }
 
     producer_mock = _prepare_kafka_mock(producer_init_mock)
-    sut = PayloadTrackerWatcher(["bootstrap_server"], "valid_topic")
+    sut = PayloadTrackerWatcher("valid_topic", **{"bootstrap.servers": "bootstrap_server"})
     sut.on_recv(mocked_values)
-    producer_mock.send.assert_called_with(
+    producer_mock.produce.assert_called_with(
         "valid_topic",
         b'{"service": "ccx-data-pipeline", "request_id": "some request id", '
-        b'"status": "received", "date": "2020-05-07T14:00:00"}',
+        b'"status": "received", "date": "2020-05-07T14:00:00", '
+        b'"org_id": 1, "account": 2}',
     )
 
     sut.on_process(mocked_values, "{result}")
-    producer_mock.send.assert_called_with(
+    producer_mock.produce.assert_called_with(
         "valid_topic",
         b'{"service": "ccx-data-pipeline", "request_id": "some request id", '
-        b'"status": "processing", "date": "2020-05-07T14:00:00"}',
+        b'"status": "processing", "date": "2020-05-07T14:00:00", '
+        b'"org_id": 1, "account": 2}',
     )
 
     sut.on_consumer_success(mocked_values, "broker", "{result}")
-    producer_mock.send.assert_called_with(
+    producer_mock.produce.assert_called_with(
         "valid_topic",
         b'{"service": "ccx-data-pipeline", "request_id": "some request id", '
-        b'"status": "success", "date": "2020-05-07T14:00:00"}',
+        b'"status": "success", "date": "2020-05-07T14:00:00", '
+        b'"org_id": 1, "account": 2}',
     )
 
     sut.on_consumer_failure(mocked_values, Exception("Something"))
-    producer_mock.send.assert_called_with(
+    producer_mock.produce.assert_called_with(
         "valid_topic",
         b'{"service": "ccx-data-pipeline", "request_id": "some request id", '
-        b'"status": "error", "date": "2020-05-07T14:00:00", "status_msg": "Something"}',
+        b'"status": "error", "date": "2020-05-07T14:00:00", '
+        b'"org_id": 1, "account": 2, "status_msg": "Something"}',
     )
 
     # call _publish_status without request_id and check there is not any
