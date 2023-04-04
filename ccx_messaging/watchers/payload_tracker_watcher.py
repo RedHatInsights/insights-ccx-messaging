@@ -18,9 +18,8 @@ import datetime
 import json
 import logging
 
-from kafka import KafkaProducer
+from confluent_kafka import Producer
 
-from ccx_messaging.utils.kafka_config import producer_config, translate_kafka_configuration
 from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
 
 LOG = logging.getLogger(__name__)
@@ -29,29 +28,26 @@ LOG = logging.getLogger(__name__)
 class PayloadTrackerWatcher(ConsumerWatcher):
     """`Watcher` implementation to handle Payload Tracker updates."""
 
-    def __init__(
-        self,
-        bootstrap_servers,
-        topic,
-        service_name="ccx-data-pipeline",
-        kafka_broker_config=None,
-        **kwargs
-    ):
+    def __init__(self, topic, service_name="ccx-data-pipeline", kafka_broker_config=None, **kwargs):
         """Construct a `PayloadTrackerWatcher` object."""
         self.topic = topic
 
         if not self.topic:
             raise KeyError("topic")
 
-        kafka_broker_cfg = translate_kafka_configuration(kafka_broker_config)
-        kwargs.update(kafka_broker_cfg)
+        if kafka_broker_config:
+            kwargs.update(kafka_broker_config)
 
-        if "bootstrap_servers" not in kwargs:
-            kwargs["bootstrap_servers"] = bootstrap_servers
-
-        kwargs = producer_config(kwargs)
-        LOG.debug("Kafka publisher for PayloadTrackerWatcher configuration arguments: %s", kwargs)
-        self.kafka_prod = KafkaProducer(**kwargs)
+        LOG.debug(
+            "Confluent Kafka consumer configuration arguments: "
+            "Server: %s. "
+            "Topic: %s. "
+            "Security protocol: %s.",
+            kwargs.get("bootstrap.servers"),
+            self.topic,
+            kwargs.get("security.protocol"),
+        )
+        self.kafka_prod = Producer(**kwargs)
         self.service_name = service_name
 
         LOG.info(
@@ -87,7 +83,7 @@ class PayloadTrackerWatcher(ConsumerWatcher):
         if status_msg:
             tracker_msg["status_msg"] = status_msg
 
-        self.kafka_prod.send(self.topic, json.dumps(tracker_msg).encode("utf-8"))
+        self.kafka_prod.produce(self.topic, json.dumps(tracker_msg).encode("utf-8"))
         LOG.info("Payload Tracker update successfully sent: %s %s", request_id, status)
 
     def on_recv(self, input_msg):
