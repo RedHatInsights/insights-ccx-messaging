@@ -46,9 +46,6 @@ class KafkaConsumer(Consumer):
         if kafka_broker_config:
             kwargs.update(kafka_broker_config)
 
-        if "retry.backoff.ms" not in kwargs:
-            kwargs["retry.backoff.ms"] = 1000
-
         LOG.debug(
             "Confluent Kafka consumer configuration arguments: "
             "Group: %s. "

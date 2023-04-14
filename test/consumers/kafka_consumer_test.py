@@ -246,7 +246,6 @@ def test_consumer_init_direct(topic, group, server):
             config = {
                 "bootstrap.servers": server,
                 "group.id": group,
-                "retry.backoff.ms": 1000,
             }
             mock_consumer_init.assert_called_with(config)
 
