@@ -36,6 +36,9 @@ class StatsWatcher(ConsumerWatcher):
         self._recv_total = Counter(
             "ccx_consumer_received_total", "Counter of received Kafka messages"
         )
+        self._filtered_total = Counter(
+            "ccx_consumer_filtered_total", "Counter of filtered Kafka messages"
+        )
 
         self._downloaded_total = Counter("ccx_downloaded_total", "Counter of downloaded items")
 
@@ -90,6 +93,10 @@ class StatsWatcher(ConsumerWatcher):
         self._start_time = time.time()
         self._reset_times()
 
+    def on_filter(self):
+        """On filter event handler."""
+        self._filtered_total.inc()
+
     def on_download(self, path):
         """On downloaded event handler."""
         self._downloaded_total.inc()
@@ -140,6 +147,7 @@ class StatsWatcher(ConsumerWatcher):
     def __del__(self):
         """Destructor for handling counters unregistering."""
         REGISTRY.unregister(self._recv_total)
+        REGISTRY.unregister(self._filtered_total)
         REGISTRY.unregister(self._downloaded_total)
         REGISTRY.unregister(self._processed_total)
         REGISTRY.unregister(self._published_total)

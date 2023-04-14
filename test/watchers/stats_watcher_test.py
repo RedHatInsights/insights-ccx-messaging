@@ -47,6 +47,7 @@ def test_stats_watcher_initialize(start_http_server_mock, value):
 def check_initial_metrics_state(w):
     """Check that all metrics are initialized."""
     assert w._recv_total._value.get() == 0
+    assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
@@ -64,6 +65,7 @@ def init_timestamps(w):
     w._published_time = t
 
 
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
 def test_stats_watcher_on_recv():
     """Test the on_recv() method."""
     input_msg = {"identity": {}}
@@ -80,6 +82,7 @@ def test_stats_watcher_on_recv():
 
     # test new metrics values
     assert w._recv_total._value.get() == 1
+    assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
@@ -88,6 +91,31 @@ def test_stats_watcher_on_recv():
     assert w._not_handling_total._value.get() == 0
 
 
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
+def test_stats_watcher_on_filter():
+    """Test the on_filter() method."""
+    # construct watcher object
+    w = StatsWatcher(prometheus_port=8001)
+    init_timestamps(w)
+
+    # check that all metrics are initialized
+    check_initial_metrics_state(w)
+
+    # change metrics
+    w.on_filter()
+
+    # test new metrics values
+    assert w._recv_total._value.get() == 0
+    assert w._filtered_total._value.get() == 1
+    assert w._downloaded_total._value.get() == 0
+    assert w._processed_total._value.get() == 0
+    assert w._processed_timeout_total._value.get() == 0
+    assert w._published_total._value.get() == 0
+    assert w._failures_total._value.get() == 0
+    assert w._not_handling_total._value.get() == 0
+
+
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
 def test_stats_watcher_on_download():
     """Test the on_download() method."""
     # construct watcher object
@@ -102,6 +130,7 @@ def test_stats_watcher_on_download():
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
+    assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._value.get() == 1
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
@@ -110,6 +139,7 @@ def test_stats_watcher_on_download():
     assert w._not_handling_total._value.get() == 0
 
 
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
 def test_stats_watcher_on_process():
     """Test the on_process() method."""
     input_msg = {"identity": {}}
@@ -126,6 +156,7 @@ def test_stats_watcher_on_process():
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
+    assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 1
     assert w._processed_timeout_total._value.get() == 0
@@ -134,6 +165,7 @@ def test_stats_watcher_on_process():
     assert w._not_handling_total._value.get() == 0
 
 
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
 def test_stats_watcher_on_process_timeout():
     """Test the on_process_timeout() method."""
     # construct watcher object
@@ -145,6 +177,7 @@ def test_stats_watcher_on_process_timeout():
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
+    assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 1
@@ -153,6 +186,7 @@ def test_stats_watcher_on_process_timeout():
     assert w._not_handling_total._value.get() == 0
 
 
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
 def test_stats_watcher_on_consumer_success():
     """Test the on_consumer_success() method."""
     input_msg = {"identity": {}}
@@ -166,6 +200,7 @@ def test_stats_watcher_on_consumer_success():
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
+    assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
@@ -174,6 +209,7 @@ def test_stats_watcher_on_consumer_success():
     assert w._not_handling_total._value.get() == 0
 
 
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
 def test_stats_watcher_on_consumer_failure():
     """Test the on_consumer_failure() method."""
     input_msg = {"identity": {}}
@@ -187,6 +223,7 @@ def test_stats_watcher_on_consumer_failure():
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
+    assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
@@ -223,6 +260,7 @@ def test_stats_watcher_on_consumer_failure():
     assert w._failures_total._value.get() == 4
 
 
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
 def test_stats_watcher_on_not_handled():
     """Test the on_not_handled() method."""
     input_msg = {"identity": {}}
@@ -236,6 +274,7 @@ def test_stats_watcher_on_not_handled():
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
+    assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
@@ -244,6 +283,7 @@ def test_stats_watcher_on_not_handled():
     assert w._not_handling_total._value.get() == 1
 
 
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
 def test_reset_times():
     """Test the method _reset_times()."""
     # construct watcher object
