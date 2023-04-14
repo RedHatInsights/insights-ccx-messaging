@@ -14,7 +14,7 @@
 
 """Test for the ccx_messaging.utils.kafka_config module."""
 
-from ccx_messaging.utils.kafka_config import translate_kafka_configuration
+from ccx_messaging.utils.kafka_config import translate_kafka_configuration, kafka_producer_config_cleanup
 
 
 def test_translate_kafka_configuration():
@@ -55,3 +55,21 @@ def test_translate_kafka_configuration_unexpected_keys_ignored():
     }
 
     assert translate_kafka_configuration(kafka_config) == expected_lib_config
+
+
+def test_kafka_producer_config_cleanup():
+    """Check the clean up function for producer' configurations."""
+    kafka_consumer_config = {
+        "group.id": "should delete",
+        "bootstrap.servers": "kafka:9092",
+        "session.timeout.ms": "1000",
+        "heartbeat.interval.ms": "1000",
+        "max.poll.interval.ms": "1000",
+    }
+
+    cfg = kafka_producer_config_cleanup(kafka_consumer_config)
+
+    assert "group.id" not in cfg
+    assert "session.timeout.ms" not in cfg
+    assert "heartbeat.interval.ms" not in cfg
+    assert "max.poll.interval.ms" not in cfg

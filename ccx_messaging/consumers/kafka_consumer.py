@@ -9,6 +9,7 @@ from insights_messaging.consumers import Consumer
 
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.ingress import parse_ingress_message
+from ccx_messaging.utils.kafka_config import kafka_producer_config_cleanup
 
 
 LOG = logging.getLogger(__name__)
@@ -85,7 +86,7 @@ class KafkaConsumer(Consumer):
         self.dead_letter_queue_topic = dead_letter_queue_topic
 
         if self.dead_letter_queue_topic is not None:
-            self.dlq_producer = Producer(kwargs)
+            self.dlq_producer = Producer(kafka_producer_config_cleanup(kwargs))
 
     def get_url(self, input_msg: dict) -> str:
         """

@@ -20,7 +20,9 @@ import logging
 
 from confluent_kafka import Producer
 
+from ccx_messaging.utils.kafka_config import kafka_producer_config_cleanup
 from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
+
 
 LOG = logging.getLogger(__name__)
 
@@ -37,6 +39,8 @@ class PayloadTrackerWatcher(ConsumerWatcher):
 
         if kafka_broker_config:
             kwargs.update(kafka_broker_config)
+        
+        kwargs = kafka_producer_config_cleanup(kwargs)
 
         LOG.debug(
             "Confluent Kafka consumer configuration arguments: "
