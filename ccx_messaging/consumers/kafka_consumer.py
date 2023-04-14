@@ -158,6 +158,7 @@ class KafkaConsumer(Consumer):
 
         if not self.handles(msg):
             # already logged in self.handles
+            self.fire("on_filter")
             return
 
         try:

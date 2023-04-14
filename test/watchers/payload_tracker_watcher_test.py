@@ -59,8 +59,7 @@ def test_payload_tracker_init_with_kafka_config(producer_init_mock):
     """Check that passing a kafka_broker_config parameter updates the default ones."""
     kafka_broker_cfg = {"bootstrap.servers": "valid_server"}
 
-    producer_mock = _prepare_kafka_mock(producer_init_mock)
-    sut = PayloadTrackerWatcher(
+    PayloadTrackerWatcher(
         "valid_topic",
         kafka_broker_config=kafka_broker_cfg,
         **{"bootstrap.servers": "invalid_servicer"}
