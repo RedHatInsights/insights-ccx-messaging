@@ -32,3 +32,19 @@ def translate_kafka_configuration(config: dict) -> dict:
         lib_config[lib_key] = config[kafka_key]
 
     return lib_config
+
+
+def kafka_producer_config_cleanup(config):
+    """Clean up the configuration dictionary of consumer-only properties."""
+    consumer_only_properties = [
+        "group.id",
+        "session.timeout.ms",
+        "heartbeat.interval.ms",
+        "max.poll.interval.ms",
+    ]
+
+    for property in consumer_only_properties:
+        if property in config:
+            del config[property]
+
+    return config
