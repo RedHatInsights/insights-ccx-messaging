@@ -17,7 +17,7 @@
 import logging
 import io
 import time
-from unittest.mock import call,MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from confluent_kafka import KafkaException, TIMESTAMP_NOT_AVAILABLE
@@ -42,6 +42,7 @@ class KafkaMessage:
         self.headers = lambda: self._headers
 
     def timestamp(self):
+        """Test double for the Message.timestamp function."""
         if self._timestamp is None:
             return TIMESTAMP_NOT_AVAILABLE, None
 

@@ -1,5 +1,6 @@
 """Functions to adapt kafka-python configuration parameters."""
 
+
 def translate_kafka_configuration(config: dict) -> dict:
     """Transform a dict with default Kafka configuration to kafka-python configuration."""
     lib_config = {}
