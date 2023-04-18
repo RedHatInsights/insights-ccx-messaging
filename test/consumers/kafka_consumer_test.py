@@ -17,9 +17,10 @@
 import logging
 import io
 import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import call,MagicMock, patch
 
 import pytest
+from confluent_kafka import KafkaException, TIMESTAMP_NOT_AVAILABLE
 
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
@@ -28,16 +29,24 @@ from ccx_messaging.error import CCXMessagingError
 class KafkaMessage:
     """Test double for the confluent_kafka.Message class."""
 
-    def __init__(self, msg, headers=None):
+    def __init__(self, msg, headers=None, timestamp=None):
         """Initialize a KafkaMessage test double."""
         self.msg = msg
         self._headers = headers
+        self._timestamp = timestamp
         self.topic = lambda: "topic"
         self.partition = lambda: 0
         self.offset = lambda: 0
         self.value = lambda: self.msg
         self.error = lambda: None
         self.headers = lambda: self._headers
+
+    def timestamp(self):
+        if self._timestamp is None:
+            return TIMESTAMP_NOT_AVAILABLE, None
+
+        else:
+            return None, self._timestamp
 
 
 # _REGEX_BAD_SCHEMA = r"^Unable to extract URL from input message: "
@@ -136,24 +145,24 @@ _VALID_MESSAGES = [
 
 
 @pytest.mark.parametrize("msg,value", _VALID_MESSAGES)
-@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
-def test_deserialize_valid_str(consumer_mock, msg, value):
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_deserialize_valid_str(msg, value):
     """Test that proper string JSON input messages are correctly deserialized."""
     sut = KafkaConsumer(None, None, None, None)
     assert sut.deserialize(KafkaMessage(msg)) == value
 
 
 @pytest.mark.parametrize("msg,value", _VALID_MESSAGES)
-@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
-def test_deserialize_valid_bytes(consumer_mock, msg, value):
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_deserialize_valid_bytes(msg, value):
     """Test that proper string JSON input messages are correctly deserialized."""
     sut = KafkaConsumer(None, None, None, None)
     assert sut.deserialize(KafkaMessage(msg.encode())) == value
 
 
 @pytest.mark.parametrize("msg,value", _VALID_MESSAGES)
-@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
-def test_deserialize_valid_bytearray(consumer_mock, msg, value):
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_deserialize_valid_bytearray(msg, value):
     """Test that proper string JSON input messages are correctly deserialized."""
     sut = KafkaConsumer(None, None, None, None)
     assert sut.deserialize(KafkaMessage(bytearray(msg.encode()))) == value
@@ -171,23 +180,23 @@ _HANDLE_HEADER = {"service": b"some_service"}
 
 
 @pytest.mark.parametrize("headers", _NO_HANDLE_HEADERS)
-@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
-def test_platform_filter(consumer_mock, headers):
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_platform_filter(headers):
     """Test that filter by platform behaves as expected."""
     sut = KafkaConsumer(None, None, None, None, platform_service=PLATFORM_SERVICE)
     assert not sut.handles(KafkaMessage("{}", headers))
 
 
 @pytest.mark.parametrize("headers", _NO_HANDLE_HEADERS + [_HANDLE_HEADER])
-@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
-def test_platform_filter_no_platform_service(consumer_mock, headers):
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_platform_filter_no_platform_service(headers):
     """Test that filter by platform behaves as expected."""
     sut = KafkaConsumer(None, None, None, None)
     assert sut.handles(KafkaMessage("{}", headers))
 
 
-@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
-def test_platform_filter_platform_service(consumer_mock):
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_platform_filter_platform_service():
     """Test that filter by platform behaves as expected."""
     sut = KafkaConsumer(None, None, None, None, platform_service=PLATFORM_SERVICE)
     assert sut.handles(KafkaMessage("{}", _HANDLE_HEADER))
@@ -253,12 +262,12 @@ def test_consumer_init_direct(topic, group, server):
 MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST = 2
 
 
-@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
 @patch(
-    "ccx_messaging.consumers.consumer.MAX_ELAPSED_TIME_BETWEEN_MESSAGES",
+    "ccx_messaging.consumers.kafka_consumer.MAX_ELAPSED_TIME_BETWEEN_MESSAGES",
     MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST,
 )
-def test_elapsed_time_thread_no_warning_when_message_received(consumer_mock):
+def test_elapsed_time_thread_no_warning_when_message_received():
     """
     Test elapsed time thread if new message received on time.
 
@@ -285,12 +294,12 @@ def test_elapsed_time_thread_no_warning_when_message_received(consumer_mock):
     logger.removeHandler(log_handler)
 
 
-@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
 @patch(
     "ccx_messaging.consumers.kafka_consumer.MAX_ELAPSED_TIME_BETWEEN_MESSAGES",
     MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST,
 )
-def test_elapsed_time_thread_warning_when_no_message_received(consumer_mock):
+def test_elapsed_time_thread_warning_when_no_message_received():
     """
     Test elapsed time thread if no new message received on time.
 
@@ -304,7 +313,7 @@ def test_elapsed_time_thread_warning_when_no_message_received(consumer_mock):
     logger.level = logging.DEBUG
     logger.addHandler(log_handler)
 
-    with patch("ccx_messaging.consumers.consumer.LOG", logger):
+    with patch("ccx_messaging.consumers.kafka_consumer.LOG", logger):
         sut = KafkaConsumer(
             None, None, None, "topic", group_id="group", bootstrap_servers=["server"]
         )
@@ -318,6 +327,47 @@ def test_elapsed_time_thread_warning_when_no_message_received(consumer_mock):
         assert alert_message in buf.getvalue()
 
     logger.removeHandler(log_handler)
+
+
+@patch(
+    "ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *args, **kwargs: MagicMock()
+)
+def test_handles_old_message():
+    """Check that too old message is discarded."""
+    msg = KafkaMessage(b"", None, 0)
+    sut = KafkaConsumer(
+        None,
+        None,
+        None,
+        "topic",
+        max_record_age=100,
+        group_id="group",
+        bootstrap_servers=["server"],
+    )
+
+    assert not sut.handles(msg)
+
+    msg = KafkaMessage(b"", None, time.time() * 1000)  # using ms
+    assert sut.handles(msg)
+
+
+@patch(
+    "ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *args, **kwargs: MagicMock()
+)
+def test_handles_disable_age_message_filtering():
+    """Check that too old message is discarded."""
+    msg = KafkaMessage(b"", None, 0)
+    sut = KafkaConsumer(
+        None,
+        None,
+        None,
+        "topic",
+        max_record_age=-1,
+        group_id="group",
+        bootstrap_servers=["server"],
+    )
+
+    assert sut.handles(msg)
 
 
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
@@ -424,3 +474,43 @@ def test_process_dead_letter_message(producer_init_mock, value, expected):
 
     sut.process_dead_letter(message_mock)
     producer_mock.send.assert_called_with(dlq_topic_name, value)
+
+
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
+def test_run_success(consumer_init_mock):
+    """Check the run method process the message as many times as needed."""
+    consumer_mock = MagicMock()
+    consumer_init_mock.return_value = consumer_mock
+
+    consumer_mock.consume.side_effect = [
+        [KafkaMessage(b"0")],
+        [KafkaMessage(b"1"), KafkaMessage(b"2")],
+        KeyboardInterrupt(),
+    ]
+
+    sut = KafkaConsumer(None, None, None, "topic")
+    sut.process_msg = MagicMock()
+    sut.run()
+
+    assert consumer_mock.consume.call_count == 3
+    assert consumer_mock.close.call_count == 1
+    assert sut.process_msg.call_count == 3
+
+
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
+def test_run_fail(consumer_init_mock):
+    """Check the run method process the message as many times as needed."""
+    consumer_mock = MagicMock()
+    consumer_init_mock.return_value = consumer_mock
+
+    consumer_mock.consume.side_effect = [
+        KafkaException(),
+    ]
+
+    sut = KafkaConsumer(None, None, None, "topic")
+    sut.process_msg = MagicMock()
+    sut.run()
+
+    assert consumer_mock.consume.call_count == 1
+    assert consumer_mock.close.call_count == 1
+    assert not sut.process_msg.called
