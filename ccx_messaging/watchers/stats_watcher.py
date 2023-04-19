@@ -15,6 +15,7 @@
 """Module including instrumentation to expose retrieved stats to Prometheus."""
 
 import logging
+import os
 import time
 
 from prometheus_client import Counter, Histogram, start_http_server, REGISTRY
@@ -40,7 +41,9 @@ class StatsWatcher(ConsumerWatcher):
             "ccx_consumer_filtered_total", "Counter of filtered Kafka messages"
         )
 
-        self._downloaded_total = Counter("ccx_downloaded_total", "Counter of downloaded items")
+        self._downloaded_total = Histogram(
+            "ccx_downloaded_total", "Histogram of the size of downloaded items"
+        )
 
         self._processed_total = Counter(
             "ccx_engine_processed_total", "Counter of files processed by the OCP Engine"
@@ -99,7 +102,7 @@ class StatsWatcher(ConsumerWatcher):
 
     def on_download(self, path):
         """On downloaded event handler."""
-        self._downloaded_total.inc()
+        self._downloaded_total.observe(os.path.getsize(path))
 
         self._downloaded_time = time.time()
         self._download_duration.observe(self._downloaded_time - self._start_time)
