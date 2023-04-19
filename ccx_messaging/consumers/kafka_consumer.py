@@ -4,7 +4,13 @@ import logging
 import time
 from threading import Thread
 
-from confluent_kafka import Consumer as ConfluentConsumer, KafkaException, Message, Producer
+from confluent_kafka import (
+    Consumer as ConfluentConsumer,
+    KafkaException,
+    Message,
+    Producer,
+    TIMESTAMP_NOT_AVAILABLE,
+)
 from insights_messaging.consumers import Consumer
 
 from ccx_messaging.error import CCXMessagingError
@@ -128,19 +134,37 @@ class KafkaConsumer(Consumer):
 
     def handles(self, msg: Message) -> bool:
         """Check headers, format and other characteristics that can make the message unusable."""
-        if not self.platform_service:
+        if self.platform_service:
+            headers = msg.headers()
+            if not headers:
+                LOG.debug("Message filtered: no headers in message")
+                return False
+
+            headers = dict(headers)
+            destination_service = headers.get("service", b"").decode()
+
+            if destination_service != self.platform_service:
+                LOG.debug("Message filtered: wrong detination service: %s", destination_service)
+                self.fire("on_filter")
+                return False
+
+        return self._handles_timestamp_check(msg)
+
+    def _handles_timestamp_check(self, msg: Message):
+        """Check the timestamp of the msg."""
+        if self.max_record_age == -1:
             return True
 
-        headers = msg.headers()
-        if not headers:
-            LOG.debug("Message filtered: no headers in message")
-            return False
+        timestamp_type, timestamp = msg.timestamp()
 
-        headers = dict(headers)
-        destination_service = headers.get("service", b"").decode()
+        if timestamp_type == TIMESTAMP_NOT_AVAILABLE:
+            LOG.debug("Cannot check the incoming message timestamp.")
+            return True
 
-        if destination_service != self.platform_service:
-            LOG.debug("Message filtered: wrong detination service: %s", destination_service)
+        # Kafka record timestamp is int64 in milliseconds.
+        current = time.time()
+        if (timestamp / 1000) < (current - self.max_record_age):
+            LOG.debug("Skipping message due to its timestamp (too old)")
             return False
 
         return True
@@ -156,7 +180,6 @@ class KafkaConsumer(Consumer):
 
         if not self.handles(msg):
             # already logged in self.handles
-            self.fire("on_filter")
             return
 
         try:

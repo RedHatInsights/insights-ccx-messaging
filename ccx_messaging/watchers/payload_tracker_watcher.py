@@ -39,7 +39,7 @@ class PayloadTrackerWatcher(ConsumerWatcher):
 
         if kafka_broker_config:
             kwargs.update(kafka_broker_config)
-        
+
         kwargs = kafka_producer_config_cleanup(kwargs)
 
         LOG.debug(

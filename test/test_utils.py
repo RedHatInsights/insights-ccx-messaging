@@ -16,26 +16,6 @@
 
 import time
 
-from kafka.consumer.fetcher import ConsumerRecord
-
-
-def mock_consumer_record(value):
-    """Construct a value-only `ConsumerRecord`."""
-    return ConsumerRecord(
-        None,
-        None,
-        None,
-        int((time.time() * 1000) - 60),
-        None,
-        None,
-        value,
-        None,
-        None,
-        None,
-        None,
-        None,
-    )
-
 
 def mock_consumer_process_no_action_catch_exception(duration_s=0):
     """
