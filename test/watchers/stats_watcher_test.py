@@ -48,7 +48,6 @@ def check_initial_metrics_state(w):
     """Check that all metrics are initialized."""
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
@@ -83,7 +82,7 @@ def test_stats_watcher_on_recv():
     # test new metrics values
     assert w._recv_total._value.get() == 1
     assert w._filtered_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
+    assert len(w._downloaded_total._labelvalues) == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
@@ -107,7 +106,7 @@ def test_stats_watcher_on_filter():
     # test new metrics values
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 1
-    assert w._downloaded_total._value.get() == 0
+    assert w._downloaded_total._sum.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
@@ -126,12 +125,13 @@ def test_stats_watcher_on_download():
     check_initial_metrics_state(w)
 
     # change metrics
-    w.on_download("path")
+    with patch("ccx_messaging.watchers.stats_watcher.os.path.getsize", lambda x: 100):
+        w.on_download("path")
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 1
+    assert w._downloaded_total._sum.get() == 100
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
@@ -157,7 +157,7 @@ def test_stats_watcher_on_process():
     # test new metrics values
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
+    assert w._downloaded_total._sum.get() == 0
     assert w._processed_total._value.get() == 1
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
@@ -178,7 +178,7 @@ def test_stats_watcher_on_process_timeout():
     # test new metrics values
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
+    assert w._downloaded_total._sum.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 1
     assert w._published_total._value.get() == 0
@@ -201,7 +201,7 @@ def test_stats_watcher_on_consumer_success():
     # test new metrics values
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
+    assert w._downloaded_total._sum.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 1
@@ -224,7 +224,7 @@ def test_stats_watcher_on_consumer_failure():
     # test new metrics values
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
+    assert w._downloaded_total._sum.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
@@ -275,7 +275,7 @@ def test_stats_watcher_on_not_handled():
     # test new metrics values
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
-    assert w._downloaded_total._value.get() == 0
+    assert w._downloaded_total._sum.get() == 0
     assert w._processed_total._value.get() == 0
     assert w._processed_timeout_total._value.get() == 0
     assert w._published_total._value.get() == 0
