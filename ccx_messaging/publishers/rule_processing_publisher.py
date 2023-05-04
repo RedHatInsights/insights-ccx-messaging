@@ -60,7 +60,8 @@ class RuleProcessingPublisher(KafkaPublisher):
         try:
             account_number = int(input_msg["identity"]["identity"]["account_number"])
         except (ValueError, KeyError, TypeError) as err:
-            raise CCXMessagingError(f"Error extracting the Account number: {err}") from err
+            log.warning(f"Error extracting the Account number: {err}")
+            account_number = ''
 
         try:
             msg_timestamp = input_msg["timestamp"]
