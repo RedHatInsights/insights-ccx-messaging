@@ -84,12 +84,12 @@ INVALID_INPUT_MSGS = [
     {"identity": {"identity": {}}},  # missing identity-identity-internal
     {"identity": {"identity": {"internal": {}}}},  # missing identity-identity-internal-org_id
     {"identity": {"identity": {"internal": {"org_id": 15.2}}}},  # incorrect org_id type
-    {"identity": {"identity": {"internal": {"org_id": 10}}}},  # missing "account_number"
+    {"identity": {"identity": {"internal": {"org_id": 10}}}},  # missing timestamp
     {
         "identity": {
             "identity": {
                 "internal": {"org_id": 10},
-                "account_number": 1 + 2j,  # incorrect account number type
+                "account_number": 1 + 2j,  # missing timestamp
             },
         },
     },
@@ -124,44 +124,111 @@ def test_publish_bad_argument(wrong_input_msg):
         assert not sut.producer.produce.called
 
 
-VALID_INPUT_MSG = {
-    "identity": {
+VALID_INPUT_MSG = [
+    pytest.param({
         "identity": {
-            "internal": {"org_id": 10},
-            "account_number": 1,
+            "identity": {
+                "internal": {"org_id": 10},
+                "account_number": 1,
+            },
         },
-    },
-    "timestamp": "a timestamp",
-    "cluster_name": "uuid",
-    "request_id": "a request id",
-    "topic": "incoming_topic",
-    "partition": 0,
-    "offset": 100,
-}
+        "timestamp": "a timestamp",
+        "cluster_name": "uuid",
+        "request_id": "a request id",
+        "topic": "incoming_topic",
+        "partition": 0,
+        "offset": 100,
+    }, {
+        "OrgID": 10,
+        "AccountNumber": 1,
+        "ClusterName": "uuid",
+        "Report": {},
+        "LastChecked": "a timestamp",
+        "Version": 2,
+        "RequestId": "a request id",
+    }, id="with account"),
+    pytest.param({
+        "identity": {
+            "identity": {
+                "internal": {"org_id": 10},
+                "account_number": 5 + 2j,
+            },
+        },
+        "timestamp": "a timestamp",
+        "cluster_name": "uuid",
+        "request_id": "a request id",
+        "topic": "incoming_topic",
+        "partition": 0,
+        "offset": 100,
+    }, {"OrgID": 10,
+        "AccountNumber": '',
+        "ClusterName": "uuid",
+        "Report": {},
+        "LastChecked": "a timestamp",
+        "Version": 2,
+        "RequestId": "a request id",
+        }, id="invalid account"),
+    pytest.param({
+        "identity": {
+            "identity": {
+                "internal": {"org_id": 10},
+                "account_number": '',
+            },
+        },
+        "timestamp": "a timestamp",
+        "cluster_name": "uuid",
+        "request_id": "a request id",
+        "topic": "incoming_topic",
+        "partition": 0,
+        "offset": 100,
+    }, {
+        "OrgID": 10,
+        "AccountNumber": '',
+        "ClusterName": "uuid",
+        "Report": {},
+        "LastChecked": "a timestamp",
+        "Version": 2,
+        "RequestId": "a request id",
+    }, id="empty account"),
+    pytest.param({
+        "identity": {
+            "identity": {
+                "internal": {"org_id": 10},
+            },
+        },
+        "timestamp": "a timestamp",
+        "cluster_name": "uuid",
+        "request_id": "a request id",
+        "topic": "incoming_topic",
+        "partition": 0,
+        "offset": 100,
+    }, {
+        "OrgID": 10,
+        "AccountNumber": '',
+        "ClusterName": "uuid",
+        "Report": {},
+        "LastChecked": "a timestamp",
+        "Version": 2,
+        "RequestId": "a request id",
+    }, id="no account"),
+]
 
 
-def test_publish_valid():
+@pytest.mark.parametrize("input, expected_output", VALID_INPUT_MSG)
+def test_publish_valid(input, expected_output):
     """Check that Kafka producer is called with an expected message."""
     report = "{}"
 
     expected_output = (
         json.dumps(
-            {
-                "OrgID": 10,
-                "AccountNumber": 1,
-                "ClusterName": "uuid",
-                "Report": {},
-                "LastChecked": "a timestamp",
-                "Version": 2,
-                "RequestId": "a request id",
-            }
+            expected_output
         )
         + "\n"
     )
     sut = RuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
     sut.producer = MagicMock()
 
-    sut.publish(VALID_INPUT_MSG, report)
+    sut.publish(input, report)
     sut.producer.produce.assert_called_with("outgoing_topic", expected_output.encode())
 
 
@@ -187,10 +254,13 @@ def test_publish_invalid_report(invalid_report):
         assert not sut.producer.produce.called
 
 
-def test_error():
+@pytest.mark.parametrize("input,output", VALID_INPUT_MSG)
+def test_error(input, output):
     """Check that error just prints a log."""
+    _ = output  # output values are not needed
+
     sut = RuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
 
     with patch("ccx_messaging.publishers.kafka_publisher.log") as log_mock:
-        sut.error(VALID_INPUT_MSG, None)
+        sut.error(input, None)
         assert log_mock.error.called
