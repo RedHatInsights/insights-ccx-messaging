@@ -125,93 +125,109 @@ def test_publish_bad_argument(wrong_input_msg):
 
 
 VALID_INPUT_MSG = [
-    pytest.param({
-        "identity": {
+    pytest.param(
+        {
             "identity": {
-                "internal": {"org_id": 10},
-                "account_number": 1,
+                "identity": {
+                    "internal": {"org_id": 10},
+                    "account_number": 1,
+                },
             },
+            "timestamp": "a timestamp",
+            "cluster_name": "uuid",
+            "request_id": "a request id",
+            "topic": "incoming_topic",
+            "partition": 0,
+            "offset": 100,
         },
-        "timestamp": "a timestamp",
-        "cluster_name": "uuid",
-        "request_id": "a request id",
-        "topic": "incoming_topic",
-        "partition": 0,
-        "offset": 100,
-    }, {
-        "OrgID": 10,
-        "AccountNumber": 1,
-        "ClusterName": "uuid",
-        "Images": {},
-        "LastChecked": "a timestamp",
-        "Version": 2,
-        "RequestId": "a request id",
-    }, id="with account"),
-    pytest.param({
-        "identity": {
+        {
+            "OrgID": 10,
+            "AccountNumber": 1,
+            "ClusterName": "uuid",
+            "Images": {},
+            "LastChecked": "a timestamp",
+            "Version": 2,
+            "RequestId": "a request id",
+        },
+        id="with account",
+    ),
+    pytest.param(
+        {
             "identity": {
-                "internal": {"org_id": 10},
-                "account_number": 5 + 2j,
+                "identity": {
+                    "internal": {"org_id": 10},
+                    "account_number": 5 + 2j,
+                },
             },
+            "timestamp": "a timestamp",
+            "cluster_name": "uuid",
+            "request_id": "a request id",
+            "topic": "incoming_topic",
+            "partition": 0,
+            "offset": 100,
         },
-        "timestamp": "a timestamp",
-        "cluster_name": "uuid",
-        "request_id": "a request id",
-        "topic": "incoming_topic",
-        "partition": 0,
-        "offset": 100,
-    }, {
-        "OrgID": 10,
-        "AccountNumber": '',
-        "ClusterName": "uuid",
-        "Images": {},
-        "LastChecked": "a timestamp",
-        "Version": 2,
-        "RequestId": "a request id",
-    }, id="invalid account"),
-    pytest.param({
-        "identity": {
+        {
+            "OrgID": 10,
+            "AccountNumber": "",
+            "ClusterName": "uuid",
+            "Images": {},
+            "LastChecked": "a timestamp",
+            "Version": 2,
+            "RequestId": "a request id",
+        },
+        id="invalid account",
+    ),
+    pytest.param(
+        {
             "identity": {
-                "internal": {"org_id": 10},
-                "account_number": '',
+                "identity": {
+                    "internal": {"org_id": 10},
+                    "account_number": "",
+                },
             },
+            "timestamp": "a timestamp",
+            "cluster_name": "uuid",
+            "request_id": "a request id",
+            "topic": "incoming_topic",
+            "partition": 0,
+            "offset": 100,
         },
-        "timestamp": "a timestamp",
-        "cluster_name": "uuid",
-        "request_id": "a request id",
-        "topic": "incoming_topic",
-        "partition": 0,
-        "offset": 100,
-    }, {
-        "OrgID": 10,
-        "AccountNumber": '',
-        "ClusterName": "uuid",
-        "Images": {},
-        "LastChecked": "a timestamp",
-        "Version": 2,
-        "RequestId": "a request id",
-    }, id="empty account"),
-    pytest.param({
-        "identity": {
+        {
+            "OrgID": 10,
+            "AccountNumber": "",
+            "ClusterName": "uuid",
+            "Images": {},
+            "LastChecked": "a timestamp",
+            "Version": 2,
+            "RequestId": "a request id",
+        },
+        id="empty account",
+    ),
+    pytest.param(
+        {
             "identity": {
-                "internal": {"org_id": 10},
+                "identity": {
+                    "internal": {"org_id": 10},
+                },
             },
+            "timestamp": "a timestamp",
+            "cluster_name": "uuid",
+            "request_id": "a request id",
+            "topic": "incoming_topic",
+            "partition": 0,
+            "offset": 100,
         },
-        "timestamp": "a timestamp",
-        "cluster_name": "uuid",
-        "request_id": "a request id",
-        "topic": "incoming_topic",
-        "partition": 0,
-        "offset": 100,
-    }, {
-        "OrgID": 10,
-        "AccountNumber": '',
-        "ClusterName": "uuid",
-        "Images": {},
-        "LastChecked": "a timestamp",
-        "Version": 2,
-        "RequestId": "a request id",
-    }, id="no account"),
+        {
+            "OrgID": 10,
+            "AccountNumber": "",
+            "ClusterName": "uuid",
+            "Images": {},
+            "LastChecked": "a timestamp",
+            "Version": 2,
+            "RequestId": "a request id",
+        },
+        id="no account",
+    ),
 ]
 
 
@@ -220,12 +236,7 @@ def test_publish_valid(input, expected_output):
     """Check that Kafka producer is called with an expected message."""
     report = "{}"
 
-    expected_output = (
-        json.dumps(
-            expected_output
-        )
-        + "\n"
-    )
+    expected_output = json.dumps(expected_output) + "\n"
     sut = WorkloadInfoPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
     sut.producer = MagicMock()
 
