@@ -42,7 +42,7 @@ class PayloadTrackerWatcher(ConsumerWatcher):
 
         kwargs = kafka_producer_config_cleanup(kwargs)
 
-        LOG.debug(
+        LOG.info(
             "Confluent Kafka consumer configuration arguments: "
             "Server: %s. "
             "Topic: %s. "
@@ -66,6 +66,7 @@ class PayloadTrackerWatcher(ConsumerWatcher):
         identity_field = input_msg.get("identity", {}).get("identity", {})
         org_id = identity_field.get("internal", {}).get("org_id")
         account = identity_field.get("account_number")
+        cluster_name = input_msg.get("cluster_name", "")
 
         if request_id is None:
             LOG.warning("The received record doesn't contain a request_id. It won't be reported")
@@ -88,7 +89,12 @@ class PayloadTrackerWatcher(ConsumerWatcher):
             tracker_msg["status_msg"] = status_msg
 
         self.kafka_prod.produce(self.topic, json.dumps(tracker_msg).encode("utf-8"))
-        LOG.info("Payload Tracker update successfully sent: %s %s", request_id, status)
+        LOG.info(
+            "Payload Tracker update successfully sent for cluster %s: %s %s",
+            cluster_name,
+            request_id,
+            status,
+        )
 
     def on_recv(self, input_msg):
         """On received event handler."""

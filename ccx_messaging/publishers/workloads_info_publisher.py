@@ -63,7 +63,7 @@ class WorkloadInfoPublisher(KafkaPublisher):
             account_number = int(input_msg["identity"]["identity"]["account_number"])
         except (ValueError, KeyError, TypeError) as err:
             log.warning(f"Error extracting the Account number: {err}")
-            account_number = ''
+            account_number = ""
 
         # outgoing message in form of JSON
         message = ""
@@ -103,7 +103,7 @@ class WorkloadInfoPublisher(KafkaPublisher):
                 output_msg["Version"],
             )
 
-            log.info(
+            log.debug(
                 "Status: Success; "
                 "Topic: %s; "
                 "Partition: %s; "
