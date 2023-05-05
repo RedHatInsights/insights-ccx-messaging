@@ -144,7 +144,7 @@ class KafkaConsumer(Consumer):
             destination_service = headers.get("service", b"").decode()
 
             if destination_service != self.platform_service:
-                LOG.debug("Message filtered: wrong detination service: %s", destination_service)
+                LOG.debug("Message filtered: wrong destination service: %s", destination_service)
                 self.fire("on_filter")
                 return False
 
