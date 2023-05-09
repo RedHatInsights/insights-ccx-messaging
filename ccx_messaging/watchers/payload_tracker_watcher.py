@@ -89,6 +89,7 @@ class PayloadTrackerWatcher(ConsumerWatcher):
             tracker_msg["status_msg"] = status_msg
 
         self.kafka_prod.produce(self.topic, json.dumps(tracker_msg).encode("utf-8"))
+        self.kafka_prod.poll(0)
         LOG.info(
             "Payload Tracker update successfully sent for cluster %s: %s %s",
             cluster_name,
