@@ -65,6 +65,7 @@ class KafkaPublisher(Publisher):
     def produce(self, outgoing_message: bytes):
         """Send the message though the Kafka producer."""
         self.producer.produce(self.topic, outgoing_message)
+        self.producer.poll(0)
 
     def publish(self, input_msg: dict, report: str):
         """Publish the report and other important info to Kafka.
