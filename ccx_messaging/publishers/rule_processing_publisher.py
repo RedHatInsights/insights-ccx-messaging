@@ -75,6 +75,14 @@ class RuleProcessingPublisher(KafkaPublisher):
                 "RequestId": input_msg.get("request_id"),
             }
 
+            gathered_at = input_msg.get("metadata", {}) \
+                                   .get("custom_metadata", {}) \
+                                   .get("gathering_time", None)
+            if gathered_at:
+                output_msg["Metadata"] = {
+                    "gathering_time": gathered_at
+                }
+
             message = json.dumps(output_msg) + "\n"
 
             log.debug("Sending response to the %s topic.", self.topic)
