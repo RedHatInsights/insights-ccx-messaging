@@ -228,6 +228,40 @@ VALID_INPUT_MSG = [
         },
         id="no account",
     ),
+    pytest.param(
+        {
+            "identity": {
+                "identity": {
+                    "internal": {"org_id": 10},
+                },
+            },
+            "timestamp": "a timestamp",
+            "cluster_name": "uuid",
+            "request_id": "a request id",
+            "topic": "incoming_topic",
+            "partition": 0,
+            "offset": 100,
+            "metadata": {
+                "custom_metadata": {
+                    "gathering_time": "2023-08-14T09:31:46.677052"
+                }
+            }
+        },
+        {
+            "OrgID": 10,
+            "AccountNumber": "",
+            "ClusterName": "uuid",
+            "Report": {},
+            "LastChecked": "a timestamp",
+            "Version": 2,
+            "RequestId": "a request id",
+            "Metadata": {
+                "gathering_time": "2023-08-14T09:31:46.677052"
+            }
+        },
+        id="with gathering timestamp",
+    ),
+
 ]
 
 
