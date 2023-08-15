@@ -261,7 +261,63 @@ VALID_INPUT_MSG = [
         },
         id="with gathering timestamp",
     ),
-
+    pytest.param(
+        {
+            "identity": {
+                "identity": {
+                    "internal": {"org_id": 10},
+                },
+            },
+            "timestamp": "a timestamp",
+            "cluster_name": "uuid",
+            "request_id": "a request id",
+            "topic": "incoming_topic",
+            "partition": 0,
+            "offset": 100,
+            "metadata": {
+                "custom_metadata": {
+                    "some_timestamp": "2023-08-14T09:31:46.677052"
+                }
+            }
+        },
+        {
+            "OrgID": 10,
+            "AccountNumber": "",
+            "ClusterName": "uuid",
+            "Report": {},
+            "LastChecked": "a timestamp",
+            "Version": 2,
+            "RequestId": "a request id"
+        },
+        id="with custom metadata without gathering timestamp",
+    ),
+    pytest.param(
+        {
+            "identity": {
+                "identity": {
+                    "internal": {"org_id": 10},
+                },
+            },
+            "timestamp": "a timestamp",
+            "cluster_name": "uuid",
+            "request_id": "a request id",
+            "topic": "incoming_topic",
+            "partition": 0,
+            "offset": 100,
+            "metadata": {
+            }
+        },
+        {
+            "OrgID": 10,
+            "AccountNumber": "",
+            "ClusterName": "uuid",
+            "Report": {},
+            "LastChecked": "a timestamp",
+            "Version": 2,
+            "RequestId": "a request id"
+        },
+        id="empty metadata",
+    ),
 ]
 
 
