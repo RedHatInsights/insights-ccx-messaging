@@ -14,6 +14,7 @@
 
 """Module that implements a custom Kafka publisher."""
 
+import datetime
 import json
 import logging
 from json import JSONDecodeError
@@ -23,6 +24,8 @@ from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
 
 
 log = logging.getLogger(__name__)
+
+RFC3339_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 class RuleProcessingPublisher(KafkaPublisher):
@@ -40,6 +43,40 @@ class RuleProcessingPublisher(KafkaPublisher):
         """Construct a new `RuleProcessingPublisher` given `kwargs` from the config YAML."""
         super().__init__(outgoing_topic, kafka_broker_config, **kwargs)
         self.outdata_schema_version = 2
+
+    def validate_timestamp_rfc3339(self, timestamp):
+        """
+        Check if the timestamp matches RFC3339 format.
+        """
+        try:
+            datetime.datetime.strptime(timestamp, RFC3339_FORMAT)
+        except:
+            return False
+        return True
+
+    def get_gathering_time(self, input_msg):
+        """
+        Retrieve the gathering time from input message if present, otherwise create one.
+        """
+        gathered_at = input_msg.get("metadata", {}) \
+                               .get("custom_metadata", {}) \
+                               .get("gathering_time", None)
+
+        if not gathered_at:
+            log.debug("Gathering time is not present; creating replacement")
+            gathered_at = datetime.datetime.now().strftime(RFC3339_FORMAT)
+
+        # If the timestamp is not in correct format, try to parse 
+        # format used in molodec. Otherwise use current timestamp.
+        if not self.validate_timestamp_rfc3339(gathered_at):
+            try:
+                gathered_at = datetime.datetime.fromisoformat(gathered_at).strftime(RFC3339_FORMAT)
+                log.debug("Converting gathering time from ISO format to RFC3339 format")
+            except ValueError:
+                log.debug("Gathering time could not be parsed; creating replacement")
+                gathered_at = datetime.datetime.now().strftime(RFC3339_FORMAT)
+
+        return gathered_at
 
     def publish(self, input_msg, response):
         """
@@ -73,16 +110,11 @@ class RuleProcessingPublisher(KafkaPublisher):
                 "LastChecked": msg_timestamp,
                 "Version": self.outdata_schema_version,
                 "RequestId": input_msg.get("request_id"),
-            }
-
-            gathered_at = input_msg.get("metadata", {}) \
-                                   .get("custom_metadata", {}) \
-                                   .get("gathering_time", None)
-            if gathered_at:
-                output_msg["Metadata"] = {
-                    "gathering_time": gathered_at
+                "Metadata": {
+                    "gathering_time": self.get_gathering_time(input_msg)
                 }
-
+            }
+           
             message = json.dumps(output_msg) + "\n"
 
             log.debug("Sending response to the %s topic.", self.topic)
@@ -115,4 +147,5 @@ class RuleProcessingPublisher(KafkaPublisher):
             raise CCXMessagingError("Missing expected keys in the input message") from err
 
         except (TypeError, UnicodeEncodeError, JSONDecodeError) as err:
+            log.info(err)
             raise CCXMessagingError(f"Error encoding the response to publish: {response}") from err
