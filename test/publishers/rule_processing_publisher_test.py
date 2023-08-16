@@ -14,6 +14,7 @@
 
 """Tests for the RuleProcessingPublisher class."""
 
+import freezegun
 import json
 from unittest.mock import MagicMock, patch
 
@@ -148,6 +149,9 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
+            "Metadata": {
+                "gathering_time": "2012-01-14T00:00:00Z"
+            }
         },
         id="with account",
     ),
@@ -174,6 +178,9 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
+            "Metadata": {
+                "gathering_time": "2012-01-14T00:00:00Z"
+            }
         },
         id="invalid account",
     ),
@@ -200,6 +207,9 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
+            "Metadata": {
+                "gathering_time": "2012-01-14T00:00:00Z"
+            }
         },
         id="empty account",
     ),
@@ -225,8 +235,44 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
+            "Metadata": {
+                "gathering_time": "2012-01-14T00:00:00Z"
+            }
         },
         id="no account",
+    ),
+    pytest.param(
+        {
+            "identity": {
+                "identity": {
+                    "internal": {"org_id": 10},
+                },
+            },
+            "timestamp": "a timestamp",
+            "cluster_name": "uuid",
+            "request_id": "a request id",
+            "topic": "incoming_topic",
+            "partition": 0,
+            "offset": 100,
+            "metadata": {
+                "custom_metadata": {
+                    "gathering_time": "2023-08-14T09:31:46Z"
+                }
+            }
+        },
+        {
+            "OrgID": 10,
+            "AccountNumber": "",
+            "ClusterName": "uuid",
+            "Report": {},
+            "LastChecked": "a timestamp",
+            "Version": 2,
+            "RequestId": "a request id",
+            "Metadata": {
+                "gathering_time": "2023-08-14T09:31:46Z"
+            }
+        },
+        id="with gathering timestamp",
     ),
     pytest.param(
         {
@@ -256,10 +302,10 @@ VALID_INPUT_MSG = [
             "Version": 2,
             "RequestId": "a request id",
             "Metadata": {
-                "gathering_time": "2023-08-14T09:31:46.677052"
+                "gathering_time": "2023-08-14T09:31:46Z"
             }
         },
-        id="with gathering timestamp",
+        id="with gathering timestamp in ISO format",
     ),
     pytest.param(
         {
@@ -287,7 +333,10 @@ VALID_INPUT_MSG = [
             "Report": {},
             "LastChecked": "a timestamp",
             "Version": 2,
-            "RequestId": "a request id"
+            "RequestId": "a request id",
+            "Metadata": {
+                "gathering_time": "2012-01-14T00:00:00Z"
+            }
         },
         id="with custom metadata without gathering timestamp",
     ),
@@ -314,13 +363,17 @@ VALID_INPUT_MSG = [
             "Report": {},
             "LastChecked": "a timestamp",
             "Version": 2,
-            "RequestId": "a request id"
+            "RequestId": "a request id",
+            "Metadata": {
+                "gathering_time": "2012-01-14T00:00:00Z"
+            }
         },
         id="empty metadata",
     ),
 ]
 
 
+@freezegun.freeze_time("2012-01-14")
 @pytest.mark.parametrize("input, expected_output", VALID_INPUT_MSG)
 def test_publish_valid(input, expected_output):
     """Check that Kafka producer is called with an expected message."""
@@ -356,6 +409,7 @@ def test_publish_invalid_report(invalid_report):
         assert not sut.producer.produce.called
 
 
+@freezegun.freeze_time("2012-01-14")
 @pytest.mark.parametrize("input,output", VALID_INPUT_MSG)
 def test_error(input, output):
     """Check that error just prints a log."""
