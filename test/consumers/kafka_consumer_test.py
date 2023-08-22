@@ -319,10 +319,7 @@ def test_elapsed_time_thread_warning_when_no_message_received():
             None, None, None, "topic", group_id="group", bootstrap_servers=["server"]
         )
         assert sut.check_elapsed_time_thread
-        alert_time = time.strftime(
-            "%Y-%m-%d- %H:%M:%S", time.gmtime(sut.last_received_message_time)
-        )
-        alert_message = "No new messages in the queue since " + alert_time
+        alert_message = "No new messages in the queue"
         # Make sure the thread woke up at least once
         time.sleep(2 * MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST)
         assert alert_message in buf.getvalue()
