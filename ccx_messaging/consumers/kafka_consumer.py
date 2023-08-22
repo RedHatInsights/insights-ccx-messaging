@@ -243,10 +243,7 @@ class KafkaConsumer(Consumer):
         """
         while True:
             if time.time() - self.last_received_message_time >= MAX_ELAPSED_TIME_BETWEEN_MESSAGES:
-                last_received_time_str = time.strftime(
-                    "%Y-%m-%d- %H:%M:%S", time.gmtime(self.last_received_message_time)
-                )
-                LOG.warning("No new messages in the queue since %s", last_received_time_str)
+                LOG.warning("No new messages in the queue")
             # To do the minimum interruptions possible, sleep for one hour
             time.sleep(MAX_ELAPSED_TIME_BETWEEN_MESSAGES)
 
