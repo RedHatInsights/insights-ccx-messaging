@@ -66,7 +66,8 @@ class KafkaConsumer(Consumer):
             kwargs.get("security.protocol"),
         )
 
-        self.consumer = ConfluentConsumer(kwargs)
+        rdkafka_logger = logging.getLogger("rdkafka")
+        self.consumer = ConfluentConsumer(kwargs, logger=rdkafka_logger)
         self.consumer.subscribe([incoming_topic])
 
         # Self handled vars
@@ -117,6 +118,8 @@ class KafkaConsumer(Consumer):
         """Consume message and proccess."""
         try:
             while True:
+                assignment = self.consumer.assignment()
+                LOG.debug("Consumer partitions assignment: [%d], %s", len(assignment), assignment)
                 received = self.consumer.consume(timeout=5.0)  # return empty if timeout
 
                 for msg in received:
