@@ -15,6 +15,7 @@
 """Module that implements a customizable Kafka publisher."""
 
 import logging
+import gzip
 
 from confluent_kafka import KafkaException, Producer
 from insights_messaging.publishers import Publisher
@@ -41,6 +42,7 @@ class KafkaPublisher(Publisher):
             raise CCXMessagingError("outgoing_topic should be a str")
 
         self.topic = outgoing_topic
+        self.compression = kwargs.get("compression")
 
         if kafka_broker_config:
             kwargs.update(kafka_broker_config)
@@ -64,7 +66,10 @@ class KafkaPublisher(Publisher):
 
     def produce(self, outgoing_message: bytes):
         """Send the message though the Kafka producer."""
-        self.producer.produce(self.topic, outgoing_message)
+        if self.compression:
+            self.producer.produce(self.topic, gzip.compress(outgoing_message))
+        else:
+            self.producer.produce(self.topic, outgoing_message)
         self.producer.poll(0)
 
     def publish(self, input_msg: dict, report: str):
