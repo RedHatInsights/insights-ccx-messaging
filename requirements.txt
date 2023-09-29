@@ -5,6 +5,6 @@ git+https://github.com/RedHatInsights/insights-core-messaging@1.2.2
 jsonschema==3.2.0
 python-json-logger==0.1.11
 requests==2.31.0
-sentry-sdk==0.19.5
+sentry-sdk==1.14.0
 watchtower==0.8.0
 prometheus_client==0.14.1
