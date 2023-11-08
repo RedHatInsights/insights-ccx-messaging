@@ -70,7 +70,7 @@ class KafkaPublisher(Publisher):
     def produce(self, outgoing_message: bytes):
         """Send the message though the Kafka producer."""
         if self.compression:
-            self.producer.produce(self.topic, gzip.compress(outgoing_message))
+            self.producer.produce(self.topic, gzip.compress(outgoing_message,compresslevel=9))
         else:
             self.producer.produce(self.topic, outgoing_message)
         self.producer.poll(0)
