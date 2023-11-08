@@ -106,7 +106,7 @@ VALID_INPUT_MSG = [
         }
     ),
 ]
-DEFAULT_COMPRESSION = 9
+BEST_COMPRESSION = 9
 
 def test_init():
     """Check that init creates a valid object."""
@@ -126,7 +126,7 @@ def test_init_compression():
 @pytest.mark.parametrize("input", VALID_INPUT_MSG)
 def test_compressing_enabled(input):
     input = bytes(json.dumps(input) + "\n",'utf-8')
-    expected_output = gzip.compress(input,compresslevel=DEFAULT_COMPRESSION)
+    expected_output = gzip.compress(input,compresslevel=BEST_COMPRESSION)
     kakfa_config = {
         "bootstrap.servers": "kafka:9092",
         "compression" : "gzip"
