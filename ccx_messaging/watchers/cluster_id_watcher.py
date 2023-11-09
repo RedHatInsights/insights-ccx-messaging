@@ -73,5 +73,9 @@ class ClusterIdWatcher(EngineWatcher, ConsumerWatcher):
                 "The archive doesn't contain a valid Cluster Id file. Skipping its extraction"
             )
 
+        except IOError:
+            self.last_record["cluster_name"] = None
+            LOG.warning(f"Could not read file: {id_file_path}")
+
         finally:
             self.last_record = None

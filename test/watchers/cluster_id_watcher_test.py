@@ -46,6 +46,23 @@ def test_cluster_id_watcher_file_not_exist(caplog):
     assert "The archive doesn't contain a valid Cluster Id file" in caplog.text
 
 
+def test_cluster_id_watcher_io_error(caplog):
+    """Test the behaviour in case of I/O error."""
+    input_msg = {"identity": {}}
+
+    extraction_mock = MagicMock()
+    # this is a trick mentioned there
+    # https://unix.stackexchange.com/questions/6301/how-do-i-read-from-proc-pid-mem-under-linux/
+    extraction_mock.tmp_dir = "/proc/self/mem"
+
+    sut = ClusterIdWatcher()
+    sut.on_recv(input_msg)
+
+    sut.on_extract(None, None, extraction_mock)
+    assert input_msg["cluster_name"] is None
+    assert "Could not read file: " in caplog.text
+
+
 _INCORRECT_UUIDS = [
     "0",
     "---//---",
