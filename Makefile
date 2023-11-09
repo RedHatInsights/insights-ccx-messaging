@@ -17,10 +17,10 @@ unit_tests: ## Run unit tests
 	pytest -v -p no:cacheprovider
 
 coverage: ## Run unit tests, display code coverage on terminal
-	pytest -v -p no:cacheprovider --cov schemas/
+	pytest -v -p no:cacheprovider --cov ccx_messaging/
 
 coverage-report: ## Run unit tests, generate code coverage as a HTML report
-	pytest -v -p no:cacheprovider --cov schemas/ --cov-report=html
+	pytest -v -p no:cacheprovider --cov ccx_messaging/ --cov-report=html
 
 documentation: ## Generate documentation for all sources
 	pydoc3 *.py > docs/sources.txt
