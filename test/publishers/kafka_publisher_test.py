@@ -108,6 +108,15 @@ VALID_INPUT_MSG = [
 ]
 BEST_COMPRESSION = 9
 
+def timeStampMasking(message):
+    message=list(message)
+    message[4] = 0
+    message[5] = 0
+    message[6] = 0
+    message[7] = 0
+    message = bytes(message)
+    return message
+
 def test_init():
     """Check that init creates a valid object."""
     kakfa_config = {
@@ -126,7 +135,7 @@ def test_init_compression():
 @pytest.mark.parametrize("input", VALID_INPUT_MSG)
 def test_compressing_enabled(input):
     input = bytes(json.dumps(input) + "\n",'utf-8')
-    expected_output = gzip.compress(input,compresslevel=BEST_COMPRESSION)
+    expected_output = timeStampMasking(gzip.compress(input,compresslevel=BEST_COMPRESSION))
     kakfa_config = {
         "bootstrap.servers": "kafka:9092",
         "compression" : "gzip"
@@ -134,7 +143,9 @@ def test_compressing_enabled(input):
     pub = KafkaPublisher(outgoing_topic="topic-name", **kakfa_config)
     pub.producer = MagicMock()
     pub.produce(input)
-    pub.producer.produce.assert_called_with("topic-name",expected_output)
+    outgoing_topic = pub.producer.produce.call_args[0][0]
+    outgoing_message = timeStampMasking(pub.producer.produce.call_args[0][1])
+    assert outgoing_message == expected_output and outgoing_topic == "topic-name"
 
 @pytest.mark.parametrize("input", VALID_INPUT_MSG)
 def test_compressing_disabled(input):
