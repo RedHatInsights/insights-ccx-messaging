@@ -20,8 +20,7 @@ from ccx_messaging.utils.sentry import get_event_level
 
 
 def test_get_event_level():
-    """
-    Verify the `get_event_level` function works.
+    """Verify the `get_event_level` function works.
 
     Check that it returns `logging.WARNING` if SENTRY_CATCH_WARNINGS
     is set, otherwise return `logging.ERROR`.

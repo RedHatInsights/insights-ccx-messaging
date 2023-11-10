@@ -27,6 +27,7 @@ from ccx_messaging.error import CCXMessagingError
 
 
 class KafkaMessage:
+
     """Test double for the confluent_kafka.Message class."""
 
     def __init__(self, msg, headers=None, timestamp=None):
@@ -247,7 +248,7 @@ _VALID_SERVERS = ["server", "great.server.net"]
 def test_consumer_init_direct(topic, group, server):
     """Test of our Consumer constructor, using direct configuration options."""
     with patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer") as mock_consumer_init:
-        with patch("os.environ", new=dict()):
+        with patch("os.environ", new={}):
             kwargs = {
                 "group.id": group,
                 "bootstrap.servers": server,
@@ -269,8 +270,7 @@ MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST = 2
     MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST,
 )
 def test_elapsed_time_thread_no_warning_when_message_received():
-    """
-    Test elapsed time thread if new message received on time.
+    """Test elapsed time thread if new message received on time.
 
     Test that no warnings are sent if a new message is received before
     the defined MAX_ELAPSED_TIME_BETWEEN_MESSAGES.
@@ -301,8 +301,7 @@ def test_elapsed_time_thread_no_warning_when_message_received():
     MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST,
 )
 def test_elapsed_time_thread_warning_when_no_message_received():
-    """
-    Test elapsed time thread if no new message received on time.
+    """Test elapsed time thread if no new message received on time.
 
     Test that warnings are sent if no new messages are received before
     the defined MAX_ELAPSED_TIME_BETWEEN_MESSAGES.

@@ -28,6 +28,7 @@ LOG = logging.getLogger(__name__)
 
 # pylint: disable=too-many-instance-attributes
 class StatsWatcher(ConsumerWatcher):
+
     """A Watcher that stores different Prometheus `Counter`s."""
 
     def __init__(self, prometheus_port=8000):

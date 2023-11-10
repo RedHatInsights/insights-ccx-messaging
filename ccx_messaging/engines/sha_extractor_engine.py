@@ -25,11 +25,11 @@ log = logging.getLogger(__name__)
 
 
 class SHAExtractorEngine(ICMEngine):
+
     """Engine for extraction of downloading tar archive and selecting a file to be processed."""
 
     def process(self, broker, path):
-        """
-        Retrieve SHA records from a downloaded archive.
+        """Retrieve SHA records from a downloaded archive.
 
         The archive is extracted and if the SHA records are found, the JSON is retrieved
         from the file and returned as the method output. Otherwise, None is returned.

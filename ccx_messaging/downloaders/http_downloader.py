@@ -60,6 +60,7 @@ def parse_human_input(file_size):
 
 # pylint: disable=too-few-public-methods
 class HTTPDownloader:
+
     """Downloader for HTTP uris."""
 
     # https://<hostname>/service_id/file_id?<credentials and other params>

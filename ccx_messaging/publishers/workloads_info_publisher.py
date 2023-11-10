@@ -26,6 +26,7 @@ log = logging.getLogger(__name__)
 
 
 class WorkloadInfoPublisher(KafkaPublisher):
+
     """WorkloadInfoPublisher based on Confluent Kafka Producer.
 
     The workload info is received from a custom engine as a JSON string.
@@ -39,8 +40,7 @@ class WorkloadInfoPublisher(KafkaPublisher):
         self.outdata_schema_version = 2
 
     def publish(self, input_msg: dict, response: str):
-        """
-        Publish an EOL-terminated JSON message to the output Kafka topic.
+        """Publish an EOL-terminated JSON message to the output Kafka topic.
 
         The input_msg contains content of message read from incoming Kafka
         topic. Such message should contains account info, cluster ID etc.

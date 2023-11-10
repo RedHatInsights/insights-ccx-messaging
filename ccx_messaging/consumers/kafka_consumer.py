@@ -23,6 +23,7 @@ MAX_ELAPSED_TIME_BETWEEN_MESSAGES = 60 * 60
 
 
 class KafkaConsumer(Consumer):
+
     """Consumer based in Confluent Kafka."""
 
     def __init__(
@@ -92,8 +93,7 @@ class KafkaConsumer(Consumer):
             self.dlq_producer = Producer(kafka_producer_config_cleanup(kwargs))
 
     def get_url(self, input_msg: dict) -> str:
-        """
-        Retrieve URL to storage (S3/Minio) from Kafka message.
+        """Retrieve URL to storage (S3/Minio) from Kafka message.
 
         Same as previous 2 methods, when we receive and figure out the
         message format, we can modify this method
@@ -235,8 +235,7 @@ class KafkaConsumer(Consumer):
         return deseralized_msg
 
     def check_last_message_received_time(self):
-        """
-        Verify elapsed time between received messages and warn if too long.
+        """Verify elapsed time between received messages and warn if too long.
 
         Checks if the last received message was received more than one hour ago
         and sends an alert if it is the case

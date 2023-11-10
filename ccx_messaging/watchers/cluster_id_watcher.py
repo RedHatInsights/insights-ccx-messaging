@@ -25,6 +25,7 @@ LOG = logging.getLogger(__name__)
 
 
 class ClusterIdWatcher(EngineWatcher, ConsumerWatcher):
+
     """Mixed `Watcher` that is able to watch both `Consumer` and `Engine`."""
 
     CLUSTER_ID_LENGTH = 36
@@ -73,7 +74,7 @@ class ClusterIdWatcher(EngineWatcher, ConsumerWatcher):
                 "The archive doesn't contain a valid Cluster Id file. Skipping its extraction"
             )
 
-        except IOError:
+        except OSError:
             self.last_record["cluster_name"] = None
             LOG.warning(f"Could not read file: {id_file_path}")
 

@@ -23,7 +23,7 @@ from ccx_messaging.error import CCXMessagingError
 
 
 _REGEX_BAD_URL_FORMAT = r"^Invalid URL format: .*"
-_INVALID_TYPE_URLS = [42, 2.71, True, list(), dict()]
+_INVALID_TYPE_URLS = [42, 2.71, True, [], {}]
 
 
 @pytest.mark.parametrize("url", _INVALID_TYPE_URLS)
