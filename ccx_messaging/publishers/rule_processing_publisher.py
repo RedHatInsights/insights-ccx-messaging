@@ -48,7 +48,7 @@ class RuleProcessingPublisher(KafkaPublisher):
         """Check if the timestamp matches RFC3339 format."""
         try:
             datetime.datetime.strptime(timestamp, RFC3339_FORMAT)
-        except:
+        except: # noqa E722
             return False
         return True
 
