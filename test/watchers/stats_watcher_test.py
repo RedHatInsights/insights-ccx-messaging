@@ -32,7 +32,7 @@ def test_stats_watcher_initialize_invalid_port(value):
         _ = StatsWatcher(value)
 
 
-_VALID_PORTS = [dict(), {"prometheus_port": 9500}, {"prometheus_port": 80}]
+_VALID_PORTS = [{}, {"prometheus_port": 9500}, {"prometheus_port": 80}]
 
 
 @pytest.mark.parametrize("value", _VALID_PORTS)
