@@ -26,8 +26,8 @@ log = logging.getLogger(__name__)
 BEST_COMPRESSION = 9
 
 class KafkaPublisher(Publisher):
-    """
-    KafkaPublisher is a base class for Kafka based publishers.
+
+    """KafkaPublisher is a base class for Kafka based publishers.
 
     It relays on Confluent Kafka library to perform the Kafka related
     tasks.

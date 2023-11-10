@@ -29,8 +29,8 @@ RFC3339_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 class RuleProcessingPublisher(KafkaPublisher):
-    """
-    RuleProcessingPublisher will handle the results of the applied rules and publish them to Kafka.
+
+    """RuleProcessingPublisher will handle the results of the applied rules and publish them to Kafka.
 
     The results of the data analysis are received as a JSON (string)
     and turned into a byte array using UTF-8 encoding.
@@ -45,9 +45,7 @@ class RuleProcessingPublisher(KafkaPublisher):
         self.outdata_schema_version = 2
 
     def validate_timestamp_rfc3339(self, timestamp):
-        """
-        Check if the timestamp matches RFC3339 format.
-        """
+        """Check if the timestamp matches RFC3339 format."""
         try:
             datetime.datetime.strptime(timestamp, RFC3339_FORMAT)
         except:
@@ -55,9 +53,7 @@ class RuleProcessingPublisher(KafkaPublisher):
         return True
 
     def get_gathering_time(self, input_msg):
-        """
-        Retrieve the gathering time from input message if present, otherwise create one.
-        """
+        """Retrieve the gathering time from input message if present, otherwise create one."""
         gathered_at = input_msg.get("metadata", {}) \
                                .get("custom_metadata", {}) \
                                .get("gathering_time", None)
@@ -66,7 +62,7 @@ class RuleProcessingPublisher(KafkaPublisher):
             log.debug("Gathering time is not present; creating replacement")
             gathered_at = datetime.datetime.now().strftime(RFC3339_FORMAT)
 
-        # If the timestamp is not in correct format, try to parse 
+        # If the timestamp is not in correct format, try to parse
         # format used in molodec. Otherwise use current timestamp.
         if not self.validate_timestamp_rfc3339(gathered_at):
             try:
@@ -79,8 +75,7 @@ class RuleProcessingPublisher(KafkaPublisher):
         return gathered_at
 
     def publish(self, input_msg, response):
-        """
-        Publish an EOL-terminated JSON message to the output Kafka topic.
+        """Publish an EOL-terminated JSON message to the output Kafka topic.
 
         The response is assumed to be a string representing a valid JSON object.
         A newline character will be appended to it, it will be converted into
@@ -114,7 +109,7 @@ class RuleProcessingPublisher(KafkaPublisher):
                     "gathering_time": self.get_gathering_time(input_msg)
                 }
             }
-           
+
             message = json.dumps(output_msg) + "\n"
 
             log.debug("Sending response to the %s topic.", self.topic)

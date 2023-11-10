@@ -16,8 +16,8 @@
 
 
 class CCXMessagingError(Exception):
-    """
-    Represents a CCX messaging exception.
+
+    """Represents a CCX messaging exception.
 
     This should make it easier to differentiate between
     exceptions caused by internal and external code.
