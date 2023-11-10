@@ -109,6 +109,7 @@ VALID_INPUT_MSG = [
 BEST_COMPRESSION = 9
 
 def timeStampMasking(message):
+    """Mask four bytes in Gzip stream that contain timestamp."""
     message=list(message)
     message[4] = 0
     message[5] = 0
@@ -134,6 +135,7 @@ def test_init_compression():
 
 @pytest.mark.parametrize("input", VALID_INPUT_MSG)
 def test_compressing_enabled(input):
+    """Check if message is gzipped if compression is enabled."""
     input = bytes(json.dumps(input) + "\n",'utf-8')
     expected_output = timeStampMasking(gzip.compress(input,compresslevel=BEST_COMPRESSION))
     kakfa_config = {
@@ -149,6 +151,7 @@ def test_compressing_enabled(input):
 
 @pytest.mark.parametrize("input", VALID_INPUT_MSG)
 def test_compressing_disabled(input):
+    """Check if message is not gzipped if compression is disabled."""
     input = bytes(json.dumps(input) + "\n",'utf-8')
     expected_output = input
     kakfa_config = {
