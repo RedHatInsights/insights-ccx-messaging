@@ -18,8 +18,7 @@ import time
 
 
 def mock_consumer_process_no_action_catch_exception(duration_s=0):
-    """
-    Mock the process method of ICM consumer so it does nothing.
+    """Mock the process method of ICM consumer so it does nothing.
 
     This mocks the process method and removes all processing, but
     still catches the raised exceptions.
