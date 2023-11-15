@@ -26,7 +26,8 @@ log = logging.getLogger(__name__)
 
 
 class DVOMetricsPublisher(KafkaPublisher):
-    """DVOMetricsPub;isher handles the result of the extraction of DVO metrics from an IO archive."""
+
+    """DVOMetricsPublisher handles the result of the extraction of DVO metrics from an archive."""
 
     def publish(self, input_msg: Dict, report: str) -> None:
         """Publish an EOL-terminated JSON message to the output Kafka topic.
@@ -36,7 +37,6 @@ class DVOMetricsPublisher(KafkaPublisher):
         a byte array using UTF-8 encoding and the result of that will be sent
         to the producer to produce a message in the output Kafka topic.
         """
-
         output_msg = {}
         try:
             org_id = int(input_msg["identity"]["identity"]["internal"]["org_id"])
