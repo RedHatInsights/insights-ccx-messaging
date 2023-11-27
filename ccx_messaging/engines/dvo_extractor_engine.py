@@ -1,4 +1,4 @@
-# Copyright 2022 Red Hat Inc.
+# Copyright 2023 Red Hat Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Module that defines an Engine class for processing a downloaded archive."""
+"""Module that defines an Engine class for processing DVO metrics."""
 
 import json
 import logging
 import os.path
+import tempfile
 
 from insights.core.archives import extract
 from insights.core.hydration import initialize_broker
@@ -27,7 +28,7 @@ log = logging.getLogger(__name__)
 
 class DVOExtractorEngine(ICMEngine):
 
-    """Engine for extraction of features important for DVO processing"""
+    """Engine for extraction of features important for DVO processing."""
 
     def process(self, broker, path):
         """Retrieve DVO metrics from a downloaded archive.
@@ -39,6 +40,7 @@ class DVOExtractorEngine(ICMEngine):
             watcher.watch_broker(broker)
 
         try:
+            log.debug(tempfile.gettempdir())
             self.fire("pre_extract", broker, path)
 
             with extract(
@@ -61,20 +63,24 @@ class DVOExtractorEngine(ICMEngine):
                             try:
                                 fields = {}
                                 # parse the string with field values into dictionary
-                                for attr in metric[metric.find("{")+1:metric.find("}")].split(","):
+                                for attr in metric[metric.find("{") + 1: metric.find("}")].split(
+                                    ","
+                                ):
                                     fields[attr.split("=")[0]] = attr.split("=")[1][1:-1]
 
                                 # construct the expected data format
                                 result = {
-                                    "type": metric.split("{")[0][len("deployment_validation_operator_"):],
-                                    "kind": fields["kind"], 
+                                    "type": metric.split("{")[0][
+                                        len("deployment_validation_operator_"):
+                                    ],
+                                    "kind": fields["kind"],
                                     "namespace_uid": fields["namespace_uid"],
                                     "uid": fields["uid"],
-                                    "namespace": fields["namespace"],
-                                    "name": fields["name"]
+                                    "namespace": fields.get("namespace", ""),
+                                    "name": fields.get("name", ""),
                                 }
                                 results.append(result)
-                            except:
+                            except Exception:
                                 log.debug("metric could not be processed; skipping")
                         log.debug("starting publishing process")
                         self.fire("on_engine_success", broker, result)

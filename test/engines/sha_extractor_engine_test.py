@@ -1,4 +1,4 @@
-# Copyright 2022 Red Hat, Inc
+# Copyright 2022, 2023 Red Hat, Inc
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Module for testing the engines module."""
+"""Module for testing the SHA extractor engine module."""
 
 from insights.formats.text import HumanReadableFormat
 import pytest
