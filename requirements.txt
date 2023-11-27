@@ -1,5 +1,5 @@
 app-common-python==0.2.6
-boto3==1.29.3
+boto3==1.29.7
 insights-core==3.2.24
 git+https://github.com/RedHatInsights/insights-core-messaging@1.2.2
 jsonschema==4.20.0
