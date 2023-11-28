@@ -25,7 +25,6 @@ jobs:
       - run: pip install pydocstyle
       - run: pip install pytest-cov
       - run: pip install --upgrade importlib-metadata
-      - run: pip install -r requirements.txt
       - run: pip install -e .[dev] || pip install -e .
       - name: Pytest Coverage
         run: pytest -v --cov=ccx_messaging --cov-fail-under=70
