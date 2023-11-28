@@ -21,16 +21,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install --upgrade setuptools
       - run: pip install --upgrade wheel
-      - run: pip install pycodestyle
-      - run: pip install pydocstyle
-      - run: pip install pytest-cov
-      - run: pip install --upgrade importlib-metadata
-      - run: pip install -r requirements.txt
-      - run: pip install -e .[dev] || pip install -e .
-      - name: Pytest Coverage
-        run: pytest -v --cov=ccx_messaging --cov-fail-under=70
-      - name: Coverage export
-        run: pytest -v --cov=ccx_messaging --cov-report=xml
+      - run: pip install tox-gh>=1.2
+      - run: tox -vv
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         if: ${{ matrix.python-version == '3.8' }}
