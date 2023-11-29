@@ -1,4 +1,0 @@
-freezegun
-prometheus-client
-pytest
-pytest-cov
