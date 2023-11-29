@@ -149,4 +149,4 @@ class RuleProcessingPublisher(KafkaPublisher):
 
         except (TypeError, UnicodeEncodeError, JSONDecodeError) as err:
             log.info(err)
-            raise CCXMessagingError(f"Error encoding the response to publish: {response}") from err
+            raise CCXMessagingError(f"Error encoding the response to publish: {report}") from err
