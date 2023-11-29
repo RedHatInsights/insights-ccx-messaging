@@ -456,6 +456,7 @@ VALID_REPORTS = [
 @freezegun.freeze_time("2012-01-14")
 @pytest.mark.parametrize("input,expected_output", VALID_REPORTS)
 def test_filter_ocp_rules_results(input, expected_output):
+    """Check that the workload recommendations are filtered out from the engine results."""
     sut = RuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
     sut.producer = MagicMock()
     expected_output = json.dumps(expected_output) + "\n"

@@ -410,6 +410,7 @@ VALID_REPORTS = [
 
 @pytest.mark.parametrize("input,expected_output", VALID_REPORTS)
 def test_filter_dvo_results(input, expected_output):
+    """Check that the external rule reports are filtered out from the engine results."""
     sut = DVOMetricsPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
     sut.producer = MagicMock()
     expected_output = json.dumps(expected_output) + "\n"
