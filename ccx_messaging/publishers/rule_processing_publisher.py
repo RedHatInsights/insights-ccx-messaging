@@ -74,15 +74,21 @@ class RuleProcessingPublisher(KafkaPublisher):
 
         return gathered_at
 
-    def publish(self, input_msg, response):
+    def publish(self, input_msg, report):
         """Publish an EOL-terminated JSON message to the output Kafka topic.
 
-        The response is assumed to be a string representing a valid JSON object.
+        The report is assumed to be a string representing a valid JSON object.
         A newline character will be appended to it, it will be converted into
         a byte array using UTF-8 encoding and the result of that will be sent
         to the producer to produce a message in the output Kafka topic.
         """
-        # Response is already a string, no need to JSON dump.
+        try:
+            report = json.loads(report)
+        except (TypeError, json.decoder.JSONDecodeError):
+            raise CCXMessagingError("Could not parse report; report is not in JSON format")
+
+        report.pop("workload_recommendations", None)
+
         output_msg = {}
         try:
             org_id = int(input_msg["identity"]["identity"]["internal"]["org_id"])
@@ -101,7 +107,7 @@ class RuleProcessingPublisher(KafkaPublisher):
                 "OrgID": org_id,
                 "AccountNumber": account_number,
                 "ClusterName": input_msg["cluster_name"],
-                "Report": json.loads(response),
+                "Report": report,
                 "LastChecked": msg_timestamp,
                 "Version": self.outdata_schema_version,
                 "RequestId": input_msg.get("request_id"),
@@ -143,4 +149,4 @@ class RuleProcessingPublisher(KafkaPublisher):
 
         except (TypeError, UnicodeEncodeError, JSONDecodeError) as err:
             log.info(err)
-            raise CCXMessagingError(f"Error encoding the response to publish: {response}") from err
+            raise CCXMessagingError(f"Error encoding the response to publish: {report}") from err

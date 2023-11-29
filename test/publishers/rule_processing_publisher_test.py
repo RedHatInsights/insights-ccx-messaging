@@ -420,3 +420,47 @@ def test_error(input, output):
     with patch("ccx_messaging.publishers.kafka_publisher.log") as log_mock:
         sut.error(input, None)
         assert log_mock.error.called
+
+
+VALID_REPORTS = [
+    pytest.param(
+        json.dumps({
+            "version": 1,
+            "reports": [],
+            "pass": [],
+            "info": [],
+            "workload_recommendations": []
+        }),
+        {
+            "OrgID": 10,
+            "AccountNumber": 1,
+            "ClusterName": "uuid",
+            "Report": {
+                "version": 1,
+                "reports": [],
+                "pass": [],
+                "info": []
+            },
+            "LastChecked": "a timestamp",
+            "Version": 2,
+            "RequestId": "a request id",
+            "Metadata": {
+                "gathering_time": "2012-01-14T00:00:00Z"
+            }
+        },
+        id="valid_report"
+    )
+]
+
+
+@freezegun.freeze_time("2012-01-14")
+@pytest.mark.parametrize("input,expected_output", VALID_REPORTS)
+def test_filter_ocp_rules_results(input, expected_output):
+    """Check that the workload recommendations are filtered out from the engine results."""
+    sut = RuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
+    sut.producer = MagicMock()
+    expected_output = json.dumps(expected_output) + "\n"
+
+    sut.publish(VALID_INPUT_MSG[0][0][0], input)
+    sut.producer.produce.assert_called_with("outgoing_topic", expected_output.encode())
+
