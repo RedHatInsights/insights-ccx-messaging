@@ -380,3 +380,39 @@ def test_error(input, output):
     with patch("ccx_messaging.publishers.kafka_publisher.log") as log_mock:
         sut.error(input, None)
         assert log_mock.error.called
+
+
+VALID_REPORTS = [
+    pytest.param(
+        json.dumps({
+            "version": 1,
+            "reports": [],
+            "pass": [],
+            "info": [],
+            "workload_recommendations": []
+        }),
+        {
+            "OrgID": 10,
+            "AccountNumber": 1,
+            "ClusterName": "uuid",
+            "Metrics": {
+                "version": 1,
+                "pass": [],
+                "info": [],
+                "workload_recommendations": []
+            },
+            "RequestId": "a request id",
+        },
+        id="valid_report"
+    )
+]
+
+
+@pytest.mark.parametrize("input,expected_output", VALID_REPORTS)
+def test_filter_dvo_results(input, expected_output):
+    sut = DVOMetricsPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
+    sut.producer = MagicMock()
+    expected_output = json.dumps(expected_output) + "\n"
+
+    sut.publish(VALID_INPUT_MSG[0][0][0], input)
+    sut.producer.produce.assert_called_with("outgoing_topic", expected_output.encode())

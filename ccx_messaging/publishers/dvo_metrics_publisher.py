@@ -38,6 +38,14 @@ class DVOMetricsPublisher(KafkaPublisher):
         to the producer to produce a message in the output Kafka topic.
         """
         output_msg = {}
+
+        try:
+            report = json.loads(report)
+        except (TypeError, json.decoder.JSONDecodeError):
+            raise CCXMessagingError("Could not parse report; report is not in JSON format")
+
+        report.pop("reports", None)
+
         try:
             org_id = int(input_msg["identity"]["identity"]["internal"]["org_id"])
         except (ValueError, KeyError, TypeError) as err:
@@ -56,7 +64,7 @@ class DVOMetricsPublisher(KafkaPublisher):
             "OrgID": org_id,
             "AccountNumber": account_number,
             "ClusterName": input_msg["cluster_name"],
-            "Metrics": json.loads(report),
+            "Metrics": report,
             "RequestId": input_msg.get("request_id"),
         }
         message = json.dumps(output_msg) + "\n"
