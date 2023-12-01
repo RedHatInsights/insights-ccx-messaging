@@ -2,7 +2,7 @@ app-common-python>=0.2.3
 boto3<=1.28.64
 confluent-kafka>=2.0.0
 insights-core>=3.1.2
-insights-core-messaging>=1.2.4
+insights-core-messaging @ git+https://github.com/RedHatInsights/insights-core-messaging@1.2.4
 jsonschema>=4.0.0
 prometheus-client>=0.16.0
 python-json-logger>=2.0.7
