@@ -25,7 +25,7 @@ classifiers = [
 requires-python = ">= 3.8"
 dependencies = [
     "app-common-python>=0.2.3",
-    "boto3<=1.28.64",
+    "boto3<=1.33.6",
     "confluent-kafka>=2.0.0",
     "insights-core>=3.1.2",
     "insights-core-messaging>=1.2.4",
