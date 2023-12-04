@@ -84,7 +84,7 @@ class KafkaPublisher(Publisher):
         raise NotImplementedError()
 
     def error(self, input_msg: dict, ex: Exception):
-        """Handle pipeline errores by logging them."""
+        """Handle pipeline errors by logging them."""
         # The super call is probably unnecessary because the default behavior
         # is to do nothing, but let's call it in case it ever does anything.
         super().error(input_msg, ex)
