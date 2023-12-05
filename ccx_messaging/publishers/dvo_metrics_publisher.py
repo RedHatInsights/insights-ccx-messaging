@@ -41,24 +41,25 @@ class DVOMetricsPublisher(KafkaPublisher):
 
         try:
             report = json.loads(report)
-        except (TypeError, json.decoder.JSONDecodeError):
-            raise CCXMessagingError("Could not parse report; report is not in JSON format")
+        except (TypeError, json.decoder.JSONDecodeError) as err:
+            raise CCXMessagingError("Could not parse report; report is not in JSON format") from err
 
         report.pop("reports", None)
 
         try:
             org_id = int(input_msg["identity"]["identity"]["internal"]["org_id"])
         except (ValueError, KeyError, TypeError) as err:
-            raise CCXMessagingError(f"Error extracting the OrgID: {err}") from err
+            log.error("Error extracting the OrgID: %s", err)
+            raise CCXMessagingError("Error extracting the OrgID") from err
 
         try:
             account_number = int(input_msg["identity"]["identity"]["account_number"])
         except (ValueError, KeyError, TypeError) as err:
-            log.warning(f"Error extracting the Account number: {err}")
+            log.warning("Error extracting the Account number: %s", err)
             account_number = ""
 
         if "cluster_name" not in input_msg:
-            raise CCXMessagingError()
+            raise CCXMessagingError("Can't find 'cluster_name'")
 
         output_msg = {
             "OrgID": org_id,

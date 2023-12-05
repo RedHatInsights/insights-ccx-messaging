@@ -93,7 +93,8 @@ class HTTPDownloader:
         """Download a file from HTTP server and store it in a temporary file."""
         if not self.allow_unsafe_links:
             if src is None or not HTTPDownloader.HTTP_RE.fullmatch(src):
-                raise CCXMessagingError(f"Invalid URL format: {src}")
+                LOG.error("Invalid URL format: %s", src)
+                raise CCXMessagingError("Invalid URL format")
 
         try:
             response = requests.get(src)
@@ -101,12 +102,12 @@ class HTTPDownloader:
             size = len(data)
 
             if size == 0:
-                raise CCXMessagingError(f"Empty input archive from {src}")
+                LOG.error("Empty input archive from: %s", src)
+                raise CCXMessagingError("Empty input archive")
 
             if self.max_archive_size is not None and size > self.max_archive_size:
-                raise CCXMessagingError(
-                    f"The archive is too big ({size} > {self.max_archive_size}). Skipping"
-                )
+                LOG.error("The archive is too big ({size} > {self.max_archive_size})", size=size)
+                raise CCXMessagingError("The archive is too big. Skipping")
 
             with NamedTemporaryFile() as file_data:
                 file_data.write(data)

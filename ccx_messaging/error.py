@@ -28,8 +28,5 @@ class CCXMessagingError(Exception):
         return (
             f"Status: Error; "
             f"Topic: {input_msg['topic']}; "
-            f"Partition: {input_msg['partition']}; "
-            f"Offset: {input_msg['offset']}; "
-            f"Cluster: {input_msg['cluster_name']}; "
             f"Cause: {self}"
         )
