@@ -111,7 +111,8 @@ class KafkaConsumer(Consumer):
         # The `handles` method should prevent this from
         # being called if the input message format is wrong.
         except Exception as ex:
-            raise CCXMessagingError(f"Unable to extract URL from input message: {ex}") from ex
+            LOG.error("Unable to extract URL from input message: %s", ex)
+            raise CCXMessagingError("Unable to extract URL from input message") from ex
 
     def run(self):
         """Consume message and proccess."""

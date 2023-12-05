@@ -35,7 +35,6 @@ def test_error_formatting():
 
     fmt = err.format(input_msg)
     expected = (
-        "Status: Error; Topic: topic name; Partition: partition name; "
-        + "Offset: 1234; Cluster: clusterName; Cause: CCXMessagingError"
+        "Status: Error; Topic: topic name; Cause: CCXMessagingError"
     )
     assert fmt == expected
