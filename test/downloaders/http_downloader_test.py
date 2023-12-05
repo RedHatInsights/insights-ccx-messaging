@@ -37,7 +37,7 @@ def test_parse_human_input_valid_file_sizes(file_size):
     parse_human_input(file_size)
 
 
-_REGEX_BAD_URL_FORMAT = r"^Invalid URL format: .*"
+_REGEX_BAD_URL_FORMAT = r"^Invalid URL format"
 _INVALID_TYPE_URLS = [42, 2.71, True, [], {}]
 
 @pytest.mark.parametrize("url", _INVALID_TYPE_URLS)
