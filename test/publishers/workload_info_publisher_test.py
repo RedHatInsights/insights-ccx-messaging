@@ -274,4 +274,4 @@ def test_error(input, output):
 
     with patch("ccx_messaging.publishers.kafka_publisher.log") as log_mock:
         sut.error(input, None)
-        assert log_mock.error.called
+        assert log_mock.warning.called

@@ -57,7 +57,7 @@ class WorkloadInfoPublisher(KafkaPublisher):
         try:
             org_id = int(input_msg["identity"]["identity"]["internal"]["org_id"])
         except (ValueError, TypeError, KeyError) as err:
-            log.error("Error extracting the OrgID: %s", err)
+            log.warning("Error extracting the OrgID: %s", err)
             raise CCXMessagingError("Error extracting the OrgID") from err
 
         try:
@@ -117,5 +117,5 @@ class WorkloadInfoPublisher(KafkaPublisher):
             )
 
         except (KeyError, TypeError, UnicodeEncodeError, JSONDecodeError) as err:
-            log.error("Error encoding the response to publish: %s", message)
+            log.warning("Error encoding the response to publish: %s", message)
             raise CCXMessagingError("Error encoding the response to publish") from err
