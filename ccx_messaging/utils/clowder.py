@@ -40,7 +40,7 @@ def apply_clowder_config(manifest):
     kafka_urls = app_common_python.KafkaServers
     logger.debug("Kafka URLs: %s", kafka_urls)
 
-    kafka_broker_config = {"bootstrap.servers": kafka_urls}
+    kafka_broker_config = {"bootstrap.servers": ",".join(kafka_urls)}
 
     if clowder_broker_config.cacert:
         # Current Kafka library is not able to handle the CA file, only a path to it
