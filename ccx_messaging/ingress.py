@@ -24,19 +24,19 @@ def parse_identity(encoded_identity: bytes) -> dict:
         return identity
 
     except TypeError as ex:
-        LOG.error("Bad argument type %s", encoded_identity)
+        LOG.warning("Bad argument type %s", encoded_identity)
         raise CCXMessagingError("Bad argument type") from ex
 
     except binascii.Error as ex:
-        LOG.error("Base64 encoded identity could not be parsed: %s", encoded_identity)
+        LOG.warning("Base64 encoded identity could not be parsed: %s", encoded_identity)
         raise CCXMessagingError("Base64 encoded identity could not be parsed") from ex
 
     except json.JSONDecodeError as ex:
-        LOG.error("Unable to decode received message: %s", decoded_identity)
+        LOG.warning("Unable to decode received message: %s", decoded_identity)
         raise CCXMessagingError("Unable to decode received message") from ex
 
     except jsonschema.ValidationError as ex:
-        LOG.error("Invalid input message JSON schema: %s", identity)
+        LOG.warning("Invalid input message JSON schema: %s", identity)
         raise CCXMessagingError("Invalid input message JSON schema") from ex
 
 
@@ -47,15 +47,15 @@ def parse_ingress_message(message: bytes) -> dict:
         jsonschema.validate(instance=deserialized_message, schema=INPUT_MESSAGE_SCHEMA)
 
     except TypeError as ex:
-        LOG.error("Incorrect message type: %s", message)
+        LOG.warning("Incorrect message type: %s", message)
         raise CCXMessagingError("Incorrect message type") from ex
 
     except json.JSONDecodeError as ex:
-        LOG.error("Unable to decode received message: %s", message)
+        LOG.warning("Unable to decode received message: %s", message)
         raise CCXMessagingError("Unable to decode received message") from ex
 
     except jsonschema.ValidationError as ex:
-        LOG.error("Invalid input message JSON schema: %s", deserialized_message)
+        LOG.warning("Invalid input message JSON schema: %s", deserialized_message)
         raise CCXMessagingError("Invalid input message JSON schema") from ex
 
     LOG.debug("JSON schema validated: %s", deserialized_message)

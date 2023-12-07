@@ -92,4 +92,4 @@ class KafkaPublisher(Publisher):
         if not isinstance(ex, CCXMessagingError):
             ex = CCXMessagingError(ex)
 
-        log.error(ex.format(input_msg))
+        log.warning(ex.format(input_msg))

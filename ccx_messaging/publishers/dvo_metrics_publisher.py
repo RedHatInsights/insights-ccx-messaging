@@ -49,7 +49,7 @@ class DVOMetricsPublisher(KafkaPublisher):
         try:
             org_id = int(input_msg["identity"]["identity"]["internal"]["org_id"])
         except (ValueError, KeyError, TypeError) as err:
-            log.error("Error extracting the OrgID: %s", err)
+            log.warning("Error extracting the OrgID: %s", err)
             raise CCXMessagingError("Error extracting the OrgID") from err
 
         try:

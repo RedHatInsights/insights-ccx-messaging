@@ -93,7 +93,7 @@ class RuleProcessingPublisher(KafkaPublisher):
         try:
             org_id = int(input_msg["identity"]["identity"]["internal"]["org_id"])
         except (ValueError, KeyError, TypeError) as err:
-            log.error("Error extracting the OrgID: %s", err)
+            log.warning("Error extracting the OrgID: %s", err)
             raise CCXMessagingError("Error extracting the OrgID") from err
 
         try:
@@ -149,5 +149,5 @@ class RuleProcessingPublisher(KafkaPublisher):
             raise CCXMessagingError("Missing expected keys in the input message") from err
 
         except (TypeError, UnicodeEncodeError, JSONDecodeError) as err:
-            log.error(err)
+            log.warning(err)
             raise CCXMessagingError("Error encoding the response to publish") from err
