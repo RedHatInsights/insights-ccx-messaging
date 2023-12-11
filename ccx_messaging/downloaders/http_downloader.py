@@ -117,4 +117,6 @@ class HTTPDownloader:
             response.close()
 
         except requests.exceptions.ConnectionError as err:
-            raise CCXMessagingError(err) from err
+            raise CCXMessagingError("Connection error while downloading the file") from err
+        except Exception as err:
+            raise CCXMessagingError("Unknown error while downloading the file") from err
