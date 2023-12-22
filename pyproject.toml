@@ -47,6 +47,9 @@ text = "Apache-2.0"
 [project.urls]
 Homepage = "https://github.com/RedHatInsights/insights-ccx-messaging"
 
+[project.scripts]
+ccx-messaging = "ccx_messaging.command_line:ccx_messaging"
+
 [project.optional-dependencies]
 dev = [
     "black",
