@@ -149,9 +149,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         },
         id="with account",
     ),
@@ -178,9 +176,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         },
         id="invalid account",
     ),
@@ -207,9 +203,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         },
         id="empty account",
     ),
@@ -235,9 +229,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         },
         id="no account",
     ),
@@ -254,11 +246,7 @@ VALID_INPUT_MSG = [
             "topic": "incoming_topic",
             "partition": 0,
             "offset": 100,
-            "metadata": {
-                "custom_metadata": {
-                    "gathering_time": "2023-08-14T09:31:46Z"
-                }
-            }
+            "metadata": {"custom_metadata": {"gathering_time": "2023-08-14T09:31:46Z"}},
         },
         {
             "OrgID": 10,
@@ -268,9 +256,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2023-08-14T09:31:46Z"
-            }
+            "Metadata": {"gathering_time": "2023-08-14T09:31:46Z"},
         },
         id="with gathering timestamp",
     ),
@@ -287,11 +273,7 @@ VALID_INPUT_MSG = [
             "topic": "incoming_topic",
             "partition": 0,
             "offset": 100,
-            "metadata": {
-                "custom_metadata": {
-                    "gathering_time": "2023-08-14T09:31:46.677052"
-                }
-            }
+            "metadata": {"custom_metadata": {"gathering_time": "2023-08-14T09:31:46.677052"}},
         },
         {
             "OrgID": 10,
@@ -301,9 +283,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2023-08-14T09:31:46Z"
-            }
+            "Metadata": {"gathering_time": "2023-08-14T09:31:46Z"},
         },
         id="with gathering timestamp in ISO format",
     ),
@@ -320,11 +300,7 @@ VALID_INPUT_MSG = [
             "topic": "incoming_topic",
             "partition": 0,
             "offset": 100,
-            "metadata": {
-                "custom_metadata": {
-                    "some_timestamp": "2023-08-14T09:31:46.677052"
-                }
-            }
+            "metadata": {"custom_metadata": {"some_timestamp": "2023-08-14T09:31:46.677052"}},
         },
         {
             "OrgID": 10,
@@ -334,9 +310,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         },
         id="with custom metadata without gathering timestamp",
     ),
@@ -353,8 +327,7 @@ VALID_INPUT_MSG = [
             "topic": "incoming_topic",
             "partition": 0,
             "offset": 100,
-            "metadata": {
-            }
+            "metadata": {},
         },
         {
             "OrgID": 10,
@@ -364,9 +337,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         },
         id="empty metadata",
     ),
@@ -424,31 +395,20 @@ def test_error(input, output):
 
 VALID_REPORTS = [
     pytest.param(
-        json.dumps({
-            "version": 1,
-            "reports": [],
-            "pass": [],
-            "info": [],
-            "workload_recommendations": []
-        }),
+        json.dumps(
+            {"version": 1, "reports": [], "pass": [], "info": [], "workload_recommendations": []}
+        ),
         {
             "OrgID": 10,
             "AccountNumber": 1,
             "ClusterName": "uuid",
-            "Report": {
-                "version": 1,
-                "reports": [],
-                "pass": [],
-                "info": []
-            },
+            "Report": {"version": 1, "reports": [], "pass": [], "info": []},
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         },
-        id="valid_report"
+        id="valid_report",
     )
 ]
 
@@ -463,4 +423,3 @@ def test_filter_ocp_rules_results(input, expected_output):
 
     sut.publish(VALID_INPUT_MSG[0][0][0], input)
     sut.producer.produce.assert_called_with("outgoing_topic", expected_output.encode())
-

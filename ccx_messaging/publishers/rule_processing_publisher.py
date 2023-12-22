@@ -48,15 +48,15 @@ class RuleProcessingPublisher(KafkaPublisher):
         """Check if the timestamp matches RFC3339 format."""
         try:
             datetime.datetime.strptime(timestamp, RFC3339_FORMAT)
-        except: # noqa E722
+        except:  # noqa E722
             return False
         return True
 
     def get_gathering_time(self, input_msg):
         """Retrieve the gathering time from input message if present, otherwise create one."""
-        gathered_at = input_msg.get("metadata", {}) \
-                               .get("custom_metadata", {}) \
-                               .get("gathering_time", None)
+        gathered_at = (
+            input_msg.get("metadata", {}).get("custom_metadata", {}).get("gathering_time", None)
+        )
 
         if not gathered_at:
             log.debug("Gathering time is not present; creating replacement")
@@ -112,9 +112,7 @@ class RuleProcessingPublisher(KafkaPublisher):
                 "LastChecked": msg_timestamp,
                 "Version": self.outdata_schema_version,
                 "RequestId": input_msg.get("request_id"),
-                "Metadata": {
-                    "gathering_time": self.get_gathering_time(input_msg)
-                }
+                "Metadata": {"gathering_time": self.get_gathering_time(input_msg)},
             }
 
             message = json.dumps(output_msg) + "\n"

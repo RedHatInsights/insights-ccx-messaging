@@ -62,7 +62,7 @@ def test_payload_tracker_init_with_kafka_config(producer_init_mock):
     PayloadTrackerWatcher(
         "valid_topic",
         kafka_broker_config=kafka_broker_cfg,
-        **{"bootstrap.servers": "invalid_servicer"}
+        **{"bootstrap.servers": "invalid_servicer"},
     )
 
     producer_init_mock.assert_called_with(**kafka_broker_cfg)

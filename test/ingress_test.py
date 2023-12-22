@@ -37,7 +37,7 @@ def test_parse_indentity_invalid_values(invalid_value):
 
 
 VALID_VALUES = [
-    '{"url": "","b64_identity": "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIxMjM0NTY3OCJ9fX0K",' # noqa E501
+    '{"url": "","b64_identity": "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIxMjM0NTY3OCJ9fX0K",'  # noqa E501
     '"timestamp": "2020-01-23T16:15:59.478901889Z"}',
     '{"url": "https://s3.com/hash", "unused-property": null, '
     '"b64_identity": "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIxMjM0NTY3OCJ9fX0K",'

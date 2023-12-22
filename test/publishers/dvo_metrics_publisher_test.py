@@ -234,11 +234,7 @@ VALID_INPUT_MSG = [
             "topic": "incoming_topic",
             "partition": 0,
             "offset": 100,
-            "metadata": {
-                "custom_metadata": {
-                    "gathering_time": "2023-08-14T09:31:46Z"
-                }
-            }
+            "metadata": {"custom_metadata": {"gathering_time": "2023-08-14T09:31:46Z"}},
         },
         {
             "OrgID": 10,
@@ -262,11 +258,7 @@ VALID_INPUT_MSG = [
             "topic": "incoming_topic",
             "partition": 0,
             "offset": 100,
-            "metadata": {
-                "custom_metadata": {
-                    "gathering_time": "2023-08-14T09:31:46.677052"
-                }
-            }
+            "metadata": {"custom_metadata": {"gathering_time": "2023-08-14T09:31:46.677052"}},
         },
         {
             "OrgID": 10,
@@ -290,11 +282,7 @@ VALID_INPUT_MSG = [
             "topic": "incoming_topic",
             "partition": 0,
             "offset": 100,
-            "metadata": {
-                "custom_metadata": {
-                    "some_timestamp": "2023-08-14T09:31:46.677052"
-                }
-            }
+            "metadata": {"custom_metadata": {"some_timestamp": "2023-08-14T09:31:46.677052"}},
         },
         {
             "OrgID": 10,
@@ -318,8 +306,7 @@ VALID_INPUT_MSG = [
             "topic": "incoming_topic",
             "partition": 0,
             "offset": 100,
-            "metadata": {
-            }
+            "metadata": {},
         },
         {
             "OrgID": 10,
@@ -384,26 +371,17 @@ def test_error(input, output):
 
 VALID_REPORTS = [
     pytest.param(
-        json.dumps({
-            "version": 1,
-            "reports": [],
-            "pass": [],
-            "info": [],
-            "workload_recommendations": []
-        }),
+        json.dumps(
+            {"version": 1, "reports": [], "pass": [], "info": [], "workload_recommendations": []}
+        ),
         {
             "OrgID": 10,
             "AccountNumber": 1,
             "ClusterName": "uuid",
-            "Metrics": {
-                "version": 1,
-                "pass": [],
-                "info": [],
-                "workload_recommendations": []
-            },
+            "Metrics": {"version": 1, "pass": [], "info": [], "workload_recommendations": []},
             "RequestId": "a request id",
         },
-        id="valid_report"
+        id="valid_report",
     )
 ]
 

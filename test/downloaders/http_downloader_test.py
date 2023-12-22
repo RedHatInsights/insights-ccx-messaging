@@ -25,11 +25,13 @@ from ccx_messaging.error import CCXMessagingError
 _INVALID_FILE_SIZES = [42, 2.71, True, [], {}, "1234J"]
 _VALID_FILE_SIZES = ["1K", "2M", "3G", "4T", "5Ki", "6Mi", "7Gi", "8Ti"]
 
+
 @pytest.mark.parametrize("file_size", _INVALID_FILE_SIZES)
 def test_parse_human_input_invalid_file_sizes(file_size):
     """Test that passing invalid data to parse_human_input raise an exception."""
     with pytest.raises((TypeError, ValueError)):
         parse_human_input(file_size)
+
 
 @pytest.mark.parametrize("file_size", _VALID_FILE_SIZES)
 def test_parse_human_input_valid_file_sizes(file_size):
@@ -39,6 +41,7 @@ def test_parse_human_input_valid_file_sizes(file_size):
 
 _REGEX_BAD_URL_FORMAT = r"^Invalid URL format"
 _INVALID_TYPE_URLS = [42, 2.71, True, [], {}]
+
 
 @pytest.mark.parametrize("url", _INVALID_TYPE_URLS)
 def test_get_invalid_type(url):

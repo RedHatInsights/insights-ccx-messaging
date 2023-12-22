@@ -1,14 +1,15 @@
 """Handlers for CLI commands and some utility functions."""
 
 import argparse
+import importlib.metadata
 import logging
 import os
 import sys
 
-import pkg_resources
 from app_common_python import isClowderEnabled
 from insights_messaging.appbuilder import AppBuilder
 
+from ccx_messaging.utils.clowder import apply_clowder_config
 from ccx_messaging.utils.logging import setup_watchtower
 from ccx_messaging.utils.sentry import init_sentry
 
@@ -33,7 +34,7 @@ def print_version() -> None:
     logger.info(
         "%s version: %s",
         sys.argv[0],
-        pkg_resources.get_distribution("ccx-messaging").version,
+        importlib.metadata.version("ccx-messaging"),
     )
 
 

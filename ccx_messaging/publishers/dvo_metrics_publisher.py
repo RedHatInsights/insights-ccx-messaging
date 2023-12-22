@@ -75,18 +75,14 @@ class DVOMetricsPublisher(KafkaPublisher):
         self.produce(message.encode("utf-8"))
         log.debug("Message has been sent successfully.")
         log.debug(
-            "Message context: OrgId=%s, AccountNumber=%s, "
-            'ClusterName="%s"',
+            "Message context: OrgId=%s, AccountNumber=%s, " 'ClusterName="%s"',
             output_msg["OrgID"],
             output_msg["AccountNumber"],
             output_msg["ClusterName"],
         )
 
         log.debug(
-            "Status: Success; "
-            "Topic: %s; "
-            "Partition: %s; "
-            "Offset: %s; ",
+            "Status: Success; " "Topic: %s; " "Partition: %s; " "Offset: %s; ",
             input_msg.get("topic"),
             input_msg.get("partition"),
             input_msg.get("offset"),
