@@ -30,9 +30,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         }
     ),
     pytest.param(
@@ -44,9 +42,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         }
     ),
     pytest.param(
@@ -58,9 +54,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         }
     ),
     pytest.param(
@@ -72,9 +66,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2012-01-14T00:00:00Z"
-            }
+            "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         }
     ),
     pytest.param(
@@ -86,9 +78,7 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2023-08-14T09:31:46Z"
-            }
+            "Metadata": {"gathering_time": "2023-08-14T09:31:46Z"},
         }
     ),
     pytest.param(
@@ -100,23 +90,23 @@ VALID_INPUT_MSG = [
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
-            "Metadata": {
-                "gathering_time": "2023-08-14T09:31:46Z"
-            }
+            "Metadata": {"gathering_time": "2023-08-14T09:31:46Z"},
         }
     ),
 ]
 BEST_COMPRESSION = 9
 
+
 def timeStampMasking(message):
     """Mask four bytes in Gzip stream that contain timestamp."""
-    message=list(message)
+    message = list(message)
     message[4] = 0
     message[5] = 0
     message[6] = 0
     message[7] = 0
     message = bytes(message)
     return message
+
 
 def test_init():
     """Check that init creates a valid object."""
@@ -125,23 +115,19 @@ def test_init():
     }
     KafkaPublisher(outgoing_topic="topic name", **kakfa_config)
 
+
 def test_init_compression():
     """Check that init creates a valid object."""
-    kakfa_config = {
-        "bootstrap.servers": "kafka:9092",
-        "compression" : "gzip"
-    }
+    kakfa_config = {"bootstrap.servers": "kafka:9092", "compression": "gzip"}
     KafkaPublisher(outgoing_topic="topic name", **kakfa_config)
+
 
 @pytest.mark.parametrize("input", VALID_INPUT_MSG)
 def test_compressing_enabled(input):
     """Check if message is gzipped if compression is enabled."""
-    input = bytes(json.dumps(input) + "\n",'utf-8')
-    expected_output = timeStampMasking(gzip.compress(input,compresslevel=BEST_COMPRESSION))
-    kakfa_config = {
-        "bootstrap.servers": "kafka:9092",
-        "compression" : "gzip"
-    }
+    input = bytes(json.dumps(input) + "\n", "utf-8")
+    expected_output = timeStampMasking(gzip.compress(input, compresslevel=BEST_COMPRESSION))
+    kakfa_config = {"bootstrap.servers": "kafka:9092", "compression": "gzip"}
     pub = KafkaPublisher(outgoing_topic="topic-name", **kakfa_config)
     pub.producer = MagicMock()
     pub.produce(input)
@@ -149,15 +135,14 @@ def test_compressing_enabled(input):
     outgoing_message = timeStampMasking(pub.producer.produce.call_args[0][1])
     assert outgoing_message == expected_output and outgoing_topic == "topic-name"
 
+
 @pytest.mark.parametrize("input", VALID_INPUT_MSG)
 def test_compressing_disabled(input):
     """Check if message is not gzipped if compression is disabled."""
-    input = bytes(json.dumps(input) + "\n",'utf-8')
+    input = bytes(json.dumps(input) + "\n", "utf-8")
     expected_output = input
-    kakfa_config = {
-        "bootstrap.servers": "kafka:9092"
-    }
+    kakfa_config = {"bootstrap.servers": "kafka:9092"}
     pub = KafkaPublisher(outgoing_topic="topic-name", **kakfa_config)
     pub.producer = MagicMock()
     pub.produce(input)
-    pub.producer.produce.assert_called_with("topic-name",expected_output)
+    pub.producer.produce.assert_called_with("topic-name", expected_output)

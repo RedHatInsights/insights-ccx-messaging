@@ -34,7 +34,5 @@ def test_error_formatting():
     assert err is not None
 
     fmt = err.format(input_msg)
-    expected = (
-        "Status: Error; Topic: topic name; Cause: CCXMessagingError"
-    )
+    expected = "Status: Error; Topic: topic name; Cause: CCXMessagingError"
     assert fmt == expected
