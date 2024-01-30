@@ -44,6 +44,10 @@ class DVOMetricsPublisher(KafkaPublisher):
         except (TypeError, json.decoder.JSONDecodeError) as err:
             raise CCXMessagingError("Could not parse report; report is not in JSON format") from err
 
+        if "workload_recommendations" not in report.keys():
+            log.info("Report does not contain DVO related results; skipping")
+            return
+
         report.pop("reports", None)
 
         try:
