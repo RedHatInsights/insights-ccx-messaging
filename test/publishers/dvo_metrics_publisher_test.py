@@ -395,3 +395,14 @@ def test_filter_dvo_results(input, expected_output):
 
     sut.publish(VALID_INPUT_MSG[0][0][0], input)
     sut.producer.produce.assert_called_with("outgoing_topic", expected_output.encode())
+
+
+def test_empty_dvo_results():
+    """Check that the publisher does not send empty message."""
+    sut = DVOMetricsPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
+    sut.producer = MagicMock()
+
+    input = json.dumps({"version": 1, "reports": [], "pass": [], "info": []})
+    sut.publish(VALID_INPUT_MSG[0][0][0], input)
+    assert not sut.producer.produce.called
+
