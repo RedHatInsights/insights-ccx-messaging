@@ -145,7 +145,7 @@ VALID_INPUT_MSG = [
             "OrgID": 10,
             "AccountNumber": 1,
             "ClusterName": "uuid",
-            "Metrics": {},
+            "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
         },
         id="with account",
@@ -169,7 +169,7 @@ VALID_INPUT_MSG = [
             "OrgID": 10,
             "AccountNumber": "",
             "ClusterName": "uuid",
-            "Metrics": {},
+            "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
         },
         id="invalid account",
@@ -193,7 +193,7 @@ VALID_INPUT_MSG = [
             "OrgID": 10,
             "AccountNumber": "",
             "ClusterName": "uuid",
-            "Metrics": {},
+            "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
         },
         id="empty account",
@@ -216,7 +216,7 @@ VALID_INPUT_MSG = [
             "OrgID": 10,
             "AccountNumber": "",
             "ClusterName": "uuid",
-            "Metrics": {},
+            "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
         },
         id="no account",
@@ -240,7 +240,7 @@ VALID_INPUT_MSG = [
             "OrgID": 10,
             "AccountNumber": "",
             "ClusterName": "uuid",
-            "Metrics": {},
+            "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
         },
         id="with gathering timestamp",
@@ -264,7 +264,7 @@ VALID_INPUT_MSG = [
             "OrgID": 10,
             "AccountNumber": "",
             "ClusterName": "uuid",
-            "Metrics": {},
+            "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
         },
         id="with gathering timestamp in ISO format",
@@ -288,7 +288,7 @@ VALID_INPUT_MSG = [
             "OrgID": 10,
             "AccountNumber": "",
             "ClusterName": "uuid",
-            "Metrics": {},
+            "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
         },
         id="with custom metadata without gathering timestamp",
@@ -312,7 +312,7 @@ VALID_INPUT_MSG = [
             "OrgID": 10,
             "AccountNumber": "",
             "ClusterName": "uuid",
-            "Metrics": {},
+            "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
         },
         id="empty metadata",
@@ -324,7 +324,7 @@ VALID_INPUT_MSG = [
 @pytest.mark.parametrize("input, expected_output", VALID_INPUT_MSG)
 def test_publish_valid(input, expected_output):
     """Check that Kafka producer is called with an expected message."""
-    report = "{}"
+    report = "{\"workload_recommendations\": []}"
 
     expected_output = json.dumps(expected_output) + "\n"
     sut = DVOMetricsPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
