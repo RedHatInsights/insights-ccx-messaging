@@ -451,7 +451,7 @@ def test_process_dead_letter_no_configured(value, expected):
     input_message = KafkaMessage(value)
 
     sut.process_dead_letter(input_message)
-    assert not sut.dlq_producer.send.called
+    assert not sut.dlq_producer.produce.called
 
 
 @pytest.mark.parametrize("value,expected", _VALID_MESSAGES)
@@ -470,7 +470,7 @@ def test_process_dead_letter_message(producer_init_mock, value, expected):
     message_mock.value.return_value = value
 
     sut.process_dead_letter(message_mock)
-    producer_mock.send.assert_called_with(dlq_topic_name, value)
+    producer_mock.produce.assert_called_with(dlq_topic_name, value)
 
 
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer")
