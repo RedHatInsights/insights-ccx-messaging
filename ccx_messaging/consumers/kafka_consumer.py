@@ -252,7 +252,8 @@ class KafkaConsumer(Consumer):
         if not self.dlq_producer:
             return
 
-        self.dlq_producer.send(
+        LOG.info("Sending the message to dead letter queue topic")
+        self.dlq_producer.produce(
             self.dead_letter_queue_topic,
             msg.value(),
         )
