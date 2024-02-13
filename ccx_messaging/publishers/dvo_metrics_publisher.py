@@ -71,6 +71,7 @@ class DVOMetricsPublisher(KafkaPublisher):
             "ClusterName": input_msg["cluster_name"],
             "Metrics": report,
             "RequestId": input_msg.get("request_id"),
+            "LastChecked": input_msg.get("timestamp"),
         }
         message = json.dumps(output_msg) + "\n"
 
