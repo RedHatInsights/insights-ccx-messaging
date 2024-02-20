@@ -31,11 +31,8 @@ class Consumer(KafkaConsumer):
 
     def handles(self, msg: Message) -> bool:
         """Check if the message is usable."""
-        message = self.deserialize(msg.value())
-        if message.get("path") is not None:
-            return True
-        else:
-            return False
+        message = self.deserialize(msg)
+        return "path" in message
 
     def deserialize(self, msg):
         """Deserialize JSON message received from kafka."""
