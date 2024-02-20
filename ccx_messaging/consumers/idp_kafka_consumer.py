@@ -9,7 +9,7 @@ from ccx_messaging.error import CCXMessagingError
 LOG = logging.getLogger(__name__)
 
 
-class Consumer(KafkaConsumer):
+class IDPConsumer(KafkaConsumer):
 
     """Consumer based in Confluent Kafka for Internal Data Pipeline."""
 
