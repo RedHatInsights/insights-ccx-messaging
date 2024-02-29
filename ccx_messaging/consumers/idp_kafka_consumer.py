@@ -3,6 +3,7 @@ import logging
 from confluent_kafka import Message
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 import json
+from insights import dr
 
 from ccx_messaging.error import CCXMessagingError
 
@@ -23,6 +24,7 @@ class IDPConsumer(KafkaConsumer):
         """Initialise the KafkaConsumer object and related handlers."""
         kwargs.pop("requeuer", None)
         incoming_topic = kwargs.pop("incoming_topic")
+        uploader = kwargs.pop("uploader", None)
         super().__init__(publisher, downloader, engine, incoming_topic, kwargs)
 
     def get_url(self, input_msg: dict) -> str:
@@ -48,3 +50,10 @@ class IDPConsumer(KafkaConsumer):
 
         LOG.debug("JSON schema validated: %s", deserialized_message)
         return deserialized_message
+
+    def create_broker(self, input_msg):
+        """Create broker obj for IDP Consumer."""
+        broker = dr.Broker()
+        broker["cluster_id"] = input_msg.get("cluster_id")
+        broker["s3_path"] = input_msg.get("path")
+        return broker
