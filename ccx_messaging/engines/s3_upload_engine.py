@@ -64,9 +64,16 @@ def create_metadata(s3_path,cluster_id):
 
 
 class S3UploadEngine(Engine):
-    def __init__(self, formatter,uploader, target_components=None, extract_timeout=None, extract_tmp_dir=None):  # noqa: E501
-        self.dest_bucket = uploader.pop("bucket")
-        self.uploader = S3Uploader(**uploader)
+    def __init__(self ,**kwargs):  # noqa: E501
+        formatter = kwargs.get("formatter",None)
+        target_components = kwargs.get("target_components",None)
+        extract_timeout = kwargs.get("extract_timeout",None)
+        extract_tmp_dir = kwargs.get("extract_tmp_dir",None)
+        self.dest_bucket = kwargs["bucket"]
+        self.access_key = kwargs["access_key"]
+        self.secret_key = kwargs["secret_key"]
+        self.endpoint = kwargs["endpoint"]
+        self.uploader = S3Uploader(access_key = self.access_key,secret_key=self.secret_key,endpoint= self.endpoint)
         super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
 
     def process(self, broker, local_path):
@@ -80,9 +87,9 @@ class S3UploadEngine(Engine):
             w.watch_broker(broker)
 
         target_path = compute_target_path(s3_path)
-        LOG.info(f"(NOT IMPLEMENTED) Uploading archive '{s3_path}' as {self.dest_bucket}/{target_path}")  # noqa: E501
+        LOG.info(f"Uploading archive '{s3_path}' as {self.dest_bucket}/{target_path}")  # noqa: E501
 
-        self.uploader.upload_file(local_path, self.dest_bucket, target_path)
+        self.uploader.upload_file(local_path, self.dest_bucket, "/test/")
         LOG.info(f"Uploaded archive '{s3_path}' as {self.dest_bucket}/{target_path}")
 
         metadata = create_metadata(s3_path,cluster_id)

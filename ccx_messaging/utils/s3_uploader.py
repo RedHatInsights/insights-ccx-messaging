@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 
 class S3Uploader:
     def __init__(self, **kwargs):
-        access_key = kwargs.pop("access_key")
+        access_key = kwargs.get("access_key", None)
         secret_key = kwargs.get("secret_key", None)
         endpoint = kwargs.get("endpoint", None)
 
