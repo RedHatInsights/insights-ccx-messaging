@@ -17,10 +17,9 @@ class IDPDownloader(S3Downloader):
         self.bucket = kwargs['bucket']
         super().__init__(key=self.access_key,secret=self.secret_key,client_kwargs={'endpoint_url':self.endpoint_url})
 
-    
-    @contextmanager
-    def get(self,path):
-        yield super().get(f"{self.bucket}/{path}")
+    def get(self, path):
+        return super().get(f"{self.bucket}/{path}")
+
 
 class ConfigurationError(Exception):
     pass

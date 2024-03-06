@@ -69,20 +69,18 @@ class S3UploadEngine(Engine):
         target_components = kwargs.get("target_components",None)
         extract_timeout = kwargs.get("extract_timeout",None)
         extract_tmp_dir = kwargs.get("extract_tmp_dir",None)
-        self.dest_bucket = kwargs["bucket"]
-        self.access_key = kwargs["access_key"]
-        self.secret_key = kwargs["secret_key"]
-        self.endpoint = kwargs["endpoint"]
+        self.dest_bucket = os.environ["S3_DEST_BUCKET"]
+        self.access_key = os.environ["S3_DEST_ACCESS_KEY"]
+        self.secret_key = os.environ["S3_DEST_SECRET_KEY"]
+        self.endpoint = os.environ["S3_DEST_ENDPOINT"]
         self.uploader = S3Uploader(access_key = self.access_key,secret_key=self.secret_key,endpoint= self.endpoint)
         super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
 
     def process(self, broker, local_path):
-        self.dest_bucket = "PlaceholderText"
         cluster_id = broker["cluster_id"]
         s3_path = broker["s3_path"]
         del broker["cluster_id"]
         del broker["s3_path"]
-
         for w in self.watchers:
             w.watch_broker(broker)
 
