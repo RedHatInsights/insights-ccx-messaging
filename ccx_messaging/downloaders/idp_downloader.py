@@ -1,11 +1,11 @@
+"""S3 Downloader for internal data pipeline."""
 from insights_messaging.downloaders.s3 import S3Downloader as S3Downloader
-
 class IDPDownloader(S3Downloader):
 
     """Downloader for S3 bucket."""
 
     def __init__(self, **kwargs):
-        """Setup of S3 Downloader."""
+        """Set up the S3 downloader."""
         if not kwargs['access_key']:
             raise ConfigurationError("Access Key environment variable not set.")
         if not kwargs['secret_key']:
@@ -26,4 +26,7 @@ class IDPDownloader(S3Downloader):
 
 
 class ConfigurationError(Exception):
+
+    """Configuration error."""
+
     pass
