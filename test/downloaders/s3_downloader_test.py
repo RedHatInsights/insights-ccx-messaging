@@ -35,7 +35,7 @@ def test_download_non_existing_file():
     """Test downloading of non existing file in s3."""
     conn = boto3.resource('s3',aws_access_key_id="test",aws_secret_access_key="test")
     conn.create_bucket(Bucket="testBucket")
-    downloader = S3Downloader(access_key="test",secret_key="test",bucket="testBucket")
+    downloader = S3Downloader(access_key="test",secret_key="test",bucket="testBucket",endpoint_url="https://s3.amazonaws.com")
     try:
         downloader.get("non_existend_file")
     except Exception as ex:
