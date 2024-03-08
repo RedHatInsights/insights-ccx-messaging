@@ -62,7 +62,8 @@ dev = [
     "pylint",
     "pytest",
     "pytest-cov",
-    "ruff"
+    "ruff",
+    "moto",
 ]
 
 [tool.setuptools_scm]
