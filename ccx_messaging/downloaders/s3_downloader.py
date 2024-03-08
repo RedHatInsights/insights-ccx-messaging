@@ -15,8 +15,8 @@
 """S3 Downloader for internal data pipeline."""
 
 from insights_messaging.downloaders.s3 import S3Downloader as ICMS3Downloader
-from ccx_messaging.error import CCXMessagingError
 
+from ccx_messaging.error import CCXMessagingError
 class S3Downloader(ICMS3Downloader):
 
     """Downloader for S3 bucket."""
@@ -25,12 +25,14 @@ class S3Downloader(ICMS3Downloader):
         """Set up the S3 downloader."""
         self.access_key = kwargs.get('access_key')
         self.secret_key = kwargs.get('secret_key')
-        self.endpoint_url = kwargs.get('endpoint_url',None)
+        self.endpoint_url = kwargs.get('endpoint_url')
         self.bucket = kwargs.get('bucket')
         if not self.access_key:
             raise CCXMessagingError("Access Key environment variable not set.")
         if not self.secret_key:
              raise CCXMessagingError("Secret Key environment variable not set.")
+        if not self.endpoint_url:
+            raise CCXMessagingError("Endpoint environment variable not set.")
         if not self.bucket:
             raise CCXMessagingError("Bucket environment variable not set.")
         super().__init__(key=self.access_key,secret=self.secret_key,client_kwargs={'endpoint_url':self.endpoint_url})
