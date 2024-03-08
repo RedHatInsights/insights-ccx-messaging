@@ -25,7 +25,7 @@ def test_download_existing_file():
     conn = boto3.resource('s3',aws_access_key_id="test",aws_secret_access_key="test")
     bucket = conn.create_bucket(Bucket="testBucket")
     bucket.upload_file("testfile","testfile")
-    downloader = S3Downloader(access_key="test",secret_key="test",bucket="testBucket")
+    downloader = S3Downloader(access_key="test",secret_key="test",bucket="testBucket",endpoint_url=None)  # noqa: E501
     with downloader.get("testfile") as path:
       assert os.path.exists(path)
     os.remove("testfile")
