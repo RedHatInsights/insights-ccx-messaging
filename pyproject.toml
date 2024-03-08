@@ -63,7 +63,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
-    "moto",
+    "moto"
 ]
 
 [tool.setuptools_scm]
