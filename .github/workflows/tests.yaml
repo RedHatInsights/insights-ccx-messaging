@@ -1,4 +1,4 @@
-name: PR approval
+name: Tests
 
 on:
   - push
@@ -29,10 +29,3 @@ jobs:
         if: ${{ matrix.python-version == '3.8' }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-  pre-commit:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-      - uses: pre-commit/action@v3.0.1
