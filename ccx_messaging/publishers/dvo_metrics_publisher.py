@@ -26,7 +26,6 @@ log = logging.getLogger(__name__)
 
 
 class DVOMetricsPublisher(KafkaPublisher):
-
     """DVOMetricsPublisher handles the result of the extraction of DVO metrics from an archive."""
 
     def publish(self, input_msg: Dict, report: str) -> None:

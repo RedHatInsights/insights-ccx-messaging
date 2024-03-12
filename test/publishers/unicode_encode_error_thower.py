@@ -16,7 +16,6 @@
 
 
 class UnicodeEncodeErrorThrower:
-
     """UnicodeErrorThrower is helper class for testing string handling."""
 
     def __init__(self):

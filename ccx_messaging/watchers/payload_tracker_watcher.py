@@ -28,7 +28,6 @@ LOG = logging.getLogger(__name__)
 
 
 class PayloadTrackerWatcher(ConsumerWatcher):
-
     """`Watcher` implementation to handle Payload Tracker updates."""
 
     def __init__(self, topic, service_name="ccx-data-pipeline", kafka_broker_config=None, **kwargs):

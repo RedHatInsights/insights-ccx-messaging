@@ -27,7 +27,6 @@ from ccx_messaging.error import CCXMessagingError
 
 
 class KafkaMessage:
-
     """Test double for the confluent_kafka.Message class."""
 
     def __init__(self, msg, headers=None, timestamp=None):

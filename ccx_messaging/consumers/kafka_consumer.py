@@ -23,7 +23,6 @@ MAX_ELAPSED_TIME_BETWEEN_MESSAGES = 60 * 60
 
 
 class KafkaConsumer(Consumer):
-
     """Consumer based in Confluent Kafka."""
 
     def __init__(

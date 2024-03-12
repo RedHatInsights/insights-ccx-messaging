@@ -77,7 +77,6 @@ def setup_watchtower(logging_config=None):
 
 
 class CloudWatchFormatter(jsonlogger.JsonFormatter):
-
     """Class that implements formatter for logging to CloudWatch."""
 
     def __init__(self, *args, **kwargs):

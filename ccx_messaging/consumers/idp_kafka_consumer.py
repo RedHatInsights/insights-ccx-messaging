@@ -10,7 +10,6 @@ LOG = logging.getLogger(__name__)
 
 
 class IDPConsumer(KafkaConsumer):
-
     """Consumer based in Confluent Kafka for Internal Data Pipeline."""
 
     def __init__(
