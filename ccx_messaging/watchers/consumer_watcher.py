@@ -18,7 +18,6 @@ from insights_messaging.watchers import ConsumerWatcher as ICMConsumerWatcher
 
 
 class ConsumerWatcher(ICMConsumerWatcher):
-
     """Extension of the ConsumerWatcher class to allow handling new callbacks."""
 
     def on_not_handled(self, input_msg):

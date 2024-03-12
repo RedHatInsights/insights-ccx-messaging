@@ -29,7 +29,6 @@ RFC3339_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 class RuleProcessingPublisher(KafkaPublisher):
-
     """RuleProcessingPublisher handles the results of the applied rules and publish them to Kafka.
 
     The results of the data analysis are received as a JSON (string)

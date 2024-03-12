@@ -27,7 +27,6 @@ BEST_COMPRESSION = 9
 
 
 class KafkaPublisher(Publisher):
-
     """KafkaPublisher is a base class for Kafka based publishers.
 
     It relays on Confluent Kafka library to perform the Kafka related

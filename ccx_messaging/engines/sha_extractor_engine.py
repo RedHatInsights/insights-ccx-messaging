@@ -25,7 +25,6 @@ log = logging.getLogger(__name__)
 
 
 class SHAExtractorEngine(ICMEngine):
-
     """Engine for extraction of downloading tar archive and selecting a file to be processed."""
 
     def process(self, broker, path):

@@ -25,7 +25,6 @@ LOG = logging.getLogger(__name__)
 
 
 class ClusterIdWatcher(EngineWatcher, ConsumerWatcher):
-
     """Mixed `Watcher` that is able to watch both `Consumer` and `Engine`."""
 
     CLUSTER_ID_LENGTH = 36
