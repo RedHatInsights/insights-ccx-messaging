@@ -16,7 +16,6 @@
 
 
 class CCXMessagingError(Exception):
-
     """Represents a CCX messaging exception.
 
     This should make it easier to differentiate between

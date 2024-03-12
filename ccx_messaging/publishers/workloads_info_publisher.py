@@ -26,7 +26,6 @@ log = logging.getLogger(__name__)
 
 
 class WorkloadInfoPublisher(KafkaPublisher):
-
     """WorkloadInfoPublisher based on Confluent Kafka Producer.
 
     The workload info is received from a custom engine as a JSON string.
