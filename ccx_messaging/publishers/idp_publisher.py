@@ -2,7 +2,6 @@
 import json
 from typing import Dict
 import logging
-from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
 LOG = logging.getLogger(__name__)
 
