@@ -12,11 +12,7 @@ class IDPPublisher(KafkaPublisher):
 
     def publish(self, input_msg: Dict, report: str) -> None:
         """Publish response as Kafka message to outgoing topic."""
-        output_msg = {}
-        try:
-            output_msg = json.loads(report)
-        except (TypeError, json.decoder.JSONDecodeError) as err:
-            raise CCXMessagingError("Could not parse report; report is not in JSON format") from err
+        output_msg = json.loads(report)
         output_msg.pop("reports", None)
         message = json.dumps(output_msg) + "\n"
 
