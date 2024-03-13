@@ -23,8 +23,7 @@ LOG = logging.getLogger(__name__)
 
 
 class IDPPublisher(KafkaPublisher):
-
-    """Publisher for interanal data pipeline."""
+    """Publisher for interanal data pipeline."""  # noqa: D203
 
     def publish(self, input_msg: Dict, report: str) -> None:
         """Publish response as Kafka message to outgoing topic."""
