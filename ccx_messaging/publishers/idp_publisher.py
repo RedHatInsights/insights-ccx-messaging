@@ -19,11 +19,13 @@ import json
 from typing import Dict
 import logging
 from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
+
 LOG = logging.getLogger(__name__)
 
 
 class IDPPublisher(KafkaPublisher):
-    """Publisher for interanal data pipeline."""  # noqa: D203
+
+    """Publisher for interanal data pipeline."""
 
     def publish(self, input_msg: Dict, report: str) -> None:
         """Publish response as Kafka message to outgoing topic."""

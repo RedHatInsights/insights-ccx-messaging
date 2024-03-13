@@ -348,7 +348,7 @@ VALID_INPUT_MSG = [
 @pytest.mark.parametrize("input, expected_output", VALID_INPUT_MSG)
 def test_publish_valid(input, expected_output):
     """Check that Kafka producer is called with an expected message."""
-    report = "{\"reports\": []}"
+    report = '{"reports": []}'
 
     expected_output = json.dumps(expected_output) + "\n"
     sut = RuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
@@ -424,6 +424,7 @@ def test_filter_ocp_rules_results(input, expected_output):
     sut.publish(VALID_INPUT_MSG[0][0][0], input)
     sut.producer.produce.assert_called_with("outgoing_topic", expected_output.encode())
 
+
 def test_empty_ocp_rules_results():
     """Check that the publisher does not send empty message."""
     sut = RuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
@@ -432,4 +433,3 @@ def test_empty_ocp_rules_results():
     input = json.dumps({"version": 1, "workload_recommendations": [], "pass": [], "info": []})
     sut.publish(VALID_INPUT_MSG[0][0][0], input)
     assert not sut.producer.produce.called
-

@@ -28,10 +28,11 @@ INPUT_MSG = [
         {
             "path": "target/path",
             "original_path": "original/path",
-            "metadata": {"cluster_id": "12345","external_organization":"54321"},
+            "metadata": {"cluster_id": "12345", "external_organization": "54321"},
         }
     )
 ]
+
 
 def timeStampMasking(message):
     """Mask four bytes in Gzip stream that contain timestamp."""
@@ -76,4 +77,3 @@ def test_compressing_enabled(input):
     outgoing_topic = pub.producer.produce.call_args[0][0]
     outgoing_message = timeStampMasking(pub.producer.produce.call_args[0][1])
     assert outgoing_message == expected_output and outgoing_topic == "topic-name"
-
