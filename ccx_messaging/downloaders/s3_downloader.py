@@ -22,7 +22,6 @@ from ccx_messaging.error import CCXMessagingError
 
 
 class S3Downloader(ICMS3Downloader):
-
     """Downloader for S3 bucket."""
 
     def __init__(self, **kwargs):

@@ -23,7 +23,7 @@ import pytest
 from ccx_messaging.downloaders.s3_downloader import S3Downloader
 
 
-@patch('s3fs.S3FileSystem.open')
+@patch("s3fs.S3FileSystem.open")
 def test_download_existing_file(mock_s3_open):
     """Test downloading of existing file in s3."""
     downloader = S3Downloader(
@@ -47,7 +47,7 @@ def test_download_existing_file(mock_s3_open):
     os.unlink(test_file_name)
 
 
-@patch('s3fs.S3FileSystem.open')
+@patch("s3fs.S3FileSystem.open")
 def test_download_non_existing_file(mock_s3_open):
     """Test downloading of non existing file in s3."""
     downloader = S3Downloader(
