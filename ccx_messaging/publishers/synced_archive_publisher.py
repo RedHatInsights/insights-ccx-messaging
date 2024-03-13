@@ -23,7 +23,7 @@ from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
 LOG = logging.getLogger(__name__)
 
 
-class IDPPublisher(KafkaPublisher):
+class SyncedArchivePublisher(KafkaPublisher):
     """Publisher for interanal data pipeline."""  # noqa: D203
 
     def publish(self, input_msg: Dict, report: str) -> None:
