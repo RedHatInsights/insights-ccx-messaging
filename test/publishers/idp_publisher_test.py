@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Tests for the KafkaPublisher class."""
+
 import json
 import gzip
 from unittest.mock import MagicMock
@@ -41,12 +42,15 @@ def timeStampMasking(message):
     message[7] = 0
     message = bytes(message)
     return message
+
+
 def test_init():
     """Check that init creates a valid object."""
     kakfa_config = {
         "bootstrap.servers": "kafka:9092",
     }
     IDPPublisher(outgoing_topic="topic name", **kakfa_config)
+
 
 @pytest.mark.parametrize("input", INPUT_MSG)
 def test_compressing_disabled(input):
@@ -58,6 +62,7 @@ def test_compressing_disabled(input):
     pub.producer = MagicMock()
     pub.produce(input)
     pub.producer.produce.assert_called_with("topic-name", expected_output)
+
 
 @pytest.mark.parametrize("input", INPUT_MSG)
 def test_compressing_enabled(input):
