@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for the KafkaPublisher class."""
+"""Tests for the SyncedArchivePublisher class."""
 
 import json
 import gzip
 from unittest.mock import MagicMock
 
 import pytest
-from ccx_messaging.publishers.idp_publisher import IDPPublisher
+from ccx_messaging.publishers.synced_archive_publisher import SyncedArchivePublisher
 
 BEST_COMPRESSION = 9
 
@@ -50,7 +50,7 @@ def test_init():
     kakfa_config = {
         "bootstrap.servers": "kafka:9092",
     }
-    IDPPublisher(outgoing_topic="topic name", **kakfa_config)
+    SyncedArchivePublisher(outgoing_topic="topic name", **kakfa_config)
 
 
 @pytest.mark.parametrize("input", INPUT_MSG)
@@ -59,7 +59,7 @@ def test_compressing_disabled(input):
     input = bytes(json.dumps(input) + "\n", "utf-8")
     expected_output = input
     kakfa_config = {"bootstrap.servers": "kafka:9092"}
-    pub = IDPPublisher(outgoing_topic="topic-name", **kakfa_config)
+    pub = SyncedArchivePublisher(outgoing_topic="topic-name", **kakfa_config)
     pub.producer = MagicMock()
     pub.produce(input)
     pub.producer.produce.assert_called_with("topic-name", expected_output)
@@ -71,7 +71,7 @@ def test_compressing_enabled(input):
     input = bytes(json.dumps(input) + "\n", "utf-8")
     expected_output = timeStampMasking(gzip.compress(input, compresslevel=BEST_COMPRESSION))
     kakfa_config = {"bootstrap.servers": "kafka:9092", "compression": "gzip"}
-    pub = IDPPublisher(outgoing_topic="topic-name", **kakfa_config)
+    pub = SyncedArchivePublisher(outgoing_topic="topic-name", **kakfa_config)
     pub.producer = MagicMock()
     pub.produce(input)
     outgoing_topic = pub.producer.produce.call_args[0][0]
