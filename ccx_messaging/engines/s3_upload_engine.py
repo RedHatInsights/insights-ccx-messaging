@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 
 def extract_org_id(file_path):
     """Extract organisation ID from s3 path."""
-    search = re.search(S3_ARCHIVE_PATTERN,file_path)
+    search = re.search(S3_ARCHIVE_PATTERN, file_path)
     if not search:
         LOG.warning(
             "Unrecognized archive path. Can't search any '%s' pattern for '%s' path.",
@@ -72,29 +72,30 @@ def compute_target_path(file_path):
     return target_path
 
 
-def create_metadata(s3_path,cluster_id):
+def create_metadata(s3_path, cluster_id):
     """Create a metadata for Publishing."""
     org_id = extract_org_id(s3_path)
-    msg_metadata = {"cluster_id": cluster_id, "external_organization":org_id}
+    msg_metadata = {"cluster_id": cluster_id, "external_organization": org_id}
     LOG.debug("msg_metadata %s", msg_metadata)
     return msg_metadata
 
 
 class S3UploadEngine(Engine):
+    """Engine for processing the metadata and ceph path of downloaded archive and uploading it to ceph bucket."""  # noqa: E501
 
-    """Engine for processing the metadata and ceph path of downloaded archive and uploading it to ceph bucket."""
-
-    def __init__(self ,**kwargs):
+    def __init__(self, **kwargs):
         """Inicialize engin for s3."""
-        formatter = kwargs.get("formatter",None)
-        target_components = kwargs.get("target_components",None)
-        extract_timeout = kwargs.get("extract_timeout",None)
-        extract_tmp_dir = kwargs.get("extract_tmp_dir",None)
-        self.dest_bucket = kwargs.get("dest_bucket",None)
-        self.access_key = kwargs.get("access_key",None)
-        self.secret_key = kwargs.get("secret_key",None)
+        formatter = kwargs.get("formatter", None)
+        target_components = kwargs.get("target_components", None)
+        extract_timeout = kwargs.get("extract_timeout", None)
+        extract_tmp_dir = kwargs.get("extract_tmp_dir", None)
+        self.dest_bucket = kwargs.get("dest_bucket", None)
+        self.access_key = kwargs.get("access_key", None)
+        self.secret_key = kwargs.get("secret_key", None)
         self.endpoint = kwargs.get("endpoint")
-        self.uploader = S3Uploader(access_key = self.access_key,secret_key=self.secret_key,endpoint= self.endpoint)  # noqa: E501
+        self.uploader = S3Uploader(
+            access_key=self.access_key, secret_key=self.secret_key, endpoint=self.endpoint
+        )  # noqa: E501
         super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
 
     def process(self, broker, local_path):
@@ -111,7 +112,7 @@ class S3UploadEngine(Engine):
         self.uploader.upload_file(local_path, self.dest_bucket, target_path)
         LOG.info(f"Uploaded archive '{s3_path}' as {self.dest_bucket}/{target_path}")
 
-        metadata = create_metadata(s3_path,cluster_id)
+        metadata = create_metadata(s3_path, cluster_id)
         kafka_msg = {
             "path": target_path,
             "original_path": s3_path,
