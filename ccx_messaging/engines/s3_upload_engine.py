@@ -15,7 +15,6 @@
 """S3 Engine Class and related functions."""
 
 import json
-import os
 import re
 import logging
 
@@ -25,7 +24,6 @@ from ccx_messaging.error import CCXMessagingError
 
 
 S3_ARCHIVE_PATTERN = re.compile(r"^([0-9]+)\/([0-9,a-z,-]{36})\/([0-9]{14})-[a-z,A-Z,0-9]*$")
-ARCHIVES_PATH_PREFIX = os.environ.get("SYNCED_ARCHIVES_PATH_PREFIX", "archives/compressed")
 LOG = logging.getLogger(__name__)
 
 
@@ -42,7 +40,7 @@ def extract_org_id(file_path):
     return search.group(1)
 
 
-def compute_target_path(file_path):
+def compute_target_path(file_path, prefix):
     """Compute S3 target path from the source path.
 
     Target path is in archives/compressed/$ORG_ID/$CLUSTER_ID/$YEAR$MONTH/$DAY/$TIME.tar.gz format.
@@ -62,7 +60,7 @@ def compute_target_path(file_path):
     year, month, day = datetime[:4], datetime[4:6], datetime[6:8]
     time = datetime[8:14]
     target_path = (
-        f"{ARCHIVES_PATH_PREFIX}"
+        f"{prefix}"
         + f"/{cluster_id[:2]}"
         + f"/{cluster_id}"
         + f"/{year}{month}"
@@ -93,6 +91,7 @@ class S3UploadEngine(Engine):
         self.access_key = kwargs.get("access_key", None)
         self.secret_key = kwargs.get("secret_key", None)
         self.endpoint = kwargs.get("endpoint")
+        self.archives_path_prefix = kwargs.get("archives_path_prefix", None)
         self.uploader = S3Uploader(
             access_key=self.access_key, secret_key=self.secret_key, endpoint=self.endpoint
         )  # noqa: E501
