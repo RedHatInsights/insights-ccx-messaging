@@ -106,7 +106,7 @@ class S3UploadEngine(Engine):
         for w in self.watchers:
             w.watch_broker(broker)
 
-        target_path = compute_target_path(s3_path)
+        target_path = compute_target_path(s3_path, self.archives_path_prefix)
         LOG.info(f"Uploading archive '{s3_path}' as {self.dest_bucket}/{target_path}")
         self.uploader.upload_file(local_path, self.dest_bucket, target_path)
         LOG.info(f"Uploaded archive '{s3_path}' as {self.dest_bucket}/{target_path}")

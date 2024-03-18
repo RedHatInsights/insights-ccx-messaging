@@ -83,6 +83,7 @@ def test_engine_metadata():
         secret_key="test",
         endpoint="https://s3.amazonaws.com",
         dest_bucket=DEST_BUCKET,
+        archives_path_prefix="archives/compressed",
     )
     engine.uploader = MagicMock()
     metadata = engine.process(BROKER, LOCAL_FILE_PATH)
