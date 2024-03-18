@@ -59,14 +59,7 @@ def compute_target_path(file_path, prefix):
     datetime = archive.split(".")[0]
     year, month, day = datetime[:4], datetime[4:6], datetime[6:8]
     time = datetime[8:14]
-    target_path = (
-        f"{prefix}"
-        + f"/{cluster_id[:2]}"
-        + f"/{cluster_id}"
-        + f"/{year}{month}"
-        + f"/{day}"
-        + f"/{time}.tar.gz"
-    )
+    target_path = f"{prefix}/{cluster_id[:2]}/{cluster_id}/{year}{month}/{day}/{time}.tar.gz"
     return target_path
 
 
