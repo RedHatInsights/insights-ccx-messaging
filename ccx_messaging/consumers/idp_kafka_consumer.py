@@ -4,6 +4,8 @@ from confluent_kafka import Message
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 import json
 
+from insights import dr
+
 from ccx_messaging.error import CCXMessagingError
 
 LOG = logging.getLogger(__name__)
@@ -47,3 +49,10 @@ class IDPConsumer(KafkaConsumer):
 
         LOG.debug("JSON schema validated: %s", deserialized_message)
         return deserialized_message
+
+    def create_broker(self, input_msg):
+        """Create a suitable `Broker` to be pass arguments to the `Engine`."""
+        broker = dr.Broker()
+        broker["cluster_id"] = input_msg.get("cluster_id")
+        broker["s3_path"] = input_msg.get("path")
+        return broker
