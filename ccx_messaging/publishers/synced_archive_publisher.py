@@ -30,7 +30,7 @@ class SyncedArchivePublisher(KafkaPublisher):
         """Publish response as Kafka message to outgoing topic."""
         output_msg = json.loads(report)
         output_msg.pop("reports", None)
-        message = json.dumps(output_msg) + "\n"
+        message = json.dumps(output_msg)
 
         LOG.debug("Sending response to the %s topic.", self.topic)
         # Convert message string into a byte array.
