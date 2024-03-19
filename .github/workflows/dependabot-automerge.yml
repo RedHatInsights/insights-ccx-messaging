@@ -17,11 +17,16 @@ jobs:
         uses: dependabot/fetch-metadata@v1
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-      - name: Approve a PR
+      - name: Github Actions bot approves the PR
         run: gh pr review --approve "$PR_URL"
         env:
             PR_URL: ${{github.event.pull_request.html_url}}
             GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: InsightsDroid approves the PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GH_TOKEN: ${{secrets.INSIGHTSDROID_TOKEN}}
       - name: Enable auto-merge for Dependabot PRs
         # We can filter depending on the semver major, minor, or patch updates,
         # but let's not do it for now
