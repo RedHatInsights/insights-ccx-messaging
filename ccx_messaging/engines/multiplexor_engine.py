@@ -36,7 +36,7 @@ class MultiplexorEngine(Engine):
 
         The `filter` argument is a dictionary where the keys are a path and the value, a mark.
         If a file with the given path is present inside the archive, it will be noted with
-        the given "mark". An archive could have several matching files, so it could get a buch
+        the given "mark". An archive could have several matching files, so it could get a bunch
         of different marks.
         """
         super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
