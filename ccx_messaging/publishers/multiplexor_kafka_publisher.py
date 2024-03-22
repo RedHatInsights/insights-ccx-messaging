@@ -29,8 +29,10 @@ BEST_COMPRESSION = 9
 
 def cleanup_input(input_msg: dict[str, Any]) -> None:
     """Remove unneeded keys from the dictionary."""
-    for key in ["topic", "partition", "offset"]:
-        if key in input_msg:
+    allowed_keys = ["path", "cluster_id", "sqs_message_id"]
+
+    for key in list(input_msg.keys()):  # avoid dict iteration
+        if key not in allowed_keys:
             del input_msg[key]
 
 
