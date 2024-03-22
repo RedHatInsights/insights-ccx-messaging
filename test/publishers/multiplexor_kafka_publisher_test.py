@@ -25,7 +25,7 @@ BEST_COMPRESSION = 9
 INPUT_MSG = {
     "path": "target/path",
     "cluster_id": "05ef94c8-9468-405e-93cc-bef1e79cde96",
-    "sqs_message_id": "AQEBt8CEyiFnyVTY+B2kuJ+gOpCcMsevkTxDCG4sAUqKSjSqerSTYdu+oRiMUPi23+H58QoJkTHhK5DDrSKhupzwfRG+LT0MRN91hFid93tHEVzHe7TEZ03HM0IZs03LuAypdrdDjoBlF8BeWPyEWVLNDHJccdcLFB5MG9zEZNEk+4STk2ALJNGSW4rTdyI6iln8tyURjxDbP8WBmB5Qx4TZGGhppO1scC8GZ1b9b+ng72TmSX19Xfq5JPTuWOvfv/f/wz4zMlIAaG+N7kGOg0qVQb9gAFW2JJoXX7tyI3up27R4UsjeL4XeGj80+rEyFPvZz7ufb3HY4xPXmPD1MCoGB00Cgp6OcGcaUkCC8Iwe5i/4PLO+TAMQQNJHxxAqw1AUPoRDN/cEPNPO4qvN0F9/UG8l9Brydo0QDjtDiuxhdqE=",
+    "sqs_message_id": "AQEBt8CEyiFnyVTY+B2kuJ+gOpCcMsev",
 }
 
 
