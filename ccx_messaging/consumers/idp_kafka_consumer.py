@@ -24,7 +24,7 @@ class IDPConsumer(KafkaConsumer):
         """Initialise the KafkaConsumer object and related handlers."""
         kwargs.pop("requeuer", None)
         incoming_topic = kwargs.pop("incoming_topic")
-        super().__init__(publisher, downloader, engine, incoming_topic, kwargs)
+        super().__init__(publisher, downloader, engine, incoming_topic, **kwargs)
 
     def get_url(self, input_msg: dict) -> str:
         """Retrieve URL to storage from Kafka message."""
