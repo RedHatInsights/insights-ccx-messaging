@@ -14,6 +14,7 @@
 
 """Module that defines an Engine class for selecting where to publish a received archive."""
 
+import logging
 import tarfile
 
 from insights.core.dr import Broker
@@ -41,10 +42,16 @@ class MultiplexorEngine(Engine):
         """
         super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
         self.filters = filters if filters is not None else {}
+        self.logger = logging.getLogger(__name__)
 
-    def process(self, _: Broker, path: str) -> set[str]:
+    def process(self, broker: Broker, path: str) -> set[str]:
         """Open an archive to check its content and classify it according to filters."""
+        self.logger.info("Opening %s for multiplexing", path)
+        self.fire("pre_extract", broker, path)
+
         with tarfile.open(path) as tf:
+            self.fire("on_extract", None, broker, tf)
+
             filenames = tf.getnames()
 
             marks = set()
@@ -55,4 +62,6 @@ class MultiplexorEngine(Engine):
         if not marks:
             marks.add("DEFAULT")
 
+        self.logger.info("Reporting marks: %s", marks)
+        self.fire("on_engine_success", broker, marks)
         return marks
