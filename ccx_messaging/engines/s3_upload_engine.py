@@ -61,22 +61,23 @@ class S3UploadEngine(Engine):
         secret_key=None,
         endpoint=None,
         archives_path_prefix=None,
-        archive_name_pattern="$cluster_id[:2]/$cluster_id/$year$month/$day/$time.tar.gz"
+        archive_name_pattern="$cluster_id[:2]/$cluster_id/$year$month/$day/$time.tar.gz",
     ):
         """Initialize engine for S3 upload.
 
-        The S3 server is specified by the `endpoint` argument, and its credentials using `access_key`
-        and `secret_key` arguments.
+        The S3 server is specified by the `endpoint` argument, and its credentials using
+        `access_key` and `secret_key` arguments.
 
         The bucket where the archives will be uploaded is specified by `dest_bucket` argument.
 
-        A common prefix for all the archives uploaded can be defined using `archives_path_prefix`, that
-        should be a `str` without the starting /.
+        A common prefix for all the archives uploaded can be defined using `archives_path_prefix`,
+        that should be a `str` without the starting /.
 
-        `archive_name_pattern` will define a string template. The following substitutions are available:
+        `archive_name_pattern` will define a string template. The following substitutions are
+        available:
           - `cluster_id`: it will be replaced by the cluster ID for the processed archive.
-          - `timestamp`, `year`, `month`, `day` and `time`: those will be extracted from incoming archive path or
-            other availables timestamps.
+          - `timestamp`, `year`, `month`, `day` and `time`: those will be extracted from incoming
+            archive path or other availables timestamps.
           - `archive`: it will be replaced by the base name of the archive.
         """
         super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
@@ -91,7 +92,7 @@ class S3UploadEngine(Engine):
 
     def process(self, broker, local_path):
         """Create metadata and target_path from downloaded archive and uploads it to ceph bucket."""
-        LOG.info("Opening %s for multiplexing", local_path)
+        LOG.info("Processing %s for uploading", local_path)
         self.fire("pre_extract", broker, local_path)
 
         s3_path = broker["s3_path"]
@@ -132,9 +133,9 @@ class S3UploadEngine(Engine):
         Target path is defined by the archive pattern.
         """
         path = self.archive_name_template.safe_substitute(components)
-        
+
         if self.archives_path_prefix:
             return f"{self.archives_path_prefix}/{path}"
-        
+
         else:
             return path
