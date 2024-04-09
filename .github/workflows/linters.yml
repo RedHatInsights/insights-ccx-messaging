@@ -10,9 +10,29 @@ jobs:
       - uses: actions/checkout@v4
       - uses: chartboost/ruff-action@v1
 
-  pre-commit:
+  pre-commit-flake8:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
       - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: flake8 --all-files
+
+  pre-commit-pyupgrade:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v5
+        - uses: pre-commit/action@v3.0.1
+          with:
+            extra_args: pyupgrade --all-files
+
+  pre-commit-pydocstyle:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v5
+        - uses: pre-commit/action@v3.0.1
+          with:
+            extra_args: pydocstyle --all-files
