@@ -111,7 +111,7 @@ class S3UploadEngine(Engine):
             self.fire("on_engine_failure", broker, exception)
             raise exception
 
-        components = ChainMap(broker.copy(), match_.groupdict())
+        components = ChainMap(broker, match_.groupdict())
         target_path = self.compute_target_path(components)
         LOG.info(f"Uploading archive '{s3_path}' as {self.dest_bucket}/{target_path}")
         self.uploader.upload_file(local_path, self.dest_bucket, target_path)
