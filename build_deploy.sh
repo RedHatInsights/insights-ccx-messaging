@@ -10,10 +10,20 @@ if [[ -z "$QUAY_USER" || -z "$QUAY_TOKEN" ]]; then
     exit 1
 fi
 
-DOCKER_CONF="$PWD/.docker"
-mkdir -p "$DOCKER_CONF"
-docker --config="$DOCKER_CONF" login -u="$QUAY_USER" -p="$QUAY_TOKEN" quay.io
-docker --config="$DOCKER_CONF" build -t "${IMAGE}:${IMAGE_TAG}" .
-docker --config="$DOCKER_CONF" push "${IMAGE}:${IMAGE_TAG}"
-docker --config="$DOCKER_CONF" tag "${IMAGE}:${IMAGE_TAG}" "${IMAGE}:latest"
-docker --config="$DOCKER_CONF" push "${IMAGE}:latest"
+CLEANUP_RAN=''
+cleanup() {
+    if [[ -z "$CLEANUP_RAN" ]]; then
+        rm -fr "$DOCKER_CONFIG"
+        CLEANUP_RAN='true'
+    fi
+}
+
+DOCKER_CONFIG=$(mktemp -d -p "$HOME" -t "jenkins-${JOB_NAME}-${BUILD_NUMBER}-XXXXXX")
+export DOCKER_CONFIG
+mkdir -p "$DOCKER_CONFIG"
+trap cleanup EXIT ERR SIGINT SIGTERM
+
+docker login -u="$QUAY_USER" --password-stdin quay.io <<< "$QUAY_TOKEN"
+docker build -t "${IMAGE}:${IMAGE_TAG}" -t "${IMAGE}:latest" .
+docker push "${IMAGE}:${IMAGE_TAG}"
+docker push "${IMAGE}:latest"
