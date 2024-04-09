@@ -109,7 +109,7 @@ def test_engine_upload_file():
     )
     engine.uploader = MagicMock()
     S3Uploader.client = MagicMock()
-    metadata = engine.process(BROKER2, LOCAL_FILE_PATH)
+    metadata = engine.process(BROKER2.copy(), LOCAL_FILE_PATH)
     metadata = json.loads(metadata)
     _, args, _ = engine.uploader.mock_calls[0]
     assert args[0] == LOCAL_FILE_PATH
@@ -141,7 +141,7 @@ def test_uploader_no_existing_file():
         uploader.upload_file(path="file_path", bucket=DEST_BUCKET, file_name=METADATA.get("path"))
 
 
-def test_unmatched_patter():
+def test_unmatched_pattern():
     """Test uploading a file with an unexpected path."""
     engine = S3UploadEngine(
         None,
@@ -159,3 +159,20 @@ def test_unmatched_patter():
     }
     with pytest.raises(CCXMessagingError):
         engine.process(broker, LOCAL_FILE_PATH)
+
+
+def test_path_using_timestamp():
+    engine = S3UploadEngine(
+        None,
+        access_key="test",
+        secret_key="test",
+        endpoint="https://s3.amazonaws.com",
+        dest_bucket=DEST_BUCKET,
+        archive_name_pattern="$year/$month/$day/$cluster_id-$id.tar.gz"
+    )
+    engine.uploader = MagicMock()
+    S3Uploader.client = MagicMock()
+
+    report = engine.process(BROKER2.copy(), LOCAL_FILE_PATH)
+    report = json.loads(report)
+    assert report.get("path") == "7777/77/77/22222222-3333-4444-5555-666666666666-88888888888888888888888888888888.tar.gz"

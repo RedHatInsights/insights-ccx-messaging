@@ -26,13 +26,17 @@ from ccx_messaging.utils.sliced_template import SlicedTemplate
 from ccx_messaging.error import CCXMessagingError
 
 
+# Path example: <org_id>/<cluster_id>/<year><month><day><time>-<id>
+# Following RE matches with S3 archives like the previous example and allow
+# to extract named groups for the different meaningful components
 S3_ARCHIVE_PATTERN = re.compile(
-    r"(?P<org_id>[0-9]+)\/"
-    r"(?P<cluster_id>[0-9,a-z,-]{36})\/"
-    r"(?P<archive>"
-    r"(?P<timestamp>"
+    r"(?P<org_id>[0-9]+)\/"  # extract named group for organization id
+    r"(?P<cluster_id>[0-9,a-z,-]{36})\/"  # extract named group for the cluster_id
+    r"(?P<archive>"  # extract named group for the archive name, including the following 3 lines
+    r"(?P<timestamp>"  # extract the timestamp named group, including the following line
+    # Next line extract year, month, day and time named groups from the timestamp
     r"(?P<year>[0-9]{4})(?P<month>[0-9]{2})(?P<day>[0-9]{2})(?P<time>[0-9]{6}))-"
-    r"(?P<id>[a-z,A-Z,0-9]*))"
+    r"(?P<id>[a-z,A-Z,0-9]*))"  # Extract the id of the file as named group
 )
 LOG = logging.getLogger(__name__)
 
@@ -107,7 +111,7 @@ class S3UploadEngine(Engine):
             self.fire("on_engine_failure", broker, exception)
             raise exception
 
-        components = ChainMap(broker, match_.groupdict())
+        components = ChainMap(broker.copy(), match_.groupdict())
         target_path = self.compute_target_path(components)
         LOG.info(f"Uploading archive '{s3_path}' as {self.dest_bucket}/{target_path}")
         self.uploader.upload_file(local_path, self.dest_bucket, target_path)
