@@ -162,17 +162,21 @@ def test_unmatched_pattern():
 
 
 def test_path_using_timestamp():
+    """Check path creation using timestamp elements."""
     engine = S3UploadEngine(
         None,
         access_key="test",
         secret_key="test",
         endpoint="https://s3.amazonaws.com",
         dest_bucket=DEST_BUCKET,
-        archive_name_pattern="$year/$month/$day/$cluster_id-$id.tar.gz"
+        archive_name_pattern="$year/$month/$day/$cluster_id-$id.tar.gz",
     )
     engine.uploader = MagicMock()
     S3Uploader.client = MagicMock()
 
     report = engine.process(BROKER2.copy(), LOCAL_FILE_PATH)
     report = json.loads(report)
-    assert report.get("path") == "7777/77/77/22222222-3333-4444-5555-666666666666-88888888888888888888888888888888.tar.gz"
+    assert (
+        report.get("path")
+        == "7777/77/77/22222222-3333-4444-5555-666666666666-88888888888888888888888888888888.tar.gz"
+    )
