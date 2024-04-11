@@ -17,6 +17,8 @@
 import logging
 import tarfile
 
+from ccx_messaging.error import CCXMessagingError
+
 from insights.core.dr import Broker
 from insights.formats import Formatter
 from insights_messaging.engine import Engine
@@ -49,18 +51,22 @@ class MultiplexorEngine(Engine):
         self.logger.info("Opening %s for multiplexing", path)
         self.fire("pre_extract", broker, path)
 
-        with tarfile.open(path) as tf:
-            self.fire("on_extract", None, broker, tf)
+        try:
+            with tarfile.open(path) as tf:
+                self.fire("on_extract", None, broker, tf)
 
-            filenames = tf.getnames()
+                filenames = tf.getnames()
 
-            marks = set()
-            for file_to_find, mark in self.filters.items():
-                if file_to_find in filenames:
-                    marks.add(mark)
+                marks = set()
+                for file_to_find, mark in self.filters.items():
+                    if file_to_find in filenames:
+                        marks.add(mark)
 
-        if not marks:
-            marks.add("DEFAULT")
+            if not marks:
+                marks.add("DEFAULT")
+
+        except tarfile.ReadError as ex:
+            raise CCXMessagingError(f"ReadError reading the archive {path}") from ex
 
         self.logger.info("Reporting marks: %s", marks)
         self.fire("on_engine_success", broker, marks)
