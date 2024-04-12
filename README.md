@@ -11,7 +11,7 @@ Stub for all CCX services based on Insights Core Messaging framework
 * [Makefile targets](#makefile-targets)
 
 <!-- vim-markdown-toc -->
-
+test
 ## Makefile targets
 
 ```
