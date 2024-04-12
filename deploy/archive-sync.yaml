@@ -181,9 +181,6 @@ objects:
         topicName: ${KAFKA_DEAD_LETTER_QUEUE_TOPIC}
       - replicas: 3
         partitions: 1
-        topicName: ${KAFKA_OUTGOING_TOPIC}
-      - replicas: 3
-        partitions: 1
         topicName: ${PAYLOAD_TRACKER_TOPIC}
 
 - kind: ConfigMap
