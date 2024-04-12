@@ -58,8 +58,10 @@ def apply_clowder_config(manifest):
             }
         )
 
-    config["service"]["consumer"].setdefault("kwargs", {})["kafka_broker_config"] = kafka_broker_config
-    config["service"]["publisher"].setdefault("kwargs", {})["kafka_broker_config"] = kafka_broker_config
+    config["service"]["consumer"].setdefault(
+        "kwargs", {})["kafka_broker_config"] = kafka_broker_config
+    config["service"]["publisher"].setdefault(
+        "kwargs", {})["kafka_broker_config"] = kafka_broker_config
 
     if pt_watcher:
         pt_watcher["kwargs"]["kafka_broker_config"] = kafka_broker_config
