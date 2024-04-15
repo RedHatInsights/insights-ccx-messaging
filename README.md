@@ -9,7 +9,7 @@ Stub for all CCX services based on Insights Core Messaging framework
 <!-- vim-markdown-toc GFM -->
 
 * [Makefile targets](#makefile-targets)
-
+test
 <!-- vim-markdown-toc -->
 
 ## Makefile targets
