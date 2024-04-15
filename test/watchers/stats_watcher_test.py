@@ -19,7 +19,7 @@ from unittest.mock import patch
 import pytest
 import time
 
-from ccx_messaging.watchers.stats_watcher import StatsWatcher
+from ccx_messaging.watchers.stats_watcher import StatsWatcher, ARCHIVE_TYPE_LABEL, ARCHIVE_TYPE_VALUES
 
 
 _INVALID_PORTS = [None, "8000", 8000.0, 70000]
@@ -35,6 +35,10 @@ def test_stats_watcher_initialize_invalid_port(value):
 _VALID_PORTS = [{}, {"prometheus_port": 9500}, {"prometheus_port": 80}]
 
 
+@pytest.fixture(params=ARCHIVE_TYPE_VALUES)
+def label_value(request):
+    return request.param
+
 @pytest.mark.parametrize("value", _VALID_PORTS)
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server")
 def test_stats_watcher_initialize(start_http_server_mock, value):
@@ -46,13 +50,15 @@ def test_stats_watcher_initialize(start_http_server_mock, value):
 
 def check_initial_metrics_state(w):
     """Check that all metrics are initialized."""
-    assert w._recv_total._value.get() == 0
-    assert w._filtered_total._value.get() == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
-    assert w._published_total._value.get() == 0
-    assert w._failures_total._value.get() == 0
-    assert w._not_handling_total._value.get() == 0
+    for value in ARCHIVE_TYPE_VALUES:
+        assert w._recv_total._value.get() == 0
+        assert w._filtered_total._value.get() == 0
+        assert w._extracted_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
+        assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
+        assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
+        assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
+        assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
+        assert w._not_handling_total._value.get() == 0
 
 
 def init_timestamps(w):
@@ -65,7 +71,7 @@ def init_timestamps(w):
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
-def test_stats_watcher_on_recv():
+def test_stats_watcher_on_recv(label_value):
     """Test the on_recv() method."""
     input_msg = {"identity": {}}
 
@@ -83,15 +89,15 @@ def test_stats_watcher_on_recv():
     assert w._recv_total._value.get() == 1
     assert w._filtered_total._value.get() == 0
     assert len(w._downloaded_total._labelvalues) == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
-    assert w._published_total._value.get() == 0
-    assert w._failures_total._value.get() == 0
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
-def test_stats_watcher_on_filter():
+def test_stats_watcher_on_filter(label_value):
     """Test the on_filter() method."""
     # construct watcher object
     w = StatsWatcher(prometheus_port=8001)
@@ -107,10 +113,10 @@ def test_stats_watcher_on_filter():
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 1
     assert w._downloaded_total._sum.get() == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
-    assert w._published_total._value.get() == 0
-    assert w._failures_total._value.get() == 0
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
