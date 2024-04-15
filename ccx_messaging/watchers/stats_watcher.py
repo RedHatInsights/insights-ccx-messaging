@@ -24,8 +24,9 @@ from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
 
 
 LOG = logging.getLogger(__name__)
-
-
+# A label is added to the metrics so we can differentiate OCP and HyperShift archives
+ARCHIVE_TYPE_LABEL = 'archive'
+ARCHIVE_TYPE_VALUES = ['ocp', 'hypershift']
 # pylint: disable=too-many-instance-attributes
 class StatsWatcher(ConsumerWatcher):
     """A Watcher that stores different Prometheus `Counter`s."""
@@ -37,6 +38,7 @@ class StatsWatcher(ConsumerWatcher):
         self._recv_total = Counter(
             "ccx_consumer_received_total", "Counter of received Kafka messages"
         )
+
         self._filtered_total = Counter(
             "ccx_consumer_filtered_total", "Counter of filtered Kafka messages"
         )
@@ -45,16 +47,20 @@ class StatsWatcher(ConsumerWatcher):
             "ccx_downloaded_total", "Histogram of the size of downloaded items"
         )
 
+        self._extracted_total = Counter(
+            "ccx_consumer_extracted_total", "Counter of extracted archives", [ARCHIVE_TYPE_LABEL]
+        )
+
         self._processed_total = Counter(
-            "ccx_engine_processed_total", "Counter of files processed by the OCP Engine"
+            "ccx_engine_processed_total", "Counter of files processed by the OCP Engine", [ARCHIVE_TYPE_LABEL]
         )
 
         self._published_total = Counter(
-            "ccx_published_total", "Counter of reports successfully published"
+            "ccx_published_total", "Counter of reports successfully published", [ARCHIVE_TYPE_LABEL]
         )
 
         self._failures_total = Counter(
-            "ccx_failures_total", "Counter of failures during the pipeline"
+            "ccx_failures_total", "Counter of failures during the pipeline", [ARCHIVE_TYPE_LABEL]
         )
 
         self._not_handling_total = Counter(
@@ -69,16 +75,19 @@ class StatsWatcher(ConsumerWatcher):
         self._process_duration = Histogram(
             "ccx_process_duration_seconds",
             "Histogram of durations of processing archives by the OCP engine",
+            [ARCHIVE_TYPE_LABEL],
         )
 
         self._publish_duration = Histogram(
             "ccx_publish_duration_seconds",
             "Histogram of durations of publishing the OCP engine results",
+            [ARCHIVE_TYPE_LABEL],
         )
 
         self._processed_timeout_total = Counter(
             "ccx_engine_processed_timeout_total",
             "Counter of timeouts while processing archives",
+            [ARCHIVE_TYPE_LABEL]
         )
 
         self._start_time = None
@@ -86,8 +95,15 @@ class StatsWatcher(ConsumerWatcher):
         self._processed_time = None
         self._published_time = None
 
+        # Archive type used in the metrics is set within on_extract, as we need
+        # to extract the archive in order to know that information
+        self._archive_type = 'ocp'
+
+        self._initialize_metrics_with_labels()
+
         start_http_server(prometheus_port)
         LOG.info("StatWatcher created and listening on port %s", prometheus_port)
+
 
     def on_recv(self, input_msg):
         """On received event handler."""
@@ -95,10 +111,21 @@ class StatsWatcher(ConsumerWatcher):
 
         self._start_time = time.time()
         self._reset_times()
+        self._reset_archive_type()
 
     def on_filter(self):
         """On filter event handler."""
         self._filtered_total.inc()
+
+    def on_extract(self, ctx, broker, extraction):
+        """
+        Fired just after the archive is extracted but before any analysis.
+        """
+        # Set archive_type label to hypershift if config/infrastructure.json is found
+        hcp_config_file = os.path.join(extraction.tmp_dir, "config", "infrastructure.json")
+        if os.path.exists(hcp_config_file):
+            self._archive_type = "hypershift"
+        self._extracted_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).inc()
 
     def on_download(self, path):
         """On downloaded event handler."""
@@ -109,33 +136,33 @@ class StatsWatcher(ConsumerWatcher):
 
     def on_process(self, input_msg, results):
         """On processed event handler."""
-        self._processed_total.inc()
+        self._processed_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).inc()
 
         self._processed_time = time.time()
-        self._process_duration.observe(self._processed_time - self._downloaded_time)
+        self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(self._processed_time - self._downloaded_time)
 
     def on_process_timeout(self):
         """On process timeout event handler."""
-        self._processed_timeout_total.inc()
+        self._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).inc()
 
     def on_consumer_success(self, input_msg, broker, results):
         """On consumer success event handler."""
-        self._published_total.inc()
+        self._published_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).inc()
 
         self._published_time = time.time()
-        self._publish_duration.observe(self._published_time - self._processed_time)
+        self._publish_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(self._published_time - self._processed_time)
 
     def on_consumer_failure(self, input_msg, exception):
         """On consumer failure event handler."""
-        self._failures_total.inc()
+        self._failures_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).inc()
 
         if self._downloaded_time is None:
             self._download_duration.observe(time.time() - self._start_time)
-            self._process_duration.observe(0)
+            self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(0)
         elif self._processed_time is None:
-            self._process_duration.observe(time.time() - self._downloaded_time)
+            self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(time.time() - self._downloaded_time)
 
-        self._publish_duration.observe(0)
+        self._publish_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(0)
 
     def on_not_handled(self, input_msg):
         """On not handled messages success event handler."""
@@ -147,11 +174,28 @@ class StatsWatcher(ConsumerWatcher):
         self._processed_time = None
         self._published_time = None
 
+    def _reset_archive_type(self):
+        """Resets the _archive_type label's value to 'ocp'"""
+        self._archive_type = "ocp"
+
+    def _initialize_metrics_with_labels(self):
+        """Metrics with labels are not initialized when declared, because the Prometheus
+        client can’t know what values the label can have. This will initialize them."""
+        for val in ARCHIVE_TYPE_VALUES:
+            self._extracted_total.labels(val)
+            self._processed_total.labels(val)
+            self._published_total.labels(val)
+            self._failures_total.labels(val)
+            self._process_duration.labels(val)
+            self._publish_duration.labels(val)
+            self._processed_timeout_total.labels(val)
+
     def __del__(self):
         """Destructor for handling counters unregistering."""
         REGISTRY.unregister(self._recv_total)
         REGISTRY.unregister(self._filtered_total)
         REGISTRY.unregister(self._downloaded_total)
+        REGISTRY.unregister(self._extracted_total)
         REGISTRY.unregister(self._processed_total)
         REGISTRY.unregister(self._published_total)
         REGISTRY.unregister(self._failures_total)
