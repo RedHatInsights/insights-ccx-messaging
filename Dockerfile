@@ -16,15 +16,11 @@ RUN microdnf install --nodocs -y python3.11 unzip tar git-core && \
     python3.11 -m venv $VENV && \
     pip install --no-cache-dir -U pip
 
-RUN git --help
-
 RUN chmod -R g=u $HOME $VENV /etc/passwd && \
     chgrp -R 0 $HOME $VENV
 
 # Stage 2: Builder
 FROM base AS builder
-
-RUN git --help
 
 COPY . $HOME
 
