@@ -107,6 +107,7 @@ def _add_kafka_config(config):
 
 def _add_buckets_config(config):
     buckets = app_common_python.ObjectBuckets
+    common_config = app_common_python.LoadedConfig.objectStore
     
     downloader_config = config["service"]["downloader"]["kwargs"]
     engine_config = config["service"]["engine"]["kwargs"]
@@ -118,7 +119,7 @@ def _add_buckets_config(config):
         bucket_config = buckets[source_bucket]
         downloader_config["access_key"] = bucket_config.accessKey
         downloader_config["secret_key"] = bucket_config.secretKey
-        downloader_config["endpoint_url"] = f"{bucket_config.hostname}:{bucket_config.port}"
+        downloader_config["endpoint_url"] = f"{common_config.hostname}:{common_config.port}"
     else:
         logger.warning("The source bucket %s wasn't found among the Clowder buckets", source_bucket)
     
@@ -127,6 +128,6 @@ def _add_buckets_config(config):
         bucket_config = buckets[target_bucket]
         engine_config["access_key"] = bucket_config.accessKey
         engine_config["secret_key"] = bucket_config.secretKey
-        engine_config["endpoint"] = f"{bucket_config.hostname}:{bucket_config.port}"
+        engine_config["endpoint"] = f"{common_config.hostname}:{common_config.port}"
     else:
         logger.warning("The target bucket %s wasn't found among the Clowder buckets", target_bucket)
