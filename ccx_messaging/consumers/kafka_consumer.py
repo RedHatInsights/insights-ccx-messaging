@@ -196,7 +196,7 @@ class KafkaConsumer(Consumer):
 
         except CCXMessagingError as ex:
             LOG.warning(
-                "Unexpected error deserializing incoming message. (%s): %s. Error: %s",
+                "Unexpected error processing incoming message. (%s): %s. Error: %s",
                 self.log_pattern,
                 msg.value(),
                 ex,
