@@ -59,6 +59,11 @@ def check_initial_metrics_state(w):
         assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
         assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
         assert w._not_handling_total._value.get() == 0
+        # Check initial values of histogram metrics
+        assert w._downloaded_total._sum.get() == 0
+        assert w._download_duration._sum.get() == 0
+        assert w._process_duration.labels(**{ARCHIVE_TYPE_LABEL: value})._sum.get() == 0
+        assert w._publish_duration.labels(**{ARCHIVE_TYPE_LABEL: value})._sum.get() == 0
 
 
 def init_timestamps(w):
@@ -78,6 +83,7 @@ def test_stats_watcher_on_recv(label_value):
     # construct watcher object
     w = StatsWatcher(prometheus_port=8001)
     init_timestamps(w)
+    w._archive_type = label_value
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
@@ -102,6 +108,7 @@ def test_stats_watcher_on_filter(label_value):
     # construct watcher object
     w = StatsWatcher(prometheus_port=8001)
     init_timestamps(w)
+    w._archive_type = label_value
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
@@ -121,11 +128,12 @@ def test_stats_watcher_on_filter(label_value):
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
-def test_stats_watcher_on_download():
+def test_stats_watcher_on_download(label_value):
     """Test the on_download() method."""
     # construct watcher object
     w = StatsWatcher(prometheus_port=8002)
     init_timestamps(w)
+    w._archive_type = label_value
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
@@ -138,21 +146,22 @@ def test_stats_watcher_on_download():
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 100
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
-    assert w._published_total._value.get() == 0
-    assert w._failures_total._value.get() == 0
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
-def test_stats_watcher_on_process():
+def test_stats_watcher_on_process(label_value):
     """Test the on_process() method."""
     input_msg = {"identity": {}}
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8003)
     init_timestamps(w)
+    w._archive_type = label_value
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
@@ -164,19 +173,20 @@ def test_stats_watcher_on_process():
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 0
-    assert w._processed_total._value.get() == 1
-    assert w._processed_timeout_total._value.get() == 0
-    assert w._published_total._value.get() == 0
-    assert w._failures_total._value.get() == 0
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
-def test_stats_watcher_on_process_timeout():
+def test_stats_watcher_on_process_timeout(label_value):
     """Test the on_process_timeout() method."""
     # construct watcher object
     w = StatsWatcher(prometheus_port=8004)
     init_timestamps(w)
+    w._archive_type = label_value
 
     # change metrics
     w.on_process_timeout()
@@ -185,21 +195,22 @@ def test_stats_watcher_on_process_timeout():
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 1
-    assert w._published_total._value.get() == 0
-    assert w._failures_total._value.get() == 0
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
-def test_stats_watcher_on_consumer_success():
+def test_stats_watcher_on_consumer_success(label_value):
     """Test the on_consumer_success() method."""
     input_msg = {"identity": {}}
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8005)
     init_timestamps(w)
+    w._archive_type = label_value
 
     # change metrics
     w.on_consumer_success(input_msg, "broker", "{result}")
@@ -208,21 +219,22 @@ def test_stats_watcher_on_consumer_success():
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
-    assert w._published_total._value.get() == 1
-    assert w._failures_total._value.get() == 0
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
-def test_stats_watcher_on_consumer_failure():
+def test_stats_watcher_on_consumer_failure(label_value):
     """Test the on_consumer_failure() method."""
     input_msg = {"identity": {}}
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8006)
     init_timestamps(w)
+    w._archive_type = label_value
 
     # change metrics
     w.on_consumer_failure(input_msg, Exception("something"))
@@ -231,10 +243,10 @@ def test_stats_watcher_on_consumer_failure():
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
-    assert w._published_total._value.get() == 0
-    assert w._failures_total._value.get() == 1
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
     assert w._not_handling_total._value.get() == 0
 
     # reset downloaded time
@@ -244,7 +256,7 @@ def test_stats_watcher_on_consumer_failure():
     w.on_consumer_failure(input_msg, Exception("something"))
 
     # metric should change
-    assert w._failures_total._value.get() == 2
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 2
 
     # reset processed time
     w._processed_time = None
@@ -253,7 +265,7 @@ def test_stats_watcher_on_consumer_failure():
     w.on_consumer_failure(input_msg, Exception("something"))
 
     # metric should change again
-    assert w._failures_total._value.get() == 3
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 3
 
     # now try this - downloaded time is not None and processed time is none
     w._downloaded_time = time.time()
@@ -263,17 +275,18 @@ def test_stats_watcher_on_consumer_failure():
     w.on_consumer_failure(input_msg, Exception("something"))
 
     # metric should change again
-    assert w._failures_total._value.get() == 4
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 4
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
-def test_stats_watcher_on_not_handled():
+def test_stats_watcher_on_not_handled(label_value):
     """Test the on_not_handled() method."""
     input_msg = {"identity": {}}
 
     # construct watcher object
     w = StatsWatcher(prometheus_port=8007)
     init_timestamps(w)
+    w._archive_type = label_value
 
     # change metrics
     w.on_not_handled(input_msg)
@@ -282,10 +295,10 @@ def test_stats_watcher_on_not_handled():
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 0
-    assert w._processed_total._value.get() == 0
-    assert w._processed_timeout_total._value.get() == 0
-    assert w._published_total._value.get() == 0
-    assert w._failures_total._value.get() == 0
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 1
 
 
@@ -307,3 +320,14 @@ def test_reset_times():
     assert w._downloaded_time is None
     assert w._processed_time is None
     assert w._published_time is None
+
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
+def test_reset_archive_type(label_value):
+    """Test the method _reset_times()."""
+    # construct watcher object
+    w = StatsWatcher(prometheus_port=8009)
+    w._archive_type = label_value
+
+    w._reset_archive_type()
+
+    assert w._archive_type is 'ocp'
