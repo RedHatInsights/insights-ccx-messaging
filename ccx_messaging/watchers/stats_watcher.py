@@ -25,8 +25,10 @@ from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
 
 LOG = logging.getLogger(__name__)
 # A label is added to the metrics so we can differentiate OCP and HyperShift archives
-ARCHIVE_TYPE_LABEL = 'archive'
-ARCHIVE_TYPE_VALUES = ['ocp', 'hypershift']
+ARCHIVE_TYPE_LABEL = "archive"
+ARCHIVE_TYPE_VALUES = ["ocp", "hypershift"]
+
+
 # pylint: disable=too-many-instance-attributes
 class StatsWatcher(ConsumerWatcher):
     """A Watcher that stores different Prometheus `Counter`s."""
@@ -52,7 +54,9 @@ class StatsWatcher(ConsumerWatcher):
         )
 
         self._processed_total = Counter(
-            "ccx_engine_processed_total", "Counter of files processed by the OCP Engine", [ARCHIVE_TYPE_LABEL]
+            "ccx_engine_processed_total",
+            "Counter of files processed by the OCP Engine",
+            [ARCHIVE_TYPE_LABEL],
         )
 
         self._published_total = Counter(
@@ -87,7 +91,7 @@ class StatsWatcher(ConsumerWatcher):
         self._processed_timeout_total = Counter(
             "ccx_engine_processed_timeout_total",
             "Counter of timeouts while processing archives",
-            [ARCHIVE_TYPE_LABEL]
+            [ARCHIVE_TYPE_LABEL],
         )
 
         self._start_time = None
@@ -97,13 +101,12 @@ class StatsWatcher(ConsumerWatcher):
 
         # Archive type used in the metrics is set within on_extract, as we need
         # to extract the archive in order to know that information
-        self._archive_type = 'ocp'
+        self._archive_type = "ocp"
 
         self._initialize_metrics_with_labels()
 
         start_http_server(prometheus_port)
         LOG.info("StatWatcher created and listening on port %s", prometheus_port)
-
 
     def on_recv(self, input_msg):
         """On received event handler."""
@@ -118,9 +121,7 @@ class StatsWatcher(ConsumerWatcher):
         self._filtered_total.inc()
 
     def on_extract(self, ctx, broker, extraction):
-        """
-        Fired just after the archive is extracted but before any analysis.
-        """
+        """On extract event handler."""
         # Set archive_type label to hypershift if config/infrastructure.json is found
         hcp_config_file = os.path.join(extraction.tmp_dir, "config", "infrastructure.json")
         if os.path.exists(hcp_config_file):
@@ -139,7 +140,9 @@ class StatsWatcher(ConsumerWatcher):
         self._processed_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).inc()
 
         self._processed_time = time.time()
-        self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(self._processed_time - self._downloaded_time)
+        self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(
+            self._processed_time - self._downloaded_time
+        )
 
     def on_process_timeout(self):
         """On process timeout event handler."""
@@ -150,7 +153,9 @@ class StatsWatcher(ConsumerWatcher):
         self._published_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).inc()
 
         self._published_time = time.time()
-        self._publish_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(self._published_time - self._processed_time)
+        self._publish_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(
+            self._published_time - self._processed_time
+        )
 
     def on_consumer_failure(self, input_msg, exception):
         """On consumer failure event handler."""
@@ -160,7 +165,9 @@ class StatsWatcher(ConsumerWatcher):
             self._download_duration.observe(time.time() - self._start_time)
             self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(0)
         elif self._processed_time is None:
-            self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(time.time() - self._downloaded_time)
+            self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(
+                time.time() - self._downloaded_time
+            )
 
         self._publish_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).observe(0)
 
@@ -175,12 +182,16 @@ class StatsWatcher(ConsumerWatcher):
         self._published_time = None
 
     def _reset_archive_type(self):
-        """Resets the _archive_type label's value to 'ocp'"""
+        """Reset the _archive_type label's value to `ocp`."""
         self._archive_type = "ocp"
 
     def _initialize_metrics_with_labels(self):
-        """Metrics with labels are not initialized when declared, because the Prometheus
-        client can’t know what values the label can have. This will initialize them."""
+        """Initialize Prometheus metrics that have at least one label.
+
+        Metrics with labels are not initialized when declared, because the Prometheus
+        client can’t know what values the label can have. This is therefore needed in
+        order to initialize them.
+        """
         for val in ARCHIVE_TYPE_VALUES:
             self._extracted_total.labels(val)
             self._processed_total.labels(val)
