@@ -45,7 +45,7 @@ def _add_kafka_config(config):
 
     clowder_broker_config = app_common_python.LoadedConfig.kafka.brokers[0]
     kafka_urls = app_common_python.KafkaServers
-    logger.debug("Kafka URLs: %s", kafka_urls)
+    print("Kafka URLs:", kafka_urls)
 
     kafka_broker_config = {"bootstrap.servers": ",".join(kafka_urls)}
 
@@ -67,14 +67,16 @@ def _add_kafka_config(config):
 
     configure_consumer, configure_publisher = False, False
     if "kwargs" in config["service"]["consumer"]:
+        print("Configuring consumer")
         configure_consumer = True
     if "kwargs" in config["service"]["publisher"]:
+        print("Configuring publisher")
         configure_publisher = True
 
     if pt_watcher:
         pt_watcher["kwargs"]["kafka_broker_config"] = kafka_broker_config
 
-    logger.info("Kafka configuration updated from Clowder configuration")
+    print("Kafka configuration updated from Clowder configuration")
 
     if configure_consumer:
         consumer_topic = config["service"]["consumer"]["kwargs"].get("incoming_topic")
@@ -83,7 +85,7 @@ def _add_kafka_config(config):
             topic_cfg = app_common_python.KafkaTopics[consumer_topic]
             config["service"]["consumer"]["kwargs"]["incoming_topic"] = topic_cfg.name
         else:
-            logger.warn("The consumer topic cannot be found in Clowder mapping. It can cause errors")
+            print("The consumer topic cannot be found in Clowder mapping. It can cause errors")
 
         if dlq_topic in app_common_python.KafkaTopics:
             topic_cfg = app_common_python.KafkaTopics[dlq_topic]
@@ -95,7 +97,7 @@ def _add_kafka_config(config):
             topic_cfg = app_common_python.KafkaTopics[producer_topic]
             config["service"]["publisher"]["kwargs"]["outgoing_topic"] = topic_cfg.name
         else:
-            logger.warn("The publisher topic cannot be found in Clowder mapping. It can cause errors")
+            print("The publisher topic cannot be found in Clowder mapping. It can cause errors")
 
     payload_tracker_topic = pt_watcher["kwargs"].pop("topic") if pt_watcher else None
 
@@ -103,10 +105,13 @@ def _add_kafka_config(config):
         topic_cfg = app_common_python.KafkaTopics[payload_tracker_topic]
         pt_watcher["kwargs"]["topic"] = topic_cfg.name
     else:
-        logger.warn(
+        print(
             "The Payload Tracker watcher topic cannot be found in Clowder mapping. "
             "It can cause errors",
         )
+    
+    print("Configuration:")
+    print(config)
 
 def _add_buckets_config(config):
     buckets = app_common_python.ObjectBuckets
