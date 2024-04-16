@@ -31,5 +31,5 @@ apps:
       path: deploy/archive-sync.yaml
       parameters:
         ENV_NAME: env-ocm
-        IMAGE_TAG: b83f564
+        IMAGE_TAG: latest
         LOG_LEVEL: INFO

@@ -10,6 +10,9 @@ objects:
     name: archive-sync
   spec:
     envName: ${ENV_NAME}
+    objectStore:
+      - "SOURCE_S3_BUCKET"
+      - "TARGET_S3_BUCKET"
     testing:
       iqePlugin: ccx
     dependencies:
@@ -46,45 +49,9 @@ objects:
             - name: KAFKA_INCOMING_TOPIC
               value: ${KAFKA_INCOMING_TOPIC}
 
-            # S3 Configuration
-            - name: SOURCE_S3_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: internal-ceph
-                  key: access-key
-                  optional: true
-            - name: SOURCE_S3_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: internal-ceph
-                  key: secret_key
-                  optional: true
-            - name: SOURCE_S3_URL
-              valueFrom:
-                secretKeyRef:
-                  name: internal-ceph
-                  key: s3_url
-                  optional: true
+            # S3 Configuration: secrets are populated by Clowder
             - name: SOURCE_S3_BUCKET
               value: ${SOURCE_S3_BUCKET}
-            - name: TARGET_S3_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: internal-ceph
-                  key: access-key
-                  optional: true
-            - name: TARGET_S3_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: internal-ceph
-                  key: secret_key
-                  optional: true
-            - name: TARGET_S3_URL
-              valueFrom:
-                secretKeyRef:
-                  name: internal-ceph
-                  key: s3_url
-                  optional: true
             - name: TARGET_S3_BUCKET
               value: ${TARGET_S3_BUCKET}
 
