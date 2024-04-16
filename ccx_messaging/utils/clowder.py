@@ -79,6 +79,7 @@ def _add_kafka_config(config):
     print("Kafka configuration updated from Clowder configuration")
 
     if configure_consumer:
+        config["service"]["consumer"]["kwargs"]["kafka_broker_config"] = kafka_broker_config
         consumer_topic = config["service"]["consumer"]["kwargs"].get("incoming_topic")
         dlq_topic = config["service"]["consumer"]["kwargs"].get("dead_letter_queue_topic")
         if consumer_topic in app_common_python.KafkaTopics:
@@ -92,6 +93,7 @@ def _add_kafka_config(config):
             config["service"]["consumer"]["kwargs"]["dead_letter_queue_topic"] = topic_cfg.name
 
     if configure_publisher:
+        config["service"]["publisher"]["kwargs"]["kafka_broker_config"] = kafka_broker_config
         producer_topic = config["service"]["publisher"]["kwargs"].get("outgoing_topic")
         if producer_topic in app_common_python.KafkaTopics:
             topic_cfg = app_common_python.KafkaTopics[producer_topic]
@@ -109,7 +111,7 @@ def _add_kafka_config(config):
             "The Payload Tracker watcher topic cannot be found in Clowder mapping. "
             "It can cause errors",
         )
-    
+
     print("Configuration:")
     print(config)
 
