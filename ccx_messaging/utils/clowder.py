@@ -36,6 +36,7 @@ def apply_clowder_config(manifest):
 
 def _add_kafka_config(config):
     # Find the Payload Tracker watcher, as it might be affected by config changes
+    logger = logging.getLogger(__name__)
     pt_watcher_name = "ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher"
     pt_watcher = None
     for watcher in config["service"]["watchers"]:
@@ -106,6 +107,7 @@ def _add_kafka_config(config):
         )
 
 def _add_buckets_config(config):
+    logger = logging.getLogger(__name__)
     buckets = app_common_python.ObjectBuckets
 
     logger.info("Buckets: %s", buckets)
