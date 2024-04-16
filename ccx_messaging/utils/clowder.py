@@ -65,36 +65,39 @@ def _add_kafka_config(config):
             }
         )
 
-    config["service"]["consumer"].setdefault(
-        "kwargs", {})["kafka_broker_config"] = kafka_broker_config
-    config["service"]["publisher"].setdefault(
-        "kwargs", {})["kafka_broker_config"] = kafka_broker_config
+    configure_consumer, configure_publisher = False, False
+    if "kwargs" in config["service"]["consumer"]:
+        configure_consumer = True
+    if "kwargs" in config["service"]["publisher"]:
+        configure_publisher = True
 
     if pt_watcher:
         pt_watcher["kwargs"]["kafka_broker_config"] = kafka_broker_config
 
     logger.info("Kafka configuration updated from Clowder configuration")
 
-    consumer_topic = config["service"]["consumer"]["kwargs"].get("incoming_topic")
-    dlq_topic = config["service"]["consumer"]["kwargs"].get("dead_letter_queue_topic")
-    producer_topic = config["service"]["publisher"]["kwargs"].get("outgoing_topic")
+    if configure_consumer:
+        consumer_topic = config["service"]["consumer"]["kwargs"].get("incoming_topic")
+        dlq_topic = config["service"]["consumer"]["kwargs"].get("dead_letter_queue_topic")
+        if consumer_topic in app_common_python.KafkaTopics:
+            topic_cfg = app_common_python.KafkaTopics[consumer_topic]
+            config["service"]["consumer"]["kwargs"]["incoming_topic"] = topic_cfg.name
+        else:
+            logger.warn("The consumer topic cannot be found in Clowder mapping. It can cause errors")
+
+        if dlq_topic in app_common_python.KafkaTopics:
+            topic_cfg = app_common_python.KafkaTopics[dlq_topic]
+            config["service"]["consumer"]["kwargs"]["dead_letter_queue_topic"] = topic_cfg.name
+
+    if configure_publisher:
+        producer_topic = config["service"]["publisher"]["kwargs"].get("outgoing_topic")
+        if producer_topic in app_common_python.KafkaTopics:
+            topic_cfg = app_common_python.KafkaTopics[producer_topic]
+            config["service"]["publisher"]["kwargs"]["outgoing_topic"] = topic_cfg.name
+        else:
+            logger.warn("The publisher topic cannot be found in Clowder mapping. It can cause errors")
+
     payload_tracker_topic = pt_watcher["kwargs"].pop("topic") if pt_watcher else None
-
-    if consumer_topic in app_common_python.KafkaTopics:
-        topic_cfg = app_common_python.KafkaTopics[consumer_topic]
-        config["service"]["consumer"]["kwargs"]["incoming_topic"] = topic_cfg.name
-    else:
-        logger.warn("The consumer topic cannot be found in Clowder mapping. It can cause errors")
-
-    if dlq_topic in app_common_python.KafkaTopics:
-        topic_cfg = app_common_python.KafkaTopics[dlq_topic]
-        config["service"]["consumer"]["kwargs"]["dead_letter_queue_topic"] = topic_cfg.name
-
-    if producer_topic in app_common_python.KafkaTopics:
-        topic_cfg = app_common_python.KafkaTopics[producer_topic]
-        config["service"]["publisher"]["kwargs"]["outgoing_topic"] = topic_cfg.name
-    else:
-        logger.warn("The publisher topic cannot be found in Clowder mapping. It can cause errors")
 
     if pt_watcher and payload_tracker_topic in app_common_python.KafkaTopics:
         topic_cfg = app_common_python.KafkaTopics[payload_tracker_topic]
