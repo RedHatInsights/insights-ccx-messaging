@@ -36,7 +36,6 @@ def apply_clowder_config(manifest):
 
 def _add_kafka_config(config):
     # Find the Payload Tracker watcher, as it might be affected by config changes
-    logger = logging.getLogger(__name__)
     pt_watcher_name = "ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher"
     pt_watcher = None
     for watcher in config["service"]["watchers"]:
@@ -107,15 +106,27 @@ def _add_kafka_config(config):
         )
 
 def _add_buckets_config(config):
-    logger = logging.getLogger(__name__)
     buckets = app_common_python.ObjectBuckets
     
-    source_bucket = config["service"]["downloader"]["kwargs"].get("bucket")
-    logger.info("Source bucket: %s", source_bucket)
-    target_bucket = config["service"]["engine"]["kwargs"].get("dest_bucket")
-    logger.info("Target bucket: %s", target_bucket)
+    downloader_config = config["service"]["downloader"]["kwargs"]
+    engine_config = config["service"]["engine"]["kwargs"]
+    source_bucket = downloader_config.get("bucket")
+    target_bucket = engine_config.get("dest_bucket")
 
-    logger.info("Buckets: %s", buckets)
-    logger.info("Loaded config %s", app_common_python.LoadedConfig.objectStore)
-    logger.info("Downloader config: %s", config["service"]["downloader"])
-    logger.info("Engine config: %s", config["service"]["engine"])
+    logger.info("Source bucket: %s", source_bucket)
+    if source_bucket in buckets:
+        bucket_config = buckets[source_bucket]
+        downloader_config["access_key"] = bucket_config["accessKey"]
+        downloader_config["secret_key"] = bucket_config["secretKey"]
+        downloader_config["endpoint_url"] = f"{bucket_config['hostname']}:{bucket_config['port']}"
+    else:
+        logger.warning("The source bucket %s wasn't found among the Clowder buckets", source_bucket)
+    
+    logger.info("Target bucket: %s", target_bucket)
+    if target_bucket in buckets:
+        bucket_config = buckets[target_bucket]
+        engine_config["access_key"] = bucket_config["accessKey"]
+        engine_config["secret_key"] = bucket_config["secretKey"]
+        engine_config["endpoint"] = f"{bucket_config['hostname']}:{bucket_config['port']}"
+    else:
+        logger.warning("The target bucket %s wasn't found among the Clowder buckets", target_bucket)
