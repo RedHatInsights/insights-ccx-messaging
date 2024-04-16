@@ -102,8 +102,9 @@ def apply_clowder_config(manifest):
 
     return config
 
+
 def _add_buckets_config(config):
     buckets = app_common_python.ObjectBuckets
-    logger.debug("Buckets: %s", buckets)
-    logger.debug("Downloader config: %s", config["service"]["downloader"])
-    logger.debug("Engine config: %s", config["service"]["engine"])
+    logger.warn("Buckets: %s", buckets)
+    logger.warn("Downloader config: %s", config["service"]["downloader"])
+    logger.warn("Engine config: %s", config["service"]["engine"])

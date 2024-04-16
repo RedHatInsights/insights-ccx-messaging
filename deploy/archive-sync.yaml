@@ -11,8 +11,8 @@ objects:
   spec:
     envName: ${ENV_NAME}
     objectStore:
-      - "SOURCE_S3_BUCKET"
-      - "TARGET_S3_BUCKET"
+      - ${SOURCE_S3_BUCKET}
+      - ${TARGET_S3_BUCKET}
     testing:
       iqePlugin: ccx
     dependencies:
@@ -94,6 +94,19 @@ objects:
                   name: cloudwatch
                   key: aws_secret_access_key
                   optional: true
+
+            - name: LOGLEVEL_CCX_MESSAGING
+              value: ${LOGLEVEL_CCX_MESSAGING}
+            - name: LOGLEVEL_INSIGHTS_MESSAGING
+              value: ${LOGLEVEL_INSIGHTS_MESSAGING}
+            - name: LOGLEVEL_INSIGHTS
+              value: ${LOGLEVEL_INSIGHTS}
+            - name: LOGLEVEL_KAFKA
+              value: ${LOGLEVEL_KAFKA}
+            - name: LOGLEVEL_STDOUT
+              value: ${LOGLEVEL_STDOUT}
+            - name: LOGLEVEL_ROOT
+              value: ${LOGLEVEL_ROOT}
           readinessProbe:
             httpGet:
               path: /metrics
@@ -306,10 +319,10 @@ parameters:
   required: true
 
 - name: SOURCE_S3_BUCKET
-  value: insights-buck-it-openshift-prod
+  value: source-bucket
   required: true
 - name: TARGET_S3_BUCKET
-  value: DH-EPH-INSIGHTS-CCX
+  value: target-bucket
   required: true
 
 - name: CLOUDWATCH_DEBUG
