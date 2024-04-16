@@ -28,8 +28,8 @@ def apply_clowder_config(manifest):
     Loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
     config = yaml.load(manifest, Loader=Loader)
 
-    _add_kafka_config(config)
     _add_buckets_config(config)
+    _add_kafka_config(config)
 
     return config
 
@@ -109,6 +109,11 @@ def _add_kafka_config(config):
 def _add_buckets_config(config):
     logger = logging.getLogger(__name__)
     buckets = app_common_python.ObjectBuckets
+    
+    source_bucket = config["service"]["downloader"]["kwargs"].get("bucket")
+    logger.info("Source bucket: %s", source_bucket)
+    target_bucket = config["service"]["engine"]["kwargs"].get("dest_bucket")
+    logger.info("Target bucket: %s", target_bucket)
 
     logger.info("Buckets: %s", buckets)
     logger.info("Loaded config %s", app_common_python.LoadedConfig.objectStore)
