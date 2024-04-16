@@ -119,7 +119,7 @@ def _add_buckets_config(config):
         bucket_config = buckets[source_bucket]
         downloader_config["access_key"] = bucket_config.accessKey
         downloader_config["secret_key"] = bucket_config.secretKey
-        downloader_config["endpoint_url"] = f"{common_config.hostname}"
+        downloader_config["endpoint_url"] = f"https://{common_config.hostname}"
     else:
         logger.warning("The source bucket %s wasn't found among the Clowder buckets", source_bucket)
 
@@ -128,6 +128,6 @@ def _add_buckets_config(config):
         bucket_config = buckets[target_bucket]
         engine_config["access_key"] = bucket_config.accessKey
         engine_config["secret_key"] = bucket_config.secretKey
-        engine_config["endpoint"] = f"{common_config.hostname}"
+        engine_config["endpoint"] = f"https://{common_config.hostname}"
     else:
         logger.warning("The target bucket %s wasn't found among the Clowder buckets", target_bucket)
