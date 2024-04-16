@@ -28,6 +28,13 @@ def apply_clowder_config(manifest):
     Loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
     config = yaml.load(manifest, Loader=Loader)
 
+    _add_kafka_config(config)
+    _add_buckets_config(config)
+
+    return config
+
+
+def _add_kafka_config(config):
     # Find the Payload Tracker watcher, as it might be affected by config changes
     pt_watcher_name = "ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher"
     pt_watcher = None
@@ -98,13 +105,10 @@ def apply_clowder_config(manifest):
             "It can cause errors",
         )
 
-    _add_buckets_config(config)
-
-    return config
-
-
 def _add_buckets_config(config):
     buckets = app_common_python.ObjectBuckets
-    logger.warn("Buckets: %s", buckets)
-    logger.warn("Downloader config: %s", config["service"]["downloader"])
-    logger.warn("Engine config: %s", config["service"]["engine"])
+
+    logger.info("Buckets: %s", buckets)
+    logger.info("Loaded config %s", app_common_python.LoadedConfig.objectStore)
+    logger.info("Downloader config: %s", config["service"]["downloader"])
+    logger.info("Engine config: %s", config["service"]["engine"])
