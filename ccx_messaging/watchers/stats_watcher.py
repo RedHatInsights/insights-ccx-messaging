@@ -24,9 +24,9 @@ from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
 
 
 LOG = logging.getLogger(__name__)
-# A label is added to the metrics so we can differentiate OCP and HyperShift archives
+# Label to differentiate between OCP, OLS and HyperShift tarballs
 ARCHIVE_TYPE_LABEL = "archive"
-ARCHIVE_TYPE_VALUES = ["ocp", "hypershift"]
+ARCHIVE_TYPE_VALUES = ["ocp", "hypershift", "ols"]
 
 
 # pylint: disable=too-many-instance-attributes
@@ -122,9 +122,10 @@ class StatsWatcher(ConsumerWatcher):
 
     def on_extract(self, ctx, broker, extraction):
         """On extract event handler."""
-        # Set archive_type label to hypershift if config/infrastructure.json is found
-        hcp_config_file = os.path.join(extraction.tmp_dir, "config", "infrastructure.json")
-        if os.path.exists(hcp_config_file):
+        # Set archive_type label based on found file
+        if os.path.exists(os.path.join(extraction.tmp_dir, "openshift_lightspeed.json")):
+            self._archive_type = "ols"
+        elif os.path.exists(os.path.join(extraction.tmp_dir, "config", "infrastructure.json")):
             self._archive_type = "hypershift"
         self._extracted_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_type}).inc()
 
