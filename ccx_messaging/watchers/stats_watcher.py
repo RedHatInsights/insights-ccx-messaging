@@ -49,8 +49,16 @@ class StatsWatcher(ConsumerWatcher):
             "ccx_downloaded_total", "Histogram of the size of downloaded items"
         )
 
+        self._archive_size = Histogram(
+            "ccx_consumer_archive_size",
+            "Histogram of the size of downloaded archive with archive type label",
+            [ARCHIVE_TYPE_LABEL],
+        )
+
         self._extracted_total = Counter(
-            "ccx_consumer_extracted_total", "Counter of extracted archives", [ARCHIVE_TYPE_LABEL]
+            "ccx_consumer_extracted_total",
+            "Counter of extracted archives",
+            [ARCHIVE_TYPE_LABEL],
         )
 
         self._processed_total = Counter(
@@ -60,11 +68,15 @@ class StatsWatcher(ConsumerWatcher):
         )
 
         self._published_total = Counter(
-            "ccx_published_total", "Counter of reports successfully published", [ARCHIVE_TYPE_LABEL]
+            "ccx_published_total",
+            "Counter of reports successfully published",
+            [ARCHIVE_TYPE_LABEL],
         )
 
         self._failures_total = Counter(
-            "ccx_failures_total", "Counter of failures during the pipeline", [ARCHIVE_TYPE_LABEL]
+            "ccx_failures_total",
+            "Counter of failures during the pipeline",
+            [ARCHIVE_TYPE_LABEL],
         )
 
         self._not_handling_total = Counter(
@@ -102,9 +114,7 @@ class StatsWatcher(ConsumerWatcher):
         # Archive type used in the metrics is set within on_extract, as we need
         # to extract the archive in order to know that information
         # TODO: Change to archive metadata dict, with archive type and archive size
-        self._archive_metadata = {
-            "type":"ocp",
-        }
+        self._archive_metadata = {"type": "ocp", "size": 0}
 
         self._initialize_metrics_with_labels()
 
@@ -126,54 +136,80 @@ class StatsWatcher(ConsumerWatcher):
     def on_extract(self, ctx, broker, extraction):
         """On extract event handler."""
         # Set archive_type label based on found file
-        if os.path.exists(os.path.join(extraction.tmp_dir, "openshift_lightspeed.json")):
+        if os.path.exists(
+            os.path.join(extraction.tmp_dir, "openshift_lightspeed.json")
+        ):
             self._archive_metadata["type"] = "ols"
-        elif os.path.exists(os.path.join(extraction.tmp_dir, "config", "infrastructure.json")):
+        elif os.path.exists(
+            os.path.join(extraction.tmp_dir, "config", "infrastructure.json")
+        ):
             self._archive_metadata["type"] = "hypershift"
-        self._extracted_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
+
+        self._extracted_total.labels(
+            **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+        ).inc()
+
+        self._archive_size.labels(
+            **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+        ).observe(self._archive_metadata["size"])
 
     def on_download(self, path):
         """On downloaded event handler."""
-        self._downloaded_total.observe(os.path.getsize(path))
+        archive_size = os.path.getsize(path)
+
+        self._archive_metadata["size"] = archive_size
+        self._downloaded_total.observe(archive_size)
 
         self._downloaded_time = time.time()
         self._download_duration.observe(self._downloaded_time - self._start_time)
 
     def on_process(self, input_msg, results):
         """On processed event handler."""
-        self._processed_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
+        self._processed_total.labels(
+            **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+        ).inc()
 
         self._processed_time = time.time()
-        self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).observe(
-            self._processed_time - self._downloaded_time
-        )
+        self._process_duration.labels(
+            **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+        ).observe(self._processed_time - self._downloaded_time)
 
     def on_process_timeout(self):
         """On process timeout event handler."""
-        self._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
+        self._processed_timeout_total.labels(
+            **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+        ).inc()
 
     def on_consumer_success(self, input_msg, broker, results):
         """On consumer success event handler."""
-        self._published_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
+        self._published_total.labels(
+            **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+        ).inc()
 
         self._published_time = time.time()
-        self._publish_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).observe(
-            self._published_time - self._processed_time
-        )
+        self._publish_duration.labels(
+            **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+        ).observe(self._published_time - self._processed_time)
 
     def on_consumer_failure(self, input_msg, exception):
         """On consumer failure event handler."""
-        self._failures_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
+        self._failures_total.labels(
+            **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+        ).inc()
 
         if self._downloaded_time is None:
             self._download_duration.observe(time.time() - self._start_time)
-            self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).observe(0)
+            self._process_duration.labels(
+                **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+            ).observe(0)
         elif self._processed_time is None:
-            self._process_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).observe(
-                time.time() - self._downloaded_time
-            )
+            self._process_duration.labels(
+                **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+            ).observe(time.time() - self._downloaded_time)
 
-        self._publish_duration.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).observe(0)
+        self._publish_duration.labels(
+            **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
+        ).observe(0)
 
     def on_not_handled(self, input_msg):
         """On not handled messages success event handler."""
@@ -188,6 +224,7 @@ class StatsWatcher(ConsumerWatcher):
     def _reset_archive_metadata(self):
         """Reset the cached archive metadata."""
         self._archive_metadata["type"] = "ocp"
+        self._archive_metadata["size"] = 0
 
     def _initialize_metrics_with_labels(self):
         """Initialize Prometheus metrics that have at least one label.
@@ -198,6 +235,7 @@ class StatsWatcher(ConsumerWatcher):
         """
         for val in ARCHIVE_TYPE_VALUES:
             self._extracted_total.labels(val)
+            self._archive_size.labels(val)
             self._processed_total.labels(val)
             self._published_total.labels(val)
             self._failures_total.labels(val)
@@ -210,6 +248,7 @@ class StatsWatcher(ConsumerWatcher):
         REGISTRY.unregister(self._recv_total)
         REGISTRY.unregister(self._filtered_total)
         REGISTRY.unregister(self._downloaded_total)
+        REGISTRY.unregister(self._archive_size)
         REGISTRY.unregister(self._extracted_total)
         REGISTRY.unregister(self._processed_total)
         REGISTRY.unregister(self._published_total)
