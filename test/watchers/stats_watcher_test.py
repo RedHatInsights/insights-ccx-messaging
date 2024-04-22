@@ -202,6 +202,8 @@ def test_stats_watcher_on_download(label_value):
     )
     assert w._not_handling_total._value.get() == 0
 
+    assert w._archive_metadata["size"] == 100
+
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
 def test_stats_watcher_on_process(label_value):
