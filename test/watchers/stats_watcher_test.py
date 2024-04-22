@@ -100,7 +100,7 @@ def test_stats_watcher_on_recv(label_value):
     # construct watcher object
     w = StatsWatcher(prometheus_port=8001)
     init_timestamps(w)
-    w._archive_type = label_value
+    w._archive_metadata["type"] = label_value
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
@@ -136,7 +136,7 @@ def test_stats_watcher_on_filter(label_value):
     # construct watcher object
     w = StatsWatcher(prometheus_port=8001)
     init_timestamps(w)
-    w._archive_type = label_value
+    w._archive_metadata["type"] = label_value
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
@@ -172,7 +172,7 @@ def test_stats_watcher_on_download(label_value):
     # construct watcher object
     w = StatsWatcher(prometheus_port=8002)
     init_timestamps(w)
-    w._archive_type = label_value
+    w._archive_metadata["type"] = label_value
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
@@ -211,7 +211,7 @@ def test_stats_watcher_on_process(label_value):
     # construct watcher object
     w = StatsWatcher(prometheus_port=8003)
     init_timestamps(w)
-    w._archive_type = label_value
+    w._archive_metadata["type"] = label_value
 
     # check that all metrics are initialized
     check_initial_metrics_state(w)
@@ -247,7 +247,7 @@ def test_stats_watcher_on_process_timeout(label_value):
     # construct watcher object
     w = StatsWatcher(prometheus_port=8004)
     init_timestamps(w)
-    w._archive_type = label_value
+    w._archive_metadata["type"] = label_value
 
     # change metrics
     w.on_process_timeout()
@@ -282,7 +282,7 @@ def test_stats_watcher_on_consumer_success(label_value):
     # construct watcher object
     w = StatsWatcher(prometheus_port=8005)
     init_timestamps(w)
-    w._archive_type = label_value
+    w._archive_metadata["type"] = label_value
 
     # change metrics
     w.on_consumer_success(input_msg, "broker", "{result}")
@@ -317,7 +317,7 @@ def test_stats_watcher_on_consumer_failure(label_value):
     # construct watcher object
     w = StatsWatcher(prometheus_port=8006)
     init_timestamps(w)
-    w._archive_type = label_value
+    w._archive_metadata["type"] = label_value
 
     # change metrics
     w.on_consumer_failure(input_msg, Exception("something"))
@@ -386,7 +386,7 @@ def test_stats_watcher_on_not_handled(label_value):
     # construct watcher object
     w = StatsWatcher(prometheus_port=8007)
     init_timestamps(w)
-    w._archive_type = label_value
+    w._archive_metadata["type"] = label_value
 
     # change metrics
     w.on_not_handled(input_msg)
@@ -434,12 +434,12 @@ def test_reset_times():
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
-def test_reset_archive_type(label_value):
+def test_reset_archive_metadata(label_value):
     """Test the method _reset_times()."""
     # construct watcher object
     w = StatsWatcher(prometheus_port=8009)
-    w._archive_type = label_value
+    w._archive_metadata["type"] = label_value
 
-    w._reset_archive_type()
+    w._reset_archive_metadata()
 
-    assert w._archive_type == "ocp"
+    assert w._archive_metadata["type"] == "ocp"
