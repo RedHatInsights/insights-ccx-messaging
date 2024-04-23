@@ -63,7 +63,7 @@ def test_init():
 
 def test_bad_key():
     """Test inicialization of engine with bad key."""
-    with pytest.raises(Exception):
+    with pytest.raises(TypeError):
         S3UploadEngine(
             None,
             access_key="",

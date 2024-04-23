@@ -24,20 +24,13 @@ LOG = logging.getLogger(__name__)
 class S3Uploader:
     """S3 uploader."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, access_key, secret_key, endpoint):
         """Inicialize uploader."""
-        access_key = kwargs.get("access_key", None)
-        secret_key = kwargs.get("secret_key", None)
-        endpoint = kwargs.get("endpoint", None)
-
         if not access_key:
-            raise Exception("Access Key environment variable not set.")
+            raise TypeError("access_key cannot be nulleable")
 
         if not secret_key:
-            raise Exception("Secret Key environment variable not set.")
-
-        if not endpoint:
-            raise Exception("Endpoint environment variable not set.")
+            raise TypeError("secret_key cannot be nulleable")
 
         session = boto3.session.Session()
 
@@ -53,5 +46,7 @@ class S3Uploader:
         LOG.info(f"Uploading '{file_name}' as '{path}' to '{bucket}'")
 
         with open(path, "rb") as file_data:
-            self.client.put_object(Bucket=bucket, Key=file_name, Body=file_data)
+            self.client.put_object(
+                Bucket=bucket, Key=file_name, Body=file_data, ACL="bucket-owner-read"
+            )
             LOG.info(f"Uploaded '{file_name}' as '{path}' to '{bucket}'")
