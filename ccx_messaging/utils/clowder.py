@@ -34,6 +34,7 @@ def apply_clowder_config(manifest):
     return config
 
 
+# flake8: noqa: C901
 def _add_kafka_config(config):
     # Find the Payload Tracker watcher, as it might be affected by config changes
     pt_watcher_name = "ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher"
