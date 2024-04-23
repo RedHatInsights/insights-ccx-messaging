@@ -59,21 +59,10 @@ def check_initial_metrics_state(w):
     for value in ARCHIVE_TYPE_VALUES:
         assert w._recv_total._value.get() == 0
         assert w._filtered_total._value.get() == 0
-        assert (
-            w._extracted_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
-        )
-        assert (
-            w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
-        )
-        assert (
-            w._processed_timeout_total.labels(
-                **{ARCHIVE_TYPE_LABEL: value}
-            )._value.get()
-            == 0
-        )
-        assert (
-            w._published_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
-        )
+        assert w._extracted_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
+        assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
+        assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
+        assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
         assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: value})._value.get() == 0
         assert w._not_handling_total._value.get() == 0
         # Check initial values of histogram metrics
@@ -112,21 +101,10 @@ def test_stats_watcher_on_recv(label_value):
     assert w._recv_total._value.get() == 1
     assert w._filtered_total._value.get() == 0
     assert len(w._downloaded_total._labelvalues) == 0
-    assert (
-        w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._processed_timeout_total.labels(
-            **{ARCHIVE_TYPE_LABEL: label_value}
-        )._value.get()
-        == 0
-    )
-    assert (
-        w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
@@ -148,21 +126,10 @@ def test_stats_watcher_on_filter(label_value):
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 1
     assert w._downloaded_total._sum.get() == 0
-    assert (
-        w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._processed_timeout_total.labels(
-            **{ARCHIVE_TYPE_LABEL: label_value}
-        )._value.get()
-        == 0
-    )
-    assert (
-        w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
@@ -185,21 +152,10 @@ def test_stats_watcher_on_download(label_value):
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 100
-    assert (
-        w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._processed_timeout_total.labels(
-            **{ARCHIVE_TYPE_LABEL: label_value}
-        )._value.get()
-        == 0
-    )
-    assert (
-        w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
     assert w._archive_metadata["size"] == 100
@@ -225,21 +181,10 @@ def test_stats_watcher_on_process(label_value):
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 0
-    assert (
-        w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
-    )
-    assert (
-        w._processed_timeout_total.labels(
-            **{ARCHIVE_TYPE_LABEL: label_value}
-        )._value.get()
-        == 0
-    )
-    assert (
-        w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
@@ -258,21 +203,10 @@ def test_stats_watcher_on_process_timeout(label_value):
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 0
-    assert (
-        w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._processed_timeout_total.labels(
-            **{ARCHIVE_TYPE_LABEL: label_value}
-        )._value.get()
-        == 1
-    )
-    assert (
-        w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
@@ -293,21 +227,10 @@ def test_stats_watcher_on_consumer_success(label_value):
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 0
-    assert (
-        w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._processed_timeout_total.labels(
-            **{ARCHIVE_TYPE_LABEL: label_value}
-        )._value.get()
-        == 0
-    )
-    assert (
-        w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
-    )
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
 
 
@@ -328,21 +251,10 @@ def test_stats_watcher_on_consumer_failure(label_value):
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 0
-    assert (
-        w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._processed_timeout_total.labels(
-            **{ARCHIVE_TYPE_LABEL: label_value}
-        )._value.get()
-        == 0
-    )
-    assert (
-        w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
-    )
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
     assert w._not_handling_total._value.get() == 0
 
     # reset downloaded time
@@ -352,9 +264,7 @@ def test_stats_watcher_on_consumer_failure(label_value):
     w.on_consumer_failure(input_msg, Exception("something"))
 
     # metric should change
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 2
-    )
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 2
 
     # reset processed time
     w._processed_time = None
@@ -363,9 +273,7 @@ def test_stats_watcher_on_consumer_failure(label_value):
     w.on_consumer_failure(input_msg, Exception("something"))
 
     # metric should change again
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 3
-    )
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 3
 
     # now try this - downloaded time is not None and processed time is none
     w._downloaded_time = time.time()
@@ -375,9 +283,7 @@ def test_stats_watcher_on_consumer_failure(label_value):
     w.on_consumer_failure(input_msg, Exception("something"))
 
     # metric should change again
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 4
-    )
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 4
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
@@ -397,21 +303,10 @@ def test_stats_watcher_on_not_handled(label_value):
     assert w._recv_total._value.get() == 0
     assert w._filtered_total._value.get() == 0
     assert w._downloaded_total._sum.get() == 0
-    assert (
-        w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._processed_timeout_total.labels(
-            **{ARCHIVE_TYPE_LABEL: label_value}
-        )._value.get()
-        == 0
-    )
-    assert (
-        w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
-    assert (
-        w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
-    )
+    assert w._processed_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._processed_timeout_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
+    assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 1
 
 
