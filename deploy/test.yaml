@@ -33,3 +33,4 @@ apps:
         ENV_NAME: env-ocm
         IMAGE_TAG: latest
         LOG_LEVEL: INFO
+        ALLOW_UNSAFE_LINKS: true

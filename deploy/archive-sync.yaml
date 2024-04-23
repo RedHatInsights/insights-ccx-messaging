@@ -11,7 +11,6 @@ objects:
   spec:
     envName: ${ENV_NAME}
     objectStore:
-      - ${SOURCE_S3_BUCKET}
       - ${TARGET_S3_BUCKET}
     testing:
       iqePlugin: ccx
@@ -50,8 +49,6 @@ objects:
               value: ${KAFKA_INCOMING_TOPIC}
 
             # S3 Configuration: secrets are populated by Clowder
-            - name: SOURCE_S3_BUCKET
-              value: ${SOURCE_S3_BUCKET}
             - name: TARGET_S3_BUCKET
               value: ${TARGET_S3_BUCKET}
 
@@ -94,6 +91,10 @@ objects:
                   name: cloudwatch
                   key: aws_secret_access_key
                   optional: true
+
+            - name: ALLOW_UNSAFE_LINKS
+              value: ${ALLOW_UNSAFE_LINKS}
+
 
             - name: LOGLEVEL_CCX_MESSAGING
               value: ${LOGLEVEL_CCX_MESSAGING}
@@ -193,9 +194,9 @@ objects:
             dead_letter_queue_topic: ${KAFKA_DEAD_LETTER_QUEUE_TOPIC}
 
         downloader:
-          name: ccx_messaging.downloaders.s3_downloader.S3Downloader
+          name: ccx_messaging.downloaders.http_downloader.HTTPDownloader
           kwargs:
-            bucket: ${SOURCE_S3_BUCKET}
+            allow_unsafe_links: ${ALLOW_UNSAFE_LINKS}
 
         engine:
           name: ccx_messaging.engines.s3_upload_engine.S3UploadEngine
@@ -312,9 +313,6 @@ parameters:
   value: SCRAM-SHA-512
   required: true
 
-- name: SOURCE_S3_BUCKET
-  value: source-bucket
-  required: true
 - name: TARGET_S3_BUCKET
   value: target-bucket
   required: true
@@ -348,3 +346,6 @@ parameters:
   value: INFO
 - name: LOGLEVEL_ROOT
   value: WARNING
+
+- name: ALLOW_UNSAFE_LINKS
+  value: ""

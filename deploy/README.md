@@ -18,3 +18,5 @@ Replace the `pr-189-latest` tag with yours.
 
 This command should also deploy ingress, Kafka and Minio, core dependencies for
 this service.
+
+Upload an archive to ingress using `./deploy/upload-ephemeral.sh`.

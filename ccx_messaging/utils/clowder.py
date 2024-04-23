@@ -123,19 +123,8 @@ def _add_buckets_config(config):
     common_config = app_common_python.LoadedConfig.objectStore
     prefix = "https://" if common_config.tls else "http://"
 
-    downloader_config = config["service"]["downloader"]["kwargs"]
     engine_config = config["service"]["engine"]["kwargs"]
-    source_bucket = downloader_config.get("bucket")
     target_bucket = engine_config.get("dest_bucket")
-
-    logger.info("Source bucket: %s", source_bucket)
-    if source_bucket in buckets:
-        bucket_config = buckets[source_bucket]
-        downloader_config["access_key"] = bucket_config.accessKey
-        downloader_config["secret_key"] = bucket_config.secretKey
-        downloader_config["endpoint_url"] = f"{prefix}{common_config.hostname}"
-    else:
-        logger.warning("The source bucket %s wasn't found among the Clowder buckets", source_bucket)
 
     logger.info("Target bucket: %s", target_bucket)
     if target_bucket in buckets:
