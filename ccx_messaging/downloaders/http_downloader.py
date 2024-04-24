@@ -96,13 +96,9 @@ class HTTPDownloader:
                 raise CCXMessagingError("Invalid URL format")
 
         try:
-            LOG.info("Downloading archive from %s", src)
             response = requests.get(src)
-            LOG.info("Response is %s", src)
             data = response.content
-            LOG.info("Data is %s", data)
             size = len(data)
-            LOG.info("Data size is %s", size)
 
             if size == 0:
                 LOG.warning("Empty input archive from: %s", src)
@@ -113,13 +109,10 @@ class HTTPDownloader:
                 raise CCXMessagingError("The archive is too big. Skipping")
 
             with NamedTemporaryFile() as file_data:
-                LOG.info("Saving file at %s", file_data.name)
                 file_data.write(data)
                 file_data.flush()
                 yield file_data.name
-            LOG.info("Closing connection %s")
             response.close()
-            LOG.info("Connection closed %s")
 
         except requests.exceptions.ConnectionError as err:
             LOG.error("Connection error while downloading the file: %s", err)
