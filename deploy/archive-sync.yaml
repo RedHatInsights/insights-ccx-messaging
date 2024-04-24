@@ -92,10 +92,6 @@ objects:
                   key: aws_secret_access_key
                   optional: true
 
-            - name: ALLOW_UNSAFE_LINKS
-              value: ${ALLOW_UNSAFE_LINKS}
-
-
             - name: LOGLEVEL_CCX_MESSAGING
               value: ${LOGLEVEL_CCX_MESSAGING}
             - name: LOGLEVEL_INSIGHTS_MESSAGING
@@ -346,6 +342,3 @@ parameters:
   value: INFO
 - name: LOGLEVEL_ROOT
   value: WARNING
-
-- name: ALLOW_UNSAFE_LINKS
-  value: ""
