@@ -58,11 +58,10 @@ _VALID_MESSAGES = [
         '{"path": ""}',
         {
             "path": "",
-        }
+        },
     ),
     (
-        '{"path": "",'
-        '"cluster_id": "3d59cd30-e2c3-4ec8-b35d-7df3b1feea2f"}',
+        '{"path": "",' '"cluster_id": "3d59cd30-e2c3-4ec8-b35d-7df3b1feea2f"}',
         {
             "path": "",
             "cluster_id": "3d59cd30-e2c3-4ec8-b35d-7df3b1feea2f",
@@ -72,7 +71,7 @@ _VALID_MESSAGES = [
         '{"path": "",'
         '"cluster_id": "3d59cd30-e2c3-4ec8-b35d-7df3b1feea2f",'
         '"sqs_message_id": "a_very_long_sqs_id"'
-        '}',
+        "}",
         {
             "path": "",
             "cluster_id": "3d59cd30-e2c3-4ec8-b35d-7df3b1feea2f",
@@ -83,7 +82,7 @@ _VALID_MESSAGES = [
         '{"path": "path/inside/bucket/file.tgz",'
         '"cluster_id": "3d59cd30-e2c3-4ec8-b35d-7df3b1feea2f",'
         '"sqs_message_id": "a_very_long_sqs_id"'
-        '}',
+        "}",
         {
             "path": "path/inside/bucket/file.tgz",
             "cluster_id": "3d59cd30-e2c3-4ec8-b35d-7df3b1feea2f",
@@ -121,6 +120,7 @@ _INVALID_MESSAGES = [
     "",
     '"path": "value"',
 ]
+
 
 @pytest.mark.parametrize("msg", _INVALID_MESSAGES)
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
@@ -183,8 +183,12 @@ def test_get_url_valid(value):
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
 def test_create_broker():
     """Test that `create_broker` generates a broker with the expected values."""
+    path = (
+        "00000000/11111111-2222-3333-4444-555555555555/"
+        "66666666666666-77777777777777777777777777777777"
+    )
     input_msg = {
-        "path": "00000000/11111111-2222-3333-4444-555555555555/66666666666666-77777777777777777777777777777777"
+        "path": path,
     }
 
     sut = IDPConsumer(None, None, None, incoming_topic=None)
@@ -203,8 +207,12 @@ def test_create_broker():
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
 def test_create_broker_with_cluster_id_precedence():
     """Test that `create_broker` generates a broker with the expected values."""
+    path = (
+        "00000000/11111111-2222-3333-4444-555555555555/66666666666666-"
+        "77777777777777777777777777777777"
+    )
     input_msg = {
-        "path": "00000000/11111111-2222-3333-4444-555555555555/66666666666666-77777777777777777777777777777777",
+        "path": path,
         "cluster_id": "6a627474-05fc-41b1-8711-45ccc68238fe",
     }
 
@@ -224,8 +232,10 @@ def test_create_broker_with_cluster_id_precedence():
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
 def test_create_broker_bad_path():
     """Test that `create_broker` raises an error when the path format doesn't match."""
+    path = "11111111-2222-3333-4444-555555555555/66666666666666-77777777777777777777777777777777"
+
     input_msg = {
-        "path": "11111111-2222-3333-4444-555555555555/66666666666666-77777777777777777777777777777777",
+        "path": path,
         "cluster_id": "6a627474-05fc-41b1-8711-45ccc68238fe",
     }
 
