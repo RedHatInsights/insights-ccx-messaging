@@ -2,7 +2,6 @@
 
 import logging
 import time
-from datetime import datetime
 from threading import Thread
 
 from confluent_kafka import (
@@ -12,7 +11,6 @@ from confluent_kafka import (
     Producer,
     TIMESTAMP_NOT_AVAILABLE,
 )
-from insights import dr
 from insights_messaging.consumers import Consumer
 
 from ccx_messaging.error import CCXMessagingError
@@ -247,29 +245,6 @@ class KafkaConsumer(Consumer):
                 LOG.warning("No new messages in the queue")
             # To do the minimum interruptions possible, sleep for one hour
             time.sleep(MAX_ELAPSED_TIME_BETWEEN_MESSAGES)
-
-    def create_broker(self, input_msg):
-        """Create a suitable `Broker` to be pass arguments to the `Engine`."""
-        broker = dr.Broker()
-
-        # Some engines expect some data for its own usage, like the following:
-        org_id = (
-            input_msg.get("identity", {}).get("identity").get("internal", {}).get("org_id", None)
-        )
-        date = datetime.fromisoformat(input_msg.get("timestamp", "0"))
-
-        broker["org_id"] = org_id
-        broker["cluster_id"] = input_msg["cluster_name"]
-        broker["original_path"] = input_msg["url"]
-        broker["year"] = date.year
-        broker["month"] = date.month
-        broker["day"] = date.day
-        broker["time"] = f"{date.hour}:{date.minute}:{date.second}"
-        broker["hour"] = date.hour
-        broker["minute"] = date.minute
-        broker["second"] = date.second
-
-        return broker
 
     def process_dead_letter(self, msg: Message) -> None:
         """Send the message to a dead letter queue in a different Kafka topic."""

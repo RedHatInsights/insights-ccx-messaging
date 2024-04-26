@@ -20,36 +20,19 @@ import pytest
 from unittest.mock import MagicMock
 
 from ccx_messaging.engines.s3_upload_engine import S3UploadEngine
+from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.utils.s3_uploader import S3Uploader
 
 
 BROKER = {
     "cluster_id": "11111111-2222-3333-4444-555555555555",
-    "org_id": "00000000",
-    "original_path": "00000000/11111111-2222-3333-4444-555555555555/66666666666666-77777777777777777777777777777777",  # noqa: E501
-    "year": "6666",
-    "month": "66",
-    "day": "66",
-    "time": "666666",
-    "hour": "66",
-    "minute": "66",
-    "second": "66",
-    "id": "77777777777777777777777777777777",
+    "s3_path": "00000000/11111111-2222-3333-4444-555555555555/66666666666666-77777777777777777777777777777777",  # noqa: E501
 }
 
 
 BROKER2 = {
     "cluster_id": "22222222-3333-4444-5555-666666666666",
-    "org_id": "00000000",
-    "original_path": "00000000/22222222-3333-4444-5555-666666666666/77777777777777-88888888888888888888888888888888",  # noqa: E501
-    "year": "7777",
-    "month": "77",
-    "day": "77",
-    "time": "777777",
-    "hour": "77",
-    "minute": "77",
-    "second": "77",
-    "id": "88888888888888888888888888888888",
+    "s3_path": "00000000/22222222-3333-4444-5555-666666666666/77777777777777-88888888888888888888888888888888",  # noqa: E501
 }
 
 
@@ -156,6 +139,26 @@ def test_uploader_no_existing_file():
         )
         uploader.client.put_object = MagicMock()
         uploader.upload_file(path="file_path", bucket=DEST_BUCKET, file_name=METADATA.get("path"))
+
+
+def test_unmatched_pattern():
+    """Test uploading a file with an unexpected path."""
+    engine = S3UploadEngine(
+        None,
+        access_key="test",
+        secret_key="test",
+        endpoint="https://s3.amazonaws.com",
+        dest_bucket=DEST_BUCKET,
+    )
+    engine.uploader = MagicMock()
+    S3Uploader.client = MagicMock()
+
+    broker = {
+        "cluster_id": "11111111-2222-3333-4444-555555555555",
+        "s3_path": "66666666666666-77777777777777777777777777777777",
+    }
+    with pytest.raises(CCXMessagingError):
+        engine.process(broker, LOCAL_FILE_PATH)
 
 
 def test_path_using_timestamp():

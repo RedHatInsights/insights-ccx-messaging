@@ -510,14 +510,3 @@ def test_run_fail(consumer_init_mock):
     assert consumer_mock.consume.call_count == 1
     assert consumer_mock.close.call_count == 1
     assert not sut.process_msg.called
-
-
-@pytest.mark.parametrize("_,deserialized_msg", _VALID_MESSAGES)
-@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
-def test_broker_creation(_, deserialized_msg):
-    """Check that create_broker returns the expected values."""
-    sut = KafkaConsumer(None, None, None, "topic")
-    broker = sut.create_broker(deserialized_msg)
-
-    assert broker["original_path"] == deserialized_msg["url"]
-    assert broker["org_id"] == deserialized_msg["identity"]["identity"]["internal"]["org_id"]

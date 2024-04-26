@@ -15,14 +15,29 @@
 """S3 Engine Class and related functions."""
 
 import json
+import re
 import logging
+from collections import ChainMap
 
 from insights_messaging.engine import Engine
 
 from ccx_messaging.utils.s3_uploader import S3Uploader
 from ccx_messaging.utils.sliced_template import SlicedTemplate
+from ccx_messaging.error import CCXMessagingError
 
 
+# Path example: <org_id>/<cluster_id>/<year><month><day><time>-<id>
+# Following RE matches with S3 archives like the previous example and allow
+# to extract named groups for the different meaningful components
+S3_ARCHIVE_PATTERN = re.compile(
+    r"(?P<org_id>[0-9]+)\/"  # extract named group for organization id
+    r"(?P<cluster_id>[0-9,a-z,-]{36})\/"  # extract named group for the cluster_id
+    r"(?P<archive>"  # extract named group for the archive name, including the following 3 lines
+    r"(?P<timestamp>"  # extract the timestamp named group, including the following line
+    # Next line extract year, month, day and time named groups from the timestamp
+    r"(?P<year>[0-9]{4})(?P<month>[0-9]{2})(?P<day>[0-9]{2})(?P<time>[0-9]{6}))-"
+    r"(?P<id>[a-z,A-Z,0-9]*))"  # Extract the id of the file as named group
+)
 LOG = logging.getLogger(__name__)
 
 
@@ -84,24 +99,36 @@ class S3UploadEngine(Engine):
         LOG.info("Processing %s for uploading", local_path)
         self.fire("pre_extract", broker, local_path)
 
+        s3_path = broker["s3_path"]
+
         for w in self.watchers:
             w.watch_broker(broker)
 
-        target_path = self.compute_target_path(broker)
-        LOG.info(f"Uploading archive '{local_path}' as {self.dest_bucket}/{target_path}")
-        self.uploader.upload_file(local_path, self.dest_bucket, target_path)
-        LOG.info(f"Uploaded archive '{local_path}' as {self.dest_bucket}/{target_path}")
+        match_ = S3_ARCHIVE_PATTERN.match(s3_path)
+        if not match_:
+            LOG.warning("The archive doesn't match the expected pattern: %s")
+            exception = CCXMessagingError("Archive pattern name incorrect")
+            self.fire("on_engine_failure", broker, exception)
+            raise exception
 
-        metadata = create_metadata(broker)
+        components = ChainMap(broker, match_.groupdict())
+        target_path = self.compute_target_path(components)
+        LOG.info(f"Uploading archive '{s3_path}' as {self.dest_bucket}/{target_path}")
+        self.uploader.upload_file(local_path, self.dest_bucket, target_path)
+        LOG.info(f"Uploaded archive '{s3_path}' as {self.dest_bucket}/{target_path}")
+
+        metadata = create_metadata(components)
         report = {
             "path": target_path,
-            "original_path": broker.get("original_path", ""),
+            "original_path": s3_path,
             "metadata": metadata,
         }
 
         LOG.info("Generated report: %s", report)
         self.fire("on_engine_success", broker, report)
 
+        del broker["cluster_id"]
+        del broker["s3_path"]
         return json.dumps(report)
 
     def compute_target_path(self, components: dict[str, str]) -> str:

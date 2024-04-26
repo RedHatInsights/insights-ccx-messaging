@@ -1,27 +1,13 @@
 """Kafka consumer implementation using Confluent Kafka library for Internal Data Pipeline."""
 import logging
-import json
-import re
-
 from confluent_kafka import Message
+from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
+import json
+
 from insights import dr
 
-from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
 
-
-# Path example: <org_id>/<cluster_id>/<year><month><day><time>-<id>
-# Following RE matches with S3 archives like the previous example and allow
-# to extract named groups for the different meaningful components
-S3_ARCHIVE_PATTERN = re.compile(
-    r"(?P<org_id>[0-9]+)\/"  # extract named group for organization id
-    r"(?P<cluster_id>[0-9,a-z,-]{36})\/"  # extract named group for the cluster_id
-    r"(?P<archive>"  # extract named group for the archive name, including the following 3 lines
-    r"(?P<timestamp>"  # extract the timestamp named group, including the following line
-    # Next line extract year, month, day and time named groups from the timestamp
-    r"(?P<year>[0-9]{4})(?P<month>[0-9]{2})(?P<day>[0-9]{2})(?P<time>[0-9]{6}))-"
-    r"(?P<id>[a-z,A-Z,0-9]*))"  # Extract the id of the file as named group
-)
 LOG = logging.getLogger(__name__)
 
 
@@ -68,17 +54,5 @@ class IDPConsumer(KafkaConsumer):
         """Create a suitable `Broker` to be pass arguments to the `Engine`."""
         broker = dr.Broker()
         broker["cluster_id"] = input_msg.get("cluster_id")
-        broker["original_path"] = input_msg.get("path")
-
-        match_ = S3_ARCHIVE_PATTERN.match(input_msg.get("path"))
-        if not match_:
-            LOG.warning("The archive doesn't match the expected pattern: %s")
-            exception = CCXMessagingError("Archive pattern name incorrect")
-            self.fire("on_consumer_failure", broker, exception)
-            raise exception
-
-        # Cluster ID might be overrided by the one found in the `path`
-        for key, value in match_.groupdict():
-            broker[key] = value
-
+        broker["s3_path"] = input_msg.get("path")
         return broker
