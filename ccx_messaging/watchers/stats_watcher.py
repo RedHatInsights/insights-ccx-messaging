@@ -128,10 +128,12 @@ class StatsWatcher(ConsumerWatcher):
         self._start_time = time.time()
         self._reset_times()
         self._reset_archive_metadata()
+        LOG.debug("on_recv - done")
 
     def on_filter(self):
         """On filter event handler."""
         self._filtered_total.inc()
+        LOG.debug("on_filter - done")
 
     def on_extract(self, ctx, broker, extraction):
         """On extract event handler."""
@@ -140,10 +142,15 @@ class StatsWatcher(ConsumerWatcher):
             os.path.join(extraction.tmp_dir, "openshift_lightspeed.json")
         ):
             self._archive_metadata["type"] = "ols"
+            LOG.debug("ols archive detected")
+
         elif os.path.exists(
             os.path.join(extraction.tmp_dir, "config", "infrastructure.json")
         ):
             self._archive_metadata["type"] = "hypershift"
+            LOG.debug("hypershift archive detected")
+
+        LOG.debug("IO archive detected")
 
         self._extracted_total.labels(
             **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
@@ -152,6 +159,8 @@ class StatsWatcher(ConsumerWatcher):
         self._archive_size.labels(
             **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
         ).observe(self._archive_metadata["size"])
+        LOG.debug("on_extract - done")
+
 
     def on_download(self, path):
         """On downloaded event handler."""
@@ -162,6 +171,8 @@ class StatsWatcher(ConsumerWatcher):
 
         self._downloaded_time = time.time()
         self._download_duration.observe(self._downloaded_time - self._start_time)
+        LOG.debug("on_download - done")
+
 
     def on_process(self, input_msg, results):
         """On processed event handler."""
@@ -173,12 +184,16 @@ class StatsWatcher(ConsumerWatcher):
         self._process_duration.labels(
             **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
         ).observe(self._processed_time - self._downloaded_time)
+        LOG.debug("on_process - done")
+
 
     def on_process_timeout(self):
         """On process timeout event handler."""
         self._processed_timeout_total.labels(
             **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
         ).inc()
+        LOG.debug("on_process_timeout - done")
+
 
     def on_consumer_success(self, input_msg, broker, results):
         """On consumer success event handler."""
@@ -190,6 +205,8 @@ class StatsWatcher(ConsumerWatcher):
         self._publish_duration.labels(
             **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
         ).observe(self._published_time - self._processed_time)
+        LOG.debug("on_consumer_success - done")
+
 
     def on_consumer_failure(self, input_msg, exception):
         """On consumer failure event handler."""
@@ -210,10 +227,13 @@ class StatsWatcher(ConsumerWatcher):
         self._publish_duration.labels(
             **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
         ).observe(0)
+        LOG.debug("on_consumer_failure - done")
+
 
     def on_not_handled(self, input_msg):
         """On not handled messages success event handler."""
         self._not_handling_total.inc()
+        LOG.debug("on_not_handled - done")
 
     def _reset_times(self):
         """Set all timestamps with the exception of start time to `None`."""
