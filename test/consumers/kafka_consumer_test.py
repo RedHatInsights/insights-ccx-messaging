@@ -20,34 +20,12 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
-from confluent_kafka import KafkaException, TIMESTAMP_NOT_AVAILABLE
+from confluent_kafka import KafkaException
 
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
 
-
-class KafkaMessage:
-    """Test double for the confluent_kafka.Message class."""
-
-    def __init__(self, msg, headers=None, timestamp=None):
-        """Initialize a KafkaMessage test double."""
-        self.msg = msg
-        self._headers = headers
-        self._timestamp = timestamp
-        self.topic = lambda: "topic"
-        self.partition = lambda: 0
-        self.offset = lambda: 0
-        self.value = lambda: self.msg
-        self.error = lambda: None
-        self.headers = lambda: self._headers
-
-    def timestamp(self):
-        """Test double for the Message.timestamp function."""
-        if self._timestamp is None:
-            return TIMESTAMP_NOT_AVAILABLE, None
-
-        else:
-            return None, self._timestamp
+from . import KafkaMessage
 
 
 # _REGEX_BAD_SCHEMA = r"^Unable to extract URL from input message: "
@@ -510,3 +488,14 @@ def test_run_fail(consumer_init_mock):
     assert consumer_mock.consume.call_count == 1
     assert consumer_mock.close.call_count == 1
     assert not sut.process_msg.called
+
+
+@pytest.mark.parametrize("_,deserialized_msg", _VALID_MESSAGES)
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_broker_creation(_, deserialized_msg):
+    """Check that create_broker returns the expected values."""
+    sut = KafkaConsumer(None, None, None, "topic")
+    broker = sut.create_broker(deserialized_msg)
+
+    assert broker["original_path"] == deserialized_msg["url"]
+    assert broker["org_id"] == deserialized_msg["identity"]["identity"]["internal"]["org_id"]
