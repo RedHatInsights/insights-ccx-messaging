@@ -16,9 +16,12 @@
 
 import json
 import logging
+import os
+import tarfile
 
 from insights_messaging.engine import Engine
 
+from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.utils.s3_uploader import S3Uploader
 from ccx_messaging.utils.sliced_template import SlicedTemplate
 
@@ -87,7 +90,11 @@ class S3UploadEngine(Engine):
 
         for w in self.watchers:
             w.watch_broker(broker)
-        
+
+        if broker["cluster_id"] is None:
+            del broker["cluster_id"]
+            broker["cluster_id"] = extract_cluster_id(local_path)
+
         target_path = self.compute_target_path(broker)
         LOG.info(f"Uploading archive '{local_path}' as {self.dest_bucket}/{target_path}")
         self.uploader.upload_file(local_path, self.dest_bucket, target_path)
@@ -117,3 +124,20 @@ class S3UploadEngine(Engine):
 
         else:
             return path
+
+
+def extract_cluster_id(tar_path: str) -> str:
+    """Check the content of the file in `tar_path` and extract the cluster_id."""
+    ID_PATH = os.path.join("config", "id")
+    LOG.debug("Looking for %s in file %s", ID_PATH, tar_path)
+
+    try:
+        with tarfile.open(tar_path) as tf:
+            with tf.extractfile(ID_PATH) as id_file:
+                return id_file.read().decode()
+
+    except KeyError as ex:
+        raise CCXMessagingError(f"The tar in {tar_path} doesn't contain cluster id") from ex
+
+    except tarfile.ReadError as ex:
+        raise CCXMessagingError(f"The file in {tar_path} doesn't look as a tarfile") from ex
