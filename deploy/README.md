@@ -4,6 +4,12 @@ This folder contains all the Clowdapps using the ccx-messaging library.
 
 ## How tun run it in ephemeral
 
+1st, expert the following env var because the default GraphQL used by `bonfire` is not available.
+
+```
+export QONTRACT_BASE_URL=https://app-interface.apps.rosa.appsrep09ue1.03r5.p3.openshiftapps.com/graphql
+```
+
 Run
 
 ```
