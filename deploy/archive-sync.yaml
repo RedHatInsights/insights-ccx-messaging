@@ -339,6 +339,6 @@ parameters:
 - name: LOGLEVEL_KAFKA
   value: INFO
 - name: LOGLEVEL_STDOUT
-  value: INFO
+  value: DEBUG
 - name: LOGLEVEL_ROOT
   value: WARNING

@@ -82,11 +82,12 @@ class S3UploadEngine(Engine):
     def process(self, broker, local_path):
         """Create metadata and target_path from downloaded archive and uploads it to ceph bucket."""
         LOG.info("Processing %s for uploading", local_path)
+        LOG.debug("Broker content: %s", broker.items())
         self.fire("pre_extract", broker, local_path)
 
         for w in self.watchers:
             w.watch_broker(broker)
-
+        
         target_path = self.compute_target_path(broker)
         LOG.info(f"Uploading archive '{local_path}' as {self.dest_bucket}/{target_path}")
         self.uploader.upload_file(local_path, self.dest_bucket, target_path)
