@@ -112,10 +112,11 @@ class HTTPDownloader:
                 file_data.write(data)
                 file_data.flush()
                 yield file_data.name
-
             response.close()
 
         except requests.exceptions.ConnectionError as err:
+            LOG.error("Connection error while downloading the file: %s", err)
             raise CCXMessagingError("Connection error while downloading the file") from err
         except Exception as err:
+            LOG.error("Unknown error while downloading the file: %s", err)
             raise CCXMessagingError("Unknown error while downloading the file") from err
