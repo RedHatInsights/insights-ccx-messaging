@@ -18,6 +18,7 @@ import logging
 import os
 import time
 
+from insights_messaging.watchers import EngineWatcher
 from prometheus_client import Counter, Histogram, start_http_server, REGISTRY
 
 from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
@@ -30,7 +31,7 @@ ARCHIVE_TYPE_VALUES = ["ocp", "hypershift", "ols"]
 
 
 # pylint: disable=too-many-instance-attributes
-class StatsWatcher(ConsumerWatcher):
+class StatsWatcher(ConsumerWatcher, EngineWatcher):
     """A Watcher that stores different Prometheus `Counter`s."""
 
     def __init__(self, prometheus_port=8000):
@@ -123,6 +124,7 @@ class StatsWatcher(ConsumerWatcher):
 
     def on_recv(self, input_msg):
         """On received event handler."""
+        LOG.debug("Receiving 'on_recv' callback")
         self._recv_total.inc()
 
         self._start_time = time.time()
@@ -131,10 +133,12 @@ class StatsWatcher(ConsumerWatcher):
 
     def on_filter(self):
         """On filter event handler."""
+        LOG.debug("Receiving 'on_filter' callback")
         self._filtered_total.inc()
 
     def on_extract(self, ctx, broker, extraction):
         """On extract event handler."""
+        LOG.debug("Receiving 'on_extract' callback")
         # Set archive_type label based on found file
         if os.path.exists(os.path.join(extraction.tmp_dir, "openshift_lightspeed.json")):
             self._archive_metadata["type"] = "ols"
@@ -149,6 +153,7 @@ class StatsWatcher(ConsumerWatcher):
 
     def on_download(self, path):
         """On downloaded event handler."""
+        LOG.debug("Receiving 'on_download' callback")
         archive_size = os.path.getsize(path)
 
         self._archive_metadata["size"] = archive_size
@@ -159,6 +164,7 @@ class StatsWatcher(ConsumerWatcher):
 
     def on_process(self, input_msg, results):
         """On processed event handler."""
+        LOG.debug("Receiving 'on_process' callback")
         self._processed_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
 
         self._processed_time = time.time()
@@ -168,12 +174,14 @@ class StatsWatcher(ConsumerWatcher):
 
     def on_process_timeout(self):
         """On process timeout event handler."""
+        LOG.debug("Receiving 'on_process_timeout' callback")
         self._processed_timeout_total.labels(
             **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
         ).inc()
 
     def on_consumer_success(self, input_msg, broker, results):
         """On consumer success event handler."""
+        LOG.debug("Receiving 'on_consumer_success' callback")
         self._published_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
 
         self._published_time = time.time()
@@ -183,6 +191,7 @@ class StatsWatcher(ConsumerWatcher):
 
     def on_consumer_failure(self, input_msg, exception):
         """On consumer failure event handler."""
+        LOG.debug("Receiving 'on_consumer_failure' callback")
         self._failures_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
 
         if self._downloaded_time is None:
@@ -201,6 +210,7 @@ class StatsWatcher(ConsumerWatcher):
 
     def on_not_handled(self, input_msg):
         """On not handled messages success event handler."""
+        LOG.debug("Receiving 'on_not_handled' callback")
         self._not_handling_total.inc()
 
     def _reset_times(self):
