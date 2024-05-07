@@ -121,6 +121,10 @@ def _add_kafka_config(config):
 def _add_buckets_config(config):
     buckets = app_common_python.ObjectBuckets
     common_config = app_common_python.LoadedConfig.objectStore
+    if not common_config:
+        logger.warning("The clowder configuration doesn't provide object buckets configuration")
+        return
+
     prefix = "https://" if common_config.tls else "http://"
 
     engine_config = config["service"]["engine"]["kwargs"]
