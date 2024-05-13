@@ -77,4 +77,4 @@ def test_process_extract_ols_archive():
     path = "test/ols.tar"
 
     result = e.process(broker, path)
-    assert result == {}
+    assert result == "{}"
