@@ -61,7 +61,7 @@ class OCPEngine(ICMEngine):
                 ols_file = os.path.join(extraction.tmp_dir, "openshift_lightspeed.json")
                 if os.path.exists(ols_file):
                     log.debug("archive contains openshift_lightspeed.json file; skipping")
-                    return None
+                    return {}
 
                 output = StringIO()
                 with self.Formatter(broker, stream=output):
