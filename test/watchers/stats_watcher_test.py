@@ -14,10 +14,12 @@
 
 """Module containing unit tests for the `ConsumerWatcher` class."""
 
-from unittest.mock import patch
+import time
+from tarfile import TarFile
+from unittest.mock import MagicMock, patch
 
 import pytest
-import time
+from insights.core.archives import TarExtractor
 
 from ccx_messaging.watchers.stats_watcher import (
     StatsWatcher,
@@ -340,3 +342,47 @@ def test_reset_archive_metadata(label_value):
     w._reset_archive_metadata()
 
     assert w._archive_metadata["type"] == "ocp"
+
+
+ON_EXTRACT_WITH_EXTRACTOR_IDENTIFIERS = [
+    ("ols", [True, False]),
+    ("hypershift", [False, True]),
+    ("ocp", [False, False]),
+]
+
+
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
+@pytest.mark.parametrize("type_, exists_side_effect", ON_EXTRACT_WITH_EXTRACTOR_IDENTIFIERS)
+def test_on_extract_with_extractor(type_, exists_side_effect):
+    """Test the method on_extract."""
+    # construct watcher object
+    w = StatsWatcher(prometheus_port=8009)
+
+    extraction_mock = MagicMock(spec=TarExtractor)
+    extraction_mock.tmp_dir = ""
+
+    with patch("os.path.exists") as exists_mock:
+        exists_mock.side_effect = exists_side_effect
+
+        w.on_extract(None, None, extraction_mock)
+        assert w._archive_metadata["type"] == type_
+
+
+ON_EXTRACT_WITH_TARFILE_IDENTIFIERS = [
+    ("ols", ["openshift_lightspeed.json"]),
+    ("hypershift", ["config/id", "config/infrastructure.json"]),
+    ("ocp", ["config/id"]),
+]
+
+
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
+@pytest.mark.parametrize("type_, file_content", ON_EXTRACT_WITH_TARFILE_IDENTIFIERS)
+def test_on_extract_with_tarfile(type_, file_content):
+    """Test the method on_extract."""
+    # construct watcher object
+    w = StatsWatcher(prometheus_port=8009)
+
+    extraction_mock = MagicMock(spec=TarFile)
+    extraction_mock.getnames.return_value = file_content
+    w.on_extract(None, None, extraction_mock)
+    assert w._archive_metadata["type"] == type_

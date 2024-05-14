@@ -16,8 +16,10 @@
 
 import logging
 import os
+import tarfile
 import time
 
+from insights.core.archives import TarExtractor, ZipExtractor
 from insights_messaging.watchers import EngineWatcher
 from prometheus_client import Counter, Histogram, start_http_server, REGISTRY
 
@@ -136,9 +138,29 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         LOG.debug("Receiving 'on_filter' callback")
         self._filtered_total.inc()
 
-    def on_extract(self, ctx, broker, extraction):
-        """On extract event handler."""
+    def on_extract(
+        self, ctx, broker, extraction: tarfile.TarFile | TarExtractor | ZipExtractor
+    ) -> None:
+        """On extract event handler for extractor using engines."""
         LOG.debug("Receiving 'on_extract' callback")
+
+        if isinstance(extraction, tarfile.TarFile):
+            self.on_extract_with_tarfile(extraction)
+
+        else:
+            self.on_extract_with_extractor(extraction)
+
+    def on_extract_with_tarfile(self, extraction: tarfile.TarFile) -> None:
+        """On extract event handler for engines using tarfile."""
+        tarfile_contents = extraction.getnames()
+
+        if "openshift_lightspeed.json" in tarfile_contents:
+            self._archive_metadata["type"] = "ols"
+        elif os.path.join("config", "infrastructure.json") in tarfile_contents:
+            self._archive_metadata["type"] = "hypershift"
+
+    def on_extract_with_extractor(self, extraction: TarExtractor | ZipExtractor) -> None:
+        """On extract event handler for engines using extractor."""
         # Set archive_type label based on found file
         if os.path.exists(os.path.join(extraction.tmp_dir, "openshift_lightspeed.json")):
             self._archive_metadata["type"] = "ols"
