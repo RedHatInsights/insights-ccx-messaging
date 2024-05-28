@@ -41,7 +41,6 @@ class RuleProcessingPublisher(KafkaPublisher):
     def __init__(self, outgoing_topic, kafka_broker_config=None, **kwargs):
         """Construct a new `RuleProcessingPublisher` given `kwargs` from the config YAML."""
         super().__init__(outgoing_topic, kafka_broker_config, **kwargs)
-        self.outdata_schema_version = 2
 
     def validate_timestamp_rfc3339(self, timestamp):
         """Check if the timestamp matches RFC3339 format."""
@@ -107,13 +106,14 @@ class RuleProcessingPublisher(KafkaPublisher):
 
         try:
             msg_timestamp = input_msg["timestamp"]
+            msg_version = report.pop("version", 1)
             output_msg = {
                 "OrgID": org_id,
                 "AccountNumber": account_number,
                 "ClusterName": input_msg["cluster_name"],
                 "Report": report,
                 "LastChecked": msg_timestamp,
-                "Version": self.outdata_schema_version,
+                "Version": msg_version,
                 "RequestId": input_msg.get("request_id"),
                 "Metadata": {"gathering_time": self.get_gathering_time(input_msg)},
             }
