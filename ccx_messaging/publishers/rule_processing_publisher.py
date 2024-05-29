@@ -106,7 +106,7 @@ class RuleProcessingPublisher(KafkaPublisher):
 
         try:
             msg_timestamp = input_msg["timestamp"]
-            msg_version = report.pop("version", 1)
+            msg_version = report.pop("version", 0)
             output_msg = {
                 "OrgID": org_id,
                 "AccountNumber": account_number,
