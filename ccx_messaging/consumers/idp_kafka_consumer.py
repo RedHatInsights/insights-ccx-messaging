@@ -15,7 +15,7 @@ from ccx_messaging.error import CCXMessagingError
 # to extract named groups for the different meaningful components
 S3_ARCHIVE_PATTERN = re.compile(
     r"(?P<org_id>[0-9]+)\/"  # extract named group for organization id
-    r"(?P<cluster_id>[0-9,a-z,-]{36})\/"  # extract named group for the cluster_id
+    r"(?P<cluster_id>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\/"  # extract named group for the cluster_id  # noqa: E501
     r"(?P<archive>"  # extract named group for the archive name, including the following 3 lines
     r"(?P<timestamp>"  # extract the timestamp named group, including the following line
     # Next line extract year, month, day and time named groups from the timestamp

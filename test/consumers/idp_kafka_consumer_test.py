@@ -242,3 +242,35 @@ def test_create_broker_bad_path():
     sut = IDPConsumer(None, None, None, incoming_topic=None)
     with pytest.raises(CCXMessagingError):
         sut.create_broker(input_msg)
+
+
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_create_broker_bad_cluster_id_format():
+    """Test that `create_broker` generates a broker with the expected values."""
+    path = (
+        "00000000/aaaaaaaa-bbbb-xxxx-ffff-badbadbadbad/"
+        "66666666666666-77777777777777777777777777777777"
+    )
+    input_msg = {
+        "path": path,
+    }
+
+    sut = IDPConsumer(None, None, None, incoming_topic=None)
+    with pytest.raises(CCXMessagingError):
+        sut.create_broker(input_msg)
+
+
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_create_broker_bad_cluster_id_short():
+    """Test that `create_broker` generates a broker with the expected values."""
+    path = (
+        "00000000/aa-bbbb-cc-ffff-badbadbadbad/"
+        "66666666666666-77777777777777777777777777777777"
+    )
+    input_msg = {
+        "path": path,
+    }
+
+    sut = IDPConsumer(None, None, None, incoming_topic=None)
+    with pytest.raises(CCXMessagingError):
+        sut.create_broker(input_msg)
