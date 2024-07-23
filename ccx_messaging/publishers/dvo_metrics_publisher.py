@@ -64,6 +64,7 @@ class DVOMetricsPublisher(KafkaPublisher):
         if "cluster_name" not in input_msg:
             raise CCXMessagingError("Can't find 'cluster_name'")
 
+        msg_version = report.pop("version", 0)
         output_msg = {
             "OrgID": org_id,
             "AccountNumber": account_number,
@@ -71,6 +72,7 @@ class DVOMetricsPublisher(KafkaPublisher):
             "Metrics": report,
             "RequestId": input_msg.get("request_id"),
             "LastChecked": input_msg.get("timestamp"),
+            "Version": msg_version,
         }
         message = json.dumps(output_msg) + "\n"
 
