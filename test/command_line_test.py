@@ -43,7 +43,7 @@ def test_command_line_args_no_config_provided():
         sys.argv = ["ccx-messaging"]
         command_line.ccx_messaging()
 
-    assert exception.type == SystemExit
+    assert exception.type is SystemExit
     assert exception.value.code == 1
 
 
@@ -53,7 +53,7 @@ def test_command_line_args_invalid_arg_provided(capsys):
     with pytest.raises(SystemExit) as exception:
         parser = command_line.parse_args()
 
-        assert exception.type == SystemExit
+        assert exception.type is SystemExit
         assert exception.value.code == 2
 
         assert not parser.config
