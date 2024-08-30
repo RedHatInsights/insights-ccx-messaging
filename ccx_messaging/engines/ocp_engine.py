@@ -40,7 +40,7 @@ class OCPEngine(ICMEngine):
         super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
 
     def process(self, broker, path):
-        """Get results from applying Insihgts rules to the downloaded archive.
+        """Get results from applying Insights rules to the downloaded archive.
 
         The archive is extracted and processed if the `openshift_lightspeed.json`
         file is not found within its root directory. The JSON resulting from applying

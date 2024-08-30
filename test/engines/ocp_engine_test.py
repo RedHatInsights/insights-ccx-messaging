@@ -18,6 +18,7 @@ from insights.formats.text import HumanReadableFormat
 import pytest
 
 from ccx_messaging.engines.ocp_engine import OCPEngine
+from ccx_messaging.watchers.stats_watcher import StatsWatcher
 
 
 def test_init():
@@ -68,7 +69,7 @@ def test_process_extract_correct_data():
 
 
 def test_process_extract_ols_archive():
-    """Basic test for OCPEngine."""
+    """Basic test for OCPEngine with an OLS file."""
     e = OCPEngine(HumanReadableFormat)
     e.watchers = []
     e.extract_tmp_dir = ""
@@ -78,3 +79,19 @@ def test_process_extract_ols_archive():
 
     result = e.process(broker, path)
     assert result == "{}"
+
+
+def test_process_extract_rapid_recommendation_archive():
+    """Basic test for OCPEngine with a rapid recommendation file."""
+    e = OCPEngine(HumanReadableFormat)
+    sw = StatsWatcher()
+    e.watchers = [sw]
+    e.extract_tmp_dir = ""
+
+    broker = None
+    path = "test/rapid-recommendations.tar.gz"
+
+    result = e.process(broker, path)
+    assert result != "{}"
+    assert sw._gathering_conditions_remote_configuration_version.labels(
+        "1.1.0")._value.get() == 1
