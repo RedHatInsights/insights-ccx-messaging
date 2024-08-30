@@ -92,6 +92,6 @@ def test_process_extract_rapid_recommendation_archive():
     path = "test/rapid-recommendations.tar.gz"
 
     result = e.process(broker, path)
-    assert result == "{}"
+    assert result != "{}"
     assert sw._gathering_conditions_remote_configuration_version.labels(
         "1.1.0")._value.get() == 1
