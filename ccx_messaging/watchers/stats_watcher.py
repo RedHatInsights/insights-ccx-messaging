@@ -18,6 +18,7 @@ import logging
 import os
 import tarfile
 import time
+import json
 
 from insights.core.archives import TarExtractor, ZipExtractor
 from insights_messaging.watchers import EngineWatcher
@@ -30,6 +31,7 @@ LOG = logging.getLogger(__name__)
 # Label to differentiate between OCP, OLS and HyperShift tarballs
 ARCHIVE_TYPE_LABEL = "archive"
 ARCHIVE_TYPE_VALUES = ["ocp", "hypershift", "ols"]
+IO_GATHERING_REMOTE_CONFIG_LABEL = "version"
 
 
 # pylint: disable=too-many-instance-attributes
@@ -109,6 +111,12 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
             [ARCHIVE_TYPE_LABEL],
         )
 
+        self._gathering_conditions_remote_configuration_version = Counter(
+            "gathering_conditions_remote_configuration_version",
+            "Counter of times a given configuration is seen",
+            [IO_GATHERING_REMOTE_CONFIG_LABEL],
+        )
+
         self._start_time = None
         self._downloaded_time = None
         self._processed_time = None
@@ -172,6 +180,18 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         self._archive_size.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).observe(
             self._archive_metadata["size"]
         )
+
+        # Set the IO remote configuration version
+        remote_config_path = os.path.join(extraction.tmp_dir, "insights-operator", "remote-configuration.json")
+        if not os.path.exists(remote_config_path):
+            return
+        try:
+            with open(remote_config_path, "rb") as f:
+                data = json.load(f)
+                version = data["version"]
+                self._gathering_conditions_remote_configuration_version[version].inc()
+        except Exception as e:
+            LOG.error("cannot read remote-configuration.json", exc_info=e)
 
     def on_download(self, path):
         """On downloaded event handler."""
