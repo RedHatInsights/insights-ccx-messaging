@@ -20,6 +20,7 @@ import pytest
 from ccx_messaging.engines.ocp_engine import OCPEngine
 from ccx_messaging.watchers.stats_watcher import StatsWatcher
 
+
 def test_init():
     """Test the OCPEngine constructor."""
     e = OCPEngine(HumanReadableFormat)
@@ -78,6 +79,7 @@ def test_process_extract_ols_archive():
 
     result = e.process(broker, path)
     assert result == "{}"
+
 
 def test_process_extract_rapid_recommendation_archive():
     """Basic test for OCPEngine with a rapid recommendation file."""

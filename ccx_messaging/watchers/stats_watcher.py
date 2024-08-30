@@ -182,7 +182,10 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         )
 
         # Set the IO remote configuration version
-        remote_config_path = os.path.join(extraction.tmp_dir, "insights-operator", "remote-configuration.json")
+        remote_config_path = os.path.join(
+            extraction.tmp_dir,
+            "insights-operator",
+            "remote-configuration.json")
         if not os.path.exists(remote_config_path):
             return
         try:
