@@ -190,7 +190,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
             with open(remote_config_path, "rb") as f:
                 data = json.load(f)
                 version = data["version"]
-                self._gathering_conditions_remote_configuration_version[version].inc()
+                self._gathering_conditions_remote_configuration_version.labels(version).inc()
         except FileNotFoundError:
             LOG.debug("this archive didn't use remote-configurations")
         except Exception as e:
