@@ -301,3 +301,4 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         REGISTRY.unregister(self._process_duration)
         REGISTRY.unregister(self._publish_duration)
         REGISTRY.unregister(self._processed_timeout_total)
+        REGISTRY.unregister(self._gathering_conditions_remote_configuration_version)
