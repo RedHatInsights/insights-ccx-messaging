@@ -186,13 +186,13 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
             extraction.tmp_dir,
             "insights-operator",
             "remote-configuration.json")
-        if not os.path.exists(remote_config_path):
-            return
         try:
             with open(remote_config_path, "rb") as f:
                 data = json.load(f)
                 version = data["version"]
                 self._gathering_conditions_remote_configuration_version[version].inc()
+        except FileNotFoundError:
+            LOG.debug("this archive didn't use remote-configurations")
         except Exception as e:
             LOG.error("cannot read remote-configuration.json", exc_info=e)
 
