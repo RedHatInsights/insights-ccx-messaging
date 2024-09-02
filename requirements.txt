@@ -13,3 +13,4 @@ watchtower>=3.0.0
 
 aiobotocore==2.14.0
 s3fs==2024.6.1
+setuptools>= 70.0.0
