@@ -8,10 +8,6 @@ ENV VENV=/ccx-messaging-venv \
 ENV PATH="$VENV/bin:$PATH"
 WORKDIR $HOME
 
-RUN curl -ksL https://certs.corp.redhat.com/certs/2015-IT-Root-CA.pem -o /etc/pki/ca-trust/source/anchors/RH-IT-Root-CA.crt && \
-    curl -ksL https://certs.corp.redhat.com/certs/2022-IT-Root-CA.pem -o /etc/pki/ca-trust/source/anchors/2022-IT-Root-CA.pem && \
-    update-ca-trust
-
 COPY . $HOME
 
 RUN microdnf install --nodocs -y python3.11 unzip tar git-core && \
@@ -27,8 +23,6 @@ FROM base AS final
 RUN microdnf remove -y git-core && \
     microdnf clean all && \
     rpm -e --nodeps sqlite-libs krb5-libs libxml2 readline pam openssh openssh-clients
-
-
 
 RUN chmod -R g=u $HOME $VENV /etc/passwd && \
     chgrp -R 0 $HOME $VENV
