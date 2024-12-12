@@ -29,6 +29,7 @@ dependencies = [
     "confluent-kafka>=2.0.0",
     "insights-core>=3.1.2",
     "insights-core-messaging>=1.2.10",
+    "msgspec>=0.18.5",
     "jsonschema>=4.0.0",
     "prometheus-client>=0.16.0",
     "python-json-logger>=2.0.7",
