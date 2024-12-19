@@ -47,6 +47,7 @@ class S3UploadEngine(Engine):
         formatter,
         target_components=None,
         extract_timeout=None,
+        unpacked_archive_size_limit=None,
         extract_tmp_dir=None,
         dest_bucket=None,
         access_key=None,
@@ -72,7 +73,13 @@ class S3UploadEngine(Engine):
             archive path or other availables timestamps.
           - `archive`: it will be replaced by the base name of the archive.
         """
-        super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
+        super().__init__(
+            formatter=formatter,
+            target_components=target_components,
+            extract_timeout=extract_timeout,
+            unpacked_archive_size_limit=unpacked_archive_size_limit,
+            extract_tmp_dir=extract_tmp_dir,
+        )
         self.dest_bucket = dest_bucket
         self.archives_path_prefix = archives_path_prefix
         self.archive_name_template = SlicedTemplate(archive_name_pattern)
