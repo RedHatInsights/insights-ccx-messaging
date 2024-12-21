@@ -14,7 +14,7 @@ defusedxml==0.7.1
 filelock==3.13.1
 frozenlist==1.4.1
 fsspec==2024.2.0
-idna==3.6
+idna==3.10
 insights-core==3.3.13
 insights-core-messaging @ git+https://github.com/RedHatInsights/insights-core-messaging@5b71d26d5ab88ed49c460b5fe42a52f7d8f35700
 Jinja2==3.1.4
