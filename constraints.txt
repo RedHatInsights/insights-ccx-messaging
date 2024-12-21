@@ -11,7 +11,7 @@ certifi==2024.2.2
 charset-normalizer==3.3.2
 confluent-kafka==2.3.0
 defusedxml==0.7.1
-filelock==3.13.1
+filelock==3.16.1
 frozenlist==1.4.1
 fsspec==2024.2.0
 idna==3.6
