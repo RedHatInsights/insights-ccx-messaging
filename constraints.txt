@@ -13,7 +13,7 @@ confluent-kafka==2.7.0
 defusedxml==0.7.1
 filelock==3.16.1
 frozenlist==1.5.0
-fsspec==2024.2.0
+fsspec==2024.12.0
 idna==3.6
 insights-core==3.3.13
 insights-core-messaging @ git+https://github.com/RedHatInsights/insights-core-messaging@5b71d26d5ab88ed49c460b5fe42a52f7d8f35700
