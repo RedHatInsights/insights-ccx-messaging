@@ -31,9 +31,9 @@ class MultiplexorEngine(Engine):
         self,
         formatter: Formatter,
         target_components: list,
-        extract_timeout: int | None,
-        unpacked_archive_size_limit: int | None,
-        extract_tmp_dir: str | None,
+        extract_timeout: int | None = None,
+        unpacked_archive_size_limit: int | None = None,
+        extract_tmp_dir: str | None = None,
         filters: dict[str, str] | None = None,
     ):
         """Initialise the engine with the given filters.
