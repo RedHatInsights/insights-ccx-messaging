@@ -31,8 +31,9 @@ class MultiplexorEngine(Engine):
         self,
         formatter: Formatter,
         target_components: list,
-        extract_timeout: int | None,
-        extract_tmp_dir: str | None,
+        extract_timeout: int | None = None,
+        unpacked_archive_size_limit: int | None = None,
+        extract_tmp_dir: str | None = None,
         filters: dict[str, str] | None = None,
     ):
         """Initialise the engine with the given filters.
@@ -42,7 +43,13 @@ class MultiplexorEngine(Engine):
         the given "mark". An archive could have several matching files, so it could get a bunch
         of different marks.
         """
-        super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
+        super().__init__(
+            formatter=formatter,
+            target_components=target_components,
+            extract_timeout=extract_timeout,
+            unpacked_archive_size_limit=unpacked_archive_size_limit,
+            extract_tmp_dir=extract_tmp_dir,
+        )
         self.filters = filters if filters is not None else {}
         self.logger = logging.getLogger(__name__)
 
