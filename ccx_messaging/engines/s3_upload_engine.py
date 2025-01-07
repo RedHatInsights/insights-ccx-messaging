@@ -55,6 +55,7 @@ class S3UploadEngine(Engine):
         endpoint=None,
         archives_path_prefix=None,
         archive_name_pattern="$cluster_id[:2]/$cluster_id/$year$month/$day/$time.tar.gz",
+        s3_acl_enabled=True,
     ):
         """Initialize engine for S3 upload.
 
@@ -87,6 +88,7 @@ class S3UploadEngine(Engine):
             access_key=access_key,
             secret_key=secret_key,
             endpoint=endpoint,
+            acl_enabled=s3_acl_enabled,
         )
 
     def process(self, broker, local_path):

@@ -24,7 +24,7 @@ LOG = logging.getLogger(__name__)
 class S3Uploader:
     """S3 uploader."""
 
-    def __init__(self, access_key, secret_key, endpoint):
+    def __init__(self, access_key, secret_key, endpoint, acl_enabled=True):
         """Inicialize uploader."""
         if not access_key:
             raise TypeError("access_key cannot be nulleable")
@@ -41,12 +41,19 @@ class S3Uploader:
             endpoint_url=endpoint,
         )
 
+        self.acl_enabled = acl_enabled
+
     def upload_file(self, path, bucket, file_name):
         """Upload file to target path in bucket."""
         LOG.info(f"Uploading '{file_name}' as '{path}' to '{bucket}'")
 
         with open(path, "rb") as file_data:
-            self.client.put_object(
-                Bucket=bucket, Key=file_name, Body=file_data, ACL="bucket-owner-read"
-            )
+            if self.acl_enabled:
+                self.client.put_object(
+                    Bucket=bucket, Key=file_name, Body=file_data, ACL="bucket-owner-read"
+                )
+            else:
+                self.client.put_object(
+                    Bucket=bucket, Key=file_name, Body=file_data
+                )
             LOG.info(f"Uploaded '{file_name}' as '{path}' to '{bucket}'")
