@@ -29,16 +29,6 @@ log = logging.getLogger(__name__)
 class OCPEngine(ICMEngine):
     """Extract, download and process IO archive."""
 
-    def __init__(
-        self,
-        formatter,
-        target_components=None,
-        extract_timeout=None,
-        extract_tmp_dir=None,
-    ):
-        """`Engine` initializer."""
-        super().__init__(formatter, target_components, extract_timeout, extract_tmp_dir)
-
     def process(self, broker, path):
         """Get results from applying Insights rules to the downloaded archive.
 
