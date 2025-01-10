@@ -1,12 +1,5 @@
 exclude: "doc|research|demos"
 repos:
-- repo: https://github.com/psf/black
-  rev: 24.10.0
-  hooks:
-  - id: black
-    args: [--safe, --quiet, --line-length, "100"]
-    language_version: python3
-    require_serial: true
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v5.0.0
   hooks:
@@ -18,19 +11,15 @@ repos:
     language_version: python3
   - id: debug-statements
     language_version: python3
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.9.0
+  hooks:
+    - id: ruff
+    # - id: ruff-format
+
 - repo: https://github.com/asottile/pyupgrade
   rev: v3.19.1
   hooks:
   - id: pyupgrade
     language_version: python3
-- repo: https://github.com/PyCQA/flake8
-  rev: 7.1.1
-  hooks:
-    - id: flake8
-      language_version: python3
-      args: [--extend-ignore=E501,--extend-ignore=E203]
-- repo: https://gitlab.com/pycqa/pydocstyle
-  rev: 6.1.1
-  hooks:
-    - id: pydocstyle
-      language_version: python3
