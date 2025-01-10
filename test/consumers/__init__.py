@@ -6,7 +6,7 @@ from confluent_kafka import TIMESTAMP_NOT_AVAILABLE
 class KafkaMessage:
     """Test double for the confluent_kafka.Message class."""
 
-    def __init__(self, msg, headers=None, timestamp=None):
+    def __init__(self, msg=None, headers=None, timestamp=None, error=False):
         """Initialize a KafkaMessage test double."""
         self.msg = msg
         self._headers = headers
@@ -15,7 +15,11 @@ class KafkaMessage:
         self.partition = lambda: 0
         self.offset = lambda: 0
         self.value = lambda: self.msg
-        self.error = lambda: None
+        if error:
+            self.error = lambda: "error"
+        else:
+            self.error = lambda: None
+
         self.headers = lambda: self._headers
 
     def timestamp(self):
