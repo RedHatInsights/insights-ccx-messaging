@@ -74,6 +74,8 @@ class S3UploadEngine(Engine):
             archive path or other availables timestamps.
           - `archive`: it will be replaced by the base name of the archive.
         """
+        LOG.debug(type(s3_acl_enabled))
+        LOG.debug(s3_acl_enabled)
         super().__init__(
             formatter=formatter,
             target_components=target_components,
@@ -84,6 +86,8 @@ class S3UploadEngine(Engine):
         self.dest_bucket = dest_bucket
         self.archives_path_prefix = archives_path_prefix
         self.archive_name_template = SlicedTemplate(archive_name_pattern)
+        if isinstance(s3_acl_enabled, str):
+            s3_acl_enabled = s3_acl_enabled.lower() == "true"
         self.uploader = S3Uploader(
             access_key=access_key,
             secret_key=secret_key,
