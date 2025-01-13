@@ -61,3 +61,20 @@ IDENTITY_SCHEMA = {
     },
     "required": ["identity"],
 }
+
+ARCHIVE_SYNCED_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "path": {"type": "string"},
+        "original_path": {"type": "string"},
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "cluster_id": {"type": "string"},
+                "external_organization": {"type": "string"},
+            },
+            "required": ["cluster_id"]
+        },
+    },
+    "required": ["path", "metadata"],
+}
