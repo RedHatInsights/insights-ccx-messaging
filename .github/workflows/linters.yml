@@ -4,41 +4,23 @@ on:
   - pull_request
 
 jobs:
-  ruff:
+  pre-commit-hooks:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: chartboost/ruff-action@v1
+    strategy:
+      matrix:
+        hook_id:
+          - "trailing-whitespace"
+          - "end-of-file-fixer"
+          - "check-yaml"
+          - "debug-statements"
+          - "ruff"
+          - "pyupgrade"
 
-  pre-commit-flake8:
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-            python-version: '3.12'
+          python-version: '3.12'
       - uses: pre-commit/action@v3.0.1
         with:
-          extra_args: flake8 --all-files
-
-  pre-commit-pyupgrade:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v5
-          with:
-              python-version: '3.12'
-        - uses: pre-commit/action@v3.0.1
-          with:
-            extra_args: pyupgrade --all-files
-
-  pre-commit-pydocstyle:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-python@v5
-          with:
-              python-version: '3.12'
-        - uses: pre-commit/action@v3.0.1
-          with:
-            extra_args: pydocstyle --all-files
+          extra_args: ${{ matrix.hook_id }} --all-files

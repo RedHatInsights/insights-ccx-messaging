@@ -51,23 +51,22 @@ Homepage = "https://github.com/RedHatInsights/insights-ccx-messaging"
 ccx-messaging = "ccx_messaging.command_line:ccx_messaging"
 
 [project.optional-dependencies]
-dev = [
-    "black",
-    "coverage",
-    "flake8",
-    "freezegun",
-    "pycco",
-    "pycodestyle",
-    "pydocstyle",
-    "pylint",
+test = [
     "pytest",
     "pytest-cov",
+    "freezegun"
+]
+dev = [
+    "coverage",
+    "pycco",
     "ruff"
 ]
 
 [tool.setuptools_scm]
 
 [tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "W", "UP", "C", "D"]
 ignore = ["D211", "C401", "D203", "D213", "UP006", "UP007", "UP009", "UP015", "UP035"]
-line-length = 100
