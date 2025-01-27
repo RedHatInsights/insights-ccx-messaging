@@ -1,4 +1,4 @@
-.PHONY: help pycco
+.PHONY: default pycco tests unit_tests coverage coverate-report documentation shellcheck lint pyformat help
 
 SOURCES:=$(shell find . -name '*.py')
 DOCFILES:=$(addprefix docs/packages/, $(addsuffix .html, $(basename ${SOURCES})))
@@ -28,21 +28,13 @@ documentation: ## Generate documentation for all sources
 shellcheck: ## Run shellcheck
 	shellcheck *.sh
 
-pycodestyle: ## Check code style of all Python sources
+lint:
 	echo "Checking code style of all Python sources"
-	find . -type f -name "*.py" | xargs pycodestyle
-
-pydocstyle: ## Check docstrings style of all Python sources
-	echo "Checking docstrings style of all Python sources"
-	find . -type f -name "*.py" | xargs pydocstyle
-
-pyformat-check: ## Check formatting of all Python sources
-	echo "Checking formatting of all Python sources"
-	find . -type f -name "*.py" | xargs black --check --diff
+	ruff check
 
 pyformat: ## Reformat all Python sources
 	echo "Reformat all Python sources"
-	find . -type f -name "*.py" | xargs black
+	ruff format
 
 help: ## Show this help screen
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
