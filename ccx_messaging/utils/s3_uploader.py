@@ -14,6 +14,7 @@
 
 
 """Class for s3 uploader."""
+
 import logging
 import boto3
 
@@ -53,7 +54,5 @@ class S3Uploader:
                     Bucket=bucket, Key=file_name, Body=file_data, ACL="bucket-owner-read"
                 )
             else:
-                self.client.put_object(
-                    Bucket=bucket, Key=file_name, Body=file_data
-                )
+                self.client.put_object(Bucket=bucket, Key=file_name, Body=file_data)
             LOG.info(f"Uploaded '{file_name}' as '{path}' to '{bucket}'")

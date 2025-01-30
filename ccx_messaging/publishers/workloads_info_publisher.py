@@ -104,11 +104,7 @@ class WorkloadInfoPublisher(KafkaPublisher):
             )
 
             log.debug(
-                "Status: Success; "
-                "Topic: %s; "
-                "Partition: %s; "
-                "Offset: %s; "
-                "LastChecked: %s",
+                "Status: Success; Topic: %s; Partition: %s; Offset: %s; LastChecked: %s",
                 input_msg["topic"],
                 input_msg["partition"],
                 input_msg["offset"],

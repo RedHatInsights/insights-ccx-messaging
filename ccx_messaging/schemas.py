@@ -73,7 +73,7 @@ ARCHIVE_SYNCED_SCHEMA = {
                 "cluster_id": {"type": "string"},
                 "external_organization": {"type": "string"},
             },
-            "required": ["cluster_id"]
+            "required": ["cluster_id"],
         },
     },
     "required": ["path", "metadata"],

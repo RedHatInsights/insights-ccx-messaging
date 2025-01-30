@@ -45,8 +45,7 @@ class ClusterIdWatcher(EngineWatcher, ConsumerWatcher):
         """
         if self.last_record is None:
             LOG.warning(
-                "Unexpected data flow: watched extraction event without "
-                "a previous receiving event"
+                "Unexpected data flow: watched extraction event without a previous receiving event"
             )
             return
 

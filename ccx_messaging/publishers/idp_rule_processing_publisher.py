@@ -28,7 +28,6 @@ from ccx_messaging.schemas import ARCHIVE_SYNCED_SCHEMA
 log = logging.getLogger(__name__)
 
 
-
 class IDPRuleProcessingPublisher(KafkaPublisher):
     """RuleProcessingPublisher handles the results of the applied rules and publish them to Kafka.
 

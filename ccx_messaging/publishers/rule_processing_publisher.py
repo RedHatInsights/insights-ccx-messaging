@@ -135,11 +135,7 @@ class RuleProcessingPublisher(KafkaPublisher):
             )
 
             log.debug(
-                "Status: Success; "
-                "Topic: %s; "
-                "Partition: %s; "
-                "Offset: %s; "
-                "LastChecked: %s",
+                "Status: Success; Topic: %s; Partition: %s; Offset: %s; LastChecked: %s",
                 input_msg.get("topic"),
                 input_msg.get("partition"),
                 input_msg.get("offset"),

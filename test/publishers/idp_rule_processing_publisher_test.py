@@ -21,7 +21,7 @@ import pytest
 from confluent_kafka import KafkaException
 
 from ccx_messaging.error import CCXMessagingError
-from ccx_messaging.publishers.idp_rule_processing_publisher import  IDPRuleProcessingPublisher
+from ccx_messaging.publishers.idp_rule_processing_publisher import IDPRuleProcessingPublisher
 
 
 def test_init():
@@ -119,17 +119,11 @@ VALID_INPUT_MSG = [
         {
             "path": "bucket/path/to/archive.tgz",
             "original_path": "other_than_current_path",
-            "metadata": {
-                "cluster_id": "uuid",
-                "external_organization": "an organization"
-            },
+            "metadata": {"cluster_id": "uuid", "external_organization": "an organization"},
         },
         {
             "path": "bucket/path/to/archive.tgz",
-            "metadata": {
-                "cluster_id": "uuid",
-                "external_organization": "an organization"
-            },
+            "metadata": {"cluster_id": "uuid", "external_organization": "an organization"},
             "report": {
                 "reports": [],
             },

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Module containing unit tests for the `utils/sentry.py` file."""
+
 import logging
 import os
 
