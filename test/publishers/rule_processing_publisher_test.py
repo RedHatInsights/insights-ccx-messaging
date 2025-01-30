@@ -425,7 +425,7 @@ VALID_REPORTS = [
             "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
         },
         id="valid_report",
-    )
+    ),
 ]
 
 

@@ -93,5 +93,4 @@ def test_process_extract_rapid_recommendation_archive():
 
     result = e.process(broker, path)
     assert result != "{}"
-    assert sw._gathering_conditions_remote_configuration_version.labels(
-        "1.1.0")._value.get() == 1
+    assert sw._gathering_conditions_remote_configuration_version.labels("1.1.0")._value.get() == 1

@@ -61,7 +61,7 @@ _VALID_MESSAGES = [
         },
     ),
     (
-        '{"path": "",' '"cluster_id": "3d59cd30-e2c3-4ec8-b35d-7df3b1feea2f"}',
+        '{"path": "","cluster_id": "3d59cd30-e2c3-4ec8-b35d-7df3b1feea2f"}',
         {
             "path": "",
             "cluster_id": "3d59cd30-e2c3-4ec8-b35d-7df3b1feea2f",
@@ -263,10 +263,7 @@ def test_create_broker_bad_cluster_id_format():
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
 def test_create_broker_bad_cluster_id_short():
     """Test that `create_broker` generates a broker with the expected values."""
-    path = (
-        "00000000/aa-bbbb-cc-ffff-badbadbadbad/"
-        "66666666666666-77777777777777777777777777777777"
-    )
+    path = "00000000/aa-bbbb-cc-ffff-badbadbadbad/66666666666666-77777777777777777777777777777777"
     input_msg = {
         "path": path,
     }

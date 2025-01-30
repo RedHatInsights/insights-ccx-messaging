@@ -65,9 +65,7 @@ class MultiplexorPublisher(Publisher):
             raise KafkaException("Broker not configured")
 
         log.debug(
-            "Confluent Kafka consumer configuration arguments: "
-            "Server: %s. "
-            "Security protocol: %s.",
+            "Confluent Kafka consumer configuration arguments: Server: %s. Security protocol: %s.",
             kwargs.get("bootstrap.servers"),
             kwargs.get("security.protocol"),
         )

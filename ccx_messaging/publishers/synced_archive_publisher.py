@@ -14,7 +14,6 @@
 
 """Module implementing a IDP publisher to Kafka topic."""
 
-
 import json
 from typing import Dict
 import logging
@@ -37,14 +36,14 @@ class SyncedArchivePublisher(KafkaPublisher):
         self.produce(message.encode("utf-8"))
         LOG.debug("Message has been sent successfully.")
         LOG.debug(
-            "Message context: path=%s, original_path=%s, " 'metadata="%s"',
+            'Message context: path=%s, original_path=%s, metadata="%s"',
             output_msg["path"],
             output_msg["original_path"],
             output_msg["metadata"],
         )
 
         LOG.debug(
-            "Status: Success; " "Topic: %s; " "Partition: %s; " "Offset: %s; ",
+            "Status: Success; Topic: %s; Partition: %s; Offset: %s; ",
             input_msg.get("topic"),
             input_msg.get("partition"),
             input_msg.get("offset"),

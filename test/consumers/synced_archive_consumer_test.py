@@ -183,9 +183,11 @@ def test_create_broker():
 
 
 _VALID_KAFKA_MESSAGES = [KafkaMessage(value) for value in _VALID_RECORD_VALUES]
-_VALID_KAFKA_MESSAGES.extend([
-    None,
-])
+_VALID_KAFKA_MESSAGES.extend(
+    [
+        None,
+    ]
+)
 
 
 @pytest.mark.parametrize("value", _VALID_KAFKA_MESSAGES)
@@ -195,7 +197,7 @@ def test_process_msg(value: dict[str, str]):
     sut = SyncedArchiveConsumer(None, None, None, incoming_topic=None)
     with patch(
         "ccx_messaging.consumers.synced_archive_consumer.SyncedArchiveConsumer.process",
-        lambda: None
+        lambda: None,
     ):
         sut.process_msg(value)
 

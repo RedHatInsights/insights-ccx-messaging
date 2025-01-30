@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Clowder integration functions."""
+
 import logging
 
 import yaml

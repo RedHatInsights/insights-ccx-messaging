@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Tests for the KafkaPublisher class."""
+
 import json
 import gzip
 from unittest.mock import MagicMock

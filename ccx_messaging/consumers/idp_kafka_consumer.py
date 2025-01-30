@@ -1,4 +1,5 @@
 """Kafka consumer implementation using Confluent Kafka library for Internal Data Pipeline."""
+
 import logging
 import json
 import re

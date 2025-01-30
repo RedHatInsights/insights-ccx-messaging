@@ -183,9 +183,8 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
 
         # Set the IO remote configuration version
         remote_config_path = os.path.join(
-            extraction.tmp_dir,
-            "insights-operator",
-            "remote-configuration.json")
+            extraction.tmp_dir, "insights-operator", "remote-configuration.json"
+        )
         try:
             with open(remote_config_path, "rb") as f:
                 data = json.load(f)
