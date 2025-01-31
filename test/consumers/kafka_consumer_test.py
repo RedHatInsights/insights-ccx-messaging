@@ -14,6 +14,7 @@
 
 """Module containing unit tests for the `KafkaConsumer` class."""
 
+import datetime
 import logging
 import io
 import time
@@ -21,6 +22,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from confluent_kafka import KafkaException
+from freezegun import freeze_time
 
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
@@ -499,3 +501,26 @@ def test_broker_creation(_, deserialized_msg):
 
     assert broker["original_path"] == deserialized_msg["url"]
     assert broker["org_id"] == deserialized_msg["identity"]["identity"]["internal"]["org_id"]
+
+
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+@patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.handles", lambda *a, **k: True)
+@patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.fire", lambda *a, **k: None)
+def test_last_received_message_time_is_updated():
+    """Check that the variable last_received_message_time used by a Thread is correctly updated.
+
+    [CCXDEV-14812] the variable is never updated
+    """
+    t1 = datetime.datetime(2025, 1, 31, 12, 0, 0, tzinfo=datetime.timezone.utc)
+    t2 = datetime.datetime(2025, 1, 31, 12, 20, 0, tzinfo=datetime.timezone.utc)
+
+    with freeze_time(t1) as frozen_time:
+        sut = KafkaConsumer(None, None, None, None)
+        input_msg = KafkaMessage("{}")
+
+        frozen_time.move_to(t2)
+
+        with patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process", lambda: None):
+            sut.process_msg(input_msg)
+
+        assert sut.last_received_message_time == t2.timestamp()
