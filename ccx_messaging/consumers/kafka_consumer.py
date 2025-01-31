@@ -177,6 +177,7 @@ class KafkaConsumer(Consumer):
             LOG.debug("Empty record. Should not happen")
             return
 
+        self.last_received_message_time = time.time()
         if msg.error():
             raise KafkaException(msg.error())
 

@@ -1,6 +1,7 @@
 """Module containing the consumer for the Kafka topic produced by the Archive Sync service."""
 
 import logging
+import time
 from typing import Any
 
 from confluent_kafka import Message, KafkaException
@@ -29,6 +30,7 @@ class SyncedArchiveConsumer(KafkaConsumer):
             LOG.debug("Empty record. Should not happen")
             return
 
+        self.last_received_message_time = time.time()  # Base class thread control
         if msg.error():
             raise KafkaException(msg.error())
 

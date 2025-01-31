@@ -14,9 +14,11 @@
 
 """Module containing unit tests for the `KafkaConsumer` class."""
 
+import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
+from freezegun import freeze_time
 
 from confluent_kafka import KafkaException
 
@@ -223,3 +225,26 @@ def test_process_msg_raise_error():
     sut = SyncedArchiveConsumer(None, None, None, incoming_topic=None)
     with pytest.raises(KafkaException):
         sut.process_msg(KafkaMessage(error=True))
+
+
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+@patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.handles", lambda *a, **k: True)
+@patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.fire", lambda *a, **k: None)
+def test_last_received_message_time_is_updated():
+    """Check that the variable last_received_message_time used by a Thread is correctly updated.
+
+    [CCXDEV-14812] the variable is never updated
+    """
+    t1 = datetime.datetime(2025, 1, 31, 12, 0, 0, tzinfo=datetime.timezone.utc)
+    t2 = datetime.datetime(2025, 1, 31, 12, 20, 0, tzinfo=datetime.timezone.utc)
+
+    with freeze_time(t1) as frozen_time:
+        sut = SyncedArchiveConsumer(None, None, None, None)
+        input_msg = KafkaMessage("{}")
+
+        frozen_time.move_to(t2)
+
+        with patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process", lambda: None):
+            sut.process_msg(input_msg)
+
+        assert sut.last_received_message_time == t2.timestamp()
