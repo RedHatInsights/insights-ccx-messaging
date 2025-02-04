@@ -141,7 +141,12 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         self._reset_times()
         self._reset_archive_metadata()
         
-        self._archive_metadata["s3_path"] = input_msg["path"]
+        if "path" in input_msg:
+            self._archive_metadata["s3_path"] = input_msg["path"]
+        elif "url" in input_msg:
+            self._archive_metadata["s3_path"] = input_msg["url"]
+        else:
+            LOG.error(f"message has no S3 path: {input_msg}")
 
     def on_filter(self):
         """On filter event handler."""
