@@ -140,6 +140,8 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         self._start_time = time.time()
         self._reset_times()
         self._reset_archive_metadata()
+        
+        self._archive_metadata["s3_path"] = input_msg["path"]
 
     def on_filter(self):
         """On filter event handler."""
@@ -152,7 +154,6 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         """On extract event handler for extractor using engines."""
         LOG.debug("Receiving 'on_extract' callback")
 
-        self._archive_metadata["s3_path"] = broker["original_path"]
         if isinstance(extraction, tarfile.TarFile):
             self.on_extract_with_tarfile(extraction)
 
