@@ -125,7 +125,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         # Archive type used in the metrics is set within on_extract, as we need
         # to extract the archive in order to know that information
         # TODO: Change to archive metadata dict, with archive type and archive size
-        self._archive_metadata = {"type": "ocp", "size": 0}
+        self._archive_metadata = {"type": "ocp", "size": 0, "s3_path": ""}
 
         self._initialize_metrics_with_labels()
 
@@ -152,6 +152,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         """On extract event handler for extractor using engines."""
         LOG.debug("Receiving 'on_extract' callback")
 
+        self._archive_metadata["s3_path"] = broker["original_path"]
         if isinstance(extraction, tarfile.TarFile):
             self.on_extract_with_tarfile(extraction)
 
@@ -192,6 +193,12 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
                 self._gathering_conditions_remote_configuration_version.labels(version).inc()
         except FileNotFoundError:
             LOG.debug("this archive didn't use remote-configurations")
+        except KeyError:
+            LOG.warn(
+                f"archive {self._archive_metadata['s3_path']} doesn't have "
+                "a version in the remote-configuration"
+            )
+            self._gathering_conditions_remote_configuration_version.labels("None").inc()
         except Exception as e:
             LOG.error("cannot read remote-configuration.json", exc_info=e)
 
@@ -267,6 +274,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         """Reset the cached archive metadata."""
         self._archive_metadata["type"] = "ocp"
         self._archive_metadata["size"] = 0
+        self._archive_metadata["s3_path"] = ""
 
     def _initialize_metrics_with_labels(self):
         """Initialize Prometheus metrics that have at least one label.
