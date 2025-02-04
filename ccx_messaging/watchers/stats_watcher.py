@@ -200,7 +200,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         except FileNotFoundError:
             LOG.debug("this archive didn't use remote-configurations")
         except KeyError:
-            LOG.warn(
+            LOG.warning(
                 f"archive {self._archive_metadata['s3_path']} doesn't have "
                 "a version in the remote-configuration"
             )
