@@ -140,7 +140,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         self._start_time = time.time()
         self._reset_times()
         self._reset_archive_metadata()
-        
+
         if "path" in input_msg:
             self._archive_metadata["s3_path"] = input_msg["path"]
         elif "url" in input_msg:
