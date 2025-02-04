@@ -13,6 +13,7 @@ from confluent_kafka import (
     TIMESTAMP_NOT_AVAILABLE,
 )
 from insights import dr
+from insights.core.exceptions import InvalidContentType
 from insights_messaging.consumers import Consumer
 
 from ccx_messaging.error import CCXMessagingError
@@ -196,6 +197,10 @@ class KafkaConsumer(Consumer):
 
             # Core Messaging process
             self.process(value)
+
+        except InvalidContentType as ex:
+            LOG.warning("The archive cannot be processed by Insights: %s", ex)
+            self.process_dead_letter(msg)
 
         except CCXMessagingError as ex:
             LOG.warning(

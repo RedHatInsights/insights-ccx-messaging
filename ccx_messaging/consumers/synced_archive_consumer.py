@@ -6,6 +6,7 @@ from typing import Any
 
 from confluent_kafka import Message, KafkaException
 from insights import dr
+from insights.core.exceptions import InvalidContentType
 from insights_messaging.consumers import Consumer
 
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
@@ -39,6 +40,10 @@ class SyncedArchiveConsumer(KafkaConsumer):
             value = self.deserialize(msg)
             # Core Messaging process
             self.process(value)
+
+        except InvalidContentType as ex:
+            LOG.warning("The archive cannot be processed by Insights: %s", ex)
+            self.process_dead_letter(msg)
 
         except CCXMessagingError as ex:
             LOG.warning(
