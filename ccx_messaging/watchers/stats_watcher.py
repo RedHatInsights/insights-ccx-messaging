@@ -144,7 +144,10 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         if "path" in input_msg:
             self._archive_metadata["s3_path"] = input_msg["path"]
         elif "url" in input_msg:
-            self._archive_metadata["s3_path"] = input_msg["url"]
+            # this means we are consuming directly from ingress (external
+            # pipeline), so printing the URL would include some short-live
+            # credentials used to access the archive. It's a risk to log this
+            pass
         else:
             LOG.error(f"message has no S3 path: {input_msg}")
 
