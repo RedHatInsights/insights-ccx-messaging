@@ -1,6 +1,7 @@
 """Kafka consumer implementation using Confluent Kafka library."""
 
 import logging
+import pkg_resources
 import time
 from datetime import datetime
 from threading import Thread
@@ -93,6 +94,13 @@ class KafkaConsumer(Consumer):
 
         if self.dead_letter_queue_topic is not None:
             self.dlq_producer = Producer(kafka_producer_config_cleanup(kwargs))
+
+        try:
+            self.ocp_rules_version = pkg_resources.get_distribution("ccx_rules_ocp").version
+
+        except pkg_resources.DistributionNotFound:
+            logging.info("No OCP rules package is installed.")
+            self.ocp_rules_version = None
 
     def get_url(self, input_msg: dict) -> str:
         """Retrieve URL to storage (S3/Minio) from Kafka message.
@@ -187,6 +195,10 @@ class KafkaConsumer(Consumer):
             return
 
         try:
+            if self.ocp_rules_version:
+                logging.info(
+                    "Processing message using OCP rules version %s", self.ocp_rules_version
+                )
             # Deserialize
             value = self.deserialize(msg)
 
