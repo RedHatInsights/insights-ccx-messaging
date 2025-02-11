@@ -78,3 +78,59 @@ ARCHIVE_SYNCED_SCHEMA = {
     },
     "required": ["path", "metadata"],
 }
+
+RULES_RESULTS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "path": {"type": "string"},
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "cluster_id": {"type": "string"},
+                "external_organization": {"type": "string"},
+            },
+            "required": ["cluster_id"],
+        },
+        "report": {
+            "type": "object",
+            "properies": {
+                "system": {"type": "object"},
+                "reports": {
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "rule_id": {"type": "string"},
+                            "component": {"type": "string"},
+                            "type": {"type": "string"},
+                            "key": {"type": "string"},
+                            "details": {
+                                "type": "object",
+                                "properties": {
+                                    "type": {"type": "string"},
+                                    "error_key": {"type": "string"}
+                                }
+                            },
+                            "tags": {"type": "array"},
+                            "links": {"type": "object"},
+                        },
+                        "required": ["rule_id", "component", "type", "key", "details", "tags", "links"]
+                    },
+                    "type": "array",
+                },
+                "skips": {
+                    "type": "object",
+                    "properties": {
+                        "rule_fqdn": {"type": "string"},
+                        "reason": {"type": "string"},
+                        "details": {"type": "string"},
+                        "type": {"type": "string"},
+                    },
+                    "required": ["rule_fqdn", "reason", "details", "type"],
+                },
+                "pass": {"type": "array"},
+                "info": {"type": "array"},
+            }
+        }
+    },
+    "required": ["path", "metadata", "report"],
+}
