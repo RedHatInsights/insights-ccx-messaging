@@ -1,7 +1,7 @@
 """Kafka consumer implementation using Confluent Kafka library."""
 
+import importlib.metadata
 import logging
-import pkg_resources
 import time
 from datetime import datetime
 from threading import Thread
@@ -96,9 +96,9 @@ class KafkaConsumer(Consumer):
             self.dlq_producer = Producer(kafka_producer_config_cleanup(kwargs))
 
         try:
-            self.ocp_rules_version = pkg_resources.get_distribution("ccx_rules_ocp").version
+            self.ocp_rules_version = importlib.metadata.version("ccx-rules-ocp")
 
-        except pkg_resources.DistributionNotFound:
+        except importlib.metadata.PackageNotFoundError:
             logging.info("No OCP rules package is installed.")
             self.ocp_rules_version = None
 

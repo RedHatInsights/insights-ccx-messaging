@@ -36,6 +36,12 @@ def print_version() -> None:
         sys.argv[0],
         importlib.metadata.version("ccx-messaging"),
     )
+    try:
+        ocp_rules_version = importlib.metadata.version("ccx-rules-ocp")
+        logger.info("ccx-rules-ocp version: %s", ocp_rules_version)
+
+    except importlib.metadata.PackageNotFoundError:
+        pass
 
 
 def apply_config(config) -> int:
