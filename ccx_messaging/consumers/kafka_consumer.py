@@ -269,8 +269,13 @@ class KafkaConsumer(Consumer):
         broker = dr.Broker()
 
         # Some engines expect some data for its own usage, like the following:
+        # (NOTE: The fields should be always present because of schema validation
+        # done in the other method, default values are just a sanity check.)
         org_id = (
-            input_msg.get("identity", {}).get("identity").get("internal", {}).get("org_id", None)
+            input_msg.get("identity", {})
+            .get("identity", {})
+            .get("internal", {})
+            .get("org_id", None)
         )
         date = datetime.fromisoformat(input_msg.get("timestamp", "0"))
 
