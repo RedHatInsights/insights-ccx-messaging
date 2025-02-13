@@ -124,6 +124,13 @@ _VALID_MESSAGES = [
     ),
 ]
 
+_MESSAGE_WITHOUT_IDENTITY = {
+    "account": "12345678",
+    "url": "any/url",
+    "timestamp": "2020-01-23T16:15:59.478901889Z",
+    "cluster_name": None,
+}
+
 
 @pytest.mark.parametrize("msg,value", _VALID_MESSAGES)
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
@@ -492,15 +499,23 @@ def test_run_fail(consumer_init_mock):
     assert not sut.process_msg.called
 
 
-@pytest.mark.parametrize("_,deserialized_msg", _VALID_MESSAGES)
+@pytest.mark.parametrize(
+    "deserialized_msg", [msg[1] for msg in _VALID_MESSAGES] + [_MESSAGE_WITHOUT_IDENTITY]
+)
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
-def test_broker_creation(_, deserialized_msg):
+def test_broker_creation(deserialized_msg):
     """Check that create_broker returns the expected values."""
     sut = KafkaConsumer(None, None, None, "topic")
     broker = sut.create_broker(deserialized_msg)
 
     assert broker["original_path"] == deserialized_msg["url"]
-    assert broker["org_id"] == deserialized_msg["identity"]["identity"]["internal"]["org_id"]
+    identity = (
+        deserialized_msg.get("identity", {})
+        .get("identity", {})
+        .get("internal", {})
+        .get("org_id", None)
+    )
+    assert broker["org_id"] == identity
 
 
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
