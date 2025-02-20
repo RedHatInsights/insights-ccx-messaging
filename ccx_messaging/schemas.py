@@ -78,3 +78,20 @@ ARCHIVE_SYNCED_SCHEMA = {
     },
     "required": ["path", "metadata"],
 }
+
+RULES_RESULTS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "path": {"type": "string"},
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "cluster_id": {"type": "string"},
+                "external_organization": {"type": "string"},
+            },
+            "required": ["cluster_id"],
+        },
+        "report": {"type": "object"},
+    },
+    "required": ["path", "metadata", "report"],
+}
