@@ -27,15 +27,6 @@ log = logging.getLogger(__name__)
 BEST_COMPRESSION = 9
 
 
-def cleanup_input(input_msg: dict[str, Any]) -> None:
-    """Remove unneeded keys from the dictionary."""
-    allowed_keys = ["path", "cluster_id", "sqs_message_id"]
-
-    for key in list(input_msg.keys()):  # avoid dict iteration
-        if key not in allowed_keys:
-            del input_msg[key]
-
-
 class MultiplexorPublisher(Publisher):
     """A Kafka based publisher that sends the input message to the configured topics."""
 
@@ -85,9 +76,6 @@ class MultiplexorPublisher(Publisher):
 
     def publish(self, input_msg: dict[str, Any], response: set[str]) -> None:
         """Check to which topic should the `input_msg` be sent."""
-        # Clean up of the input_msg, removing the unwanted additions
-        cleanup_input(input_msg)
-
         for mark in response:
             topic = self.topics_mapping.get(mark)
             if not topic:

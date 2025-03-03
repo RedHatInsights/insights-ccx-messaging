@@ -18,7 +18,7 @@ import json
 import gzip
 from unittest.mock import call, MagicMock
 
-from ccx_messaging.publishers.multiplexor_kafka_publisher import cleanup_input, MultiplexorPublisher
+from ccx_messaging.publishers.multiplexor_kafka_publisher import MultiplexorPublisher
 
 
 BEST_COMPRESSION = 9
@@ -122,18 +122,3 @@ def test_with_unknown_marks():
 
     pub.publish(INPUT_MSG, set())
     pub.producer.produce.assert_not_called()
-
-
-def test_cleanup():
-    """Check that the cleanup method removes the expected keys."""
-    input_msg = {
-        "path": "a/path",
-        "cluster_id": "whatever",
-        "topic": "nexttopic",
-        "offset": 10,
-    }
-
-    cleanup_input(input_msg)
-    assert "topic" not in input_msg
-    assert "offset" not in input_msg
-    assert "partition" not in input_msg
