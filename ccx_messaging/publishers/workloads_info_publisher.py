@@ -103,14 +103,6 @@ class WorkloadInfoPublisher(KafkaPublisher):
                 output_msg["Version"],
             )
 
-            log.debug(
-                "Status: Success; Topic: %s; Partition: %s; Offset: %s; LastChecked: %s",
-                input_msg["topic"],
-                input_msg["partition"],
-                input_msg["offset"],
-                msg_timestamp,
-            )
-
         except (KeyError, TypeError, UnicodeEncodeError, JSONDecodeError) as err:
             log.warning("Error encoding the response to publish: %s", message)
             raise CCXMessagingError("Error encoding the response to publish") from err

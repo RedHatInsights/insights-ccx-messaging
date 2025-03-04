@@ -41,10 +41,3 @@ class SyncedArchivePublisher(KafkaPublisher):
             output_msg["original_path"],
             output_msg["metadata"],
         )
-
-        LOG.debug(
-            "Status: Success; Topic: %s; Partition: %s; Offset: %s; ",
-            input_msg.get("topic"),
-            input_msg.get("partition"),
-            input_msg.get("offset"),
-        )

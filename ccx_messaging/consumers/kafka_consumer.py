@@ -111,9 +111,8 @@ class KafkaConsumer(Consumer):
         try:
             url = input_msg["url"]
             LOG.debug(
-                "Extracted URL from input message: %s (%s)",
+                "Extracted URL from input message: %s",
                 url,
-                get_stringfied_record(input_msg),
             )
             return url
 
@@ -199,11 +198,6 @@ class KafkaConsumer(Consumer):
                 LOG.info("Processing message using OCP rules version %s", self.ocp_rules_version)
             # Deserialize
             value = self.deserialize(msg)
-
-            # Enrich the deserialized message with some context info
-            value["topic"] = msg.topic()
-            value["partition"] = msg.partition()
-            value["offset"] = msg.offset()
 
             # Core Messaging process
             self.process(value)
@@ -302,11 +296,3 @@ class KafkaConsumer(Consumer):
             self.dead_letter_queue_topic,
             msg.value(),
         )
-
-
-def get_stringfied_record(input_record: dict) -> str:
-    """Retrieve a string with information about the received record ready to log."""
-    return (
-        f"topic: '{input_record.get('topic')}', partition: {input_record.get('partition')}, "
-        f"offset: {input_record.get('offset')}, timestamp: {input_record.get('timestamp')}"
-    )
