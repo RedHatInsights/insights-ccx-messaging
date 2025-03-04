@@ -86,10 +86,3 @@ class DVOMetricsPublisher(KafkaPublisher):
             output_msg["AccountNumber"],
             output_msg["ClusterName"],
         )
-
-        log.debug(
-            "Status: Success; Topic: %s; Partition: %s; Offset: %s; ",
-            input_msg.get("topic"),
-            input_msg.get("partition"),
-            input_msg.get("offset"),
-        )

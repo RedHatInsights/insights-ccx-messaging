@@ -377,21 +377,10 @@ def test_process_msg_not_handled():
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
 @patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.handles", lambda *a, **k: True)
 @patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.fire", lambda *a, **k: None)
-@patch(
-    "ccx_messaging.consumers.kafka_consumer.get_stringfied_record",
-    lambda *a, **k: None,
-)
 def test_process_msg_handled(value, expected):
     """Check if `process_msg` behaves as expected."""
     sut = KafkaConsumer(None, None, None, None)
     input_msg = KafkaMessage(value)
-    expected.update(
-        {
-            "topic": input_msg.topic(),
-            "partition": input_msg.partition(),
-            "offset": input_msg.offset(),
-        }
-    )
 
     with patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process") as process_mock:
         sut.process_msg(input_msg)
@@ -402,10 +391,6 @@ def test_process_msg_handled(value, expected):
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
 @patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.handles", lambda *a, **k: True)
 @patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.fire", lambda *a, **k: None)
-@patch(
-    "ccx_messaging.consumers.kafka_consumer.get_stringfied_record",
-    lambda *a, **k: None,
-)
 def test_non_processed_to_dlq(value, expected):
     """Check that, if in some point an exception is raised, DLQ will handle it."""
     sut = KafkaConsumer(None, None, None, None)

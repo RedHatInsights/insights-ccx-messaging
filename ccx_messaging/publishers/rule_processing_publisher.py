@@ -134,14 +134,6 @@ class RuleProcessingPublisher(KafkaPublisher):
                 output_msg["Version"],
             )
 
-            log.debug(
-                "Status: Success; Topic: %s; Partition: %s; Offset: %s; LastChecked: %s",
-                input_msg.get("topic"),
-                input_msg.get("partition"),
-                input_msg.get("offset"),
-                msg_timestamp,
-            )
-
         except KeyError as err:
             raise CCXMessagingError("Missing expected keys in the input message") from err
 
