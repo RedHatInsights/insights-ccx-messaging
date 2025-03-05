@@ -152,6 +152,9 @@ objects:
       - replicas: 3  # TODO needed?
         partitions: 1  # TODO needed?
         topicName: ${PAYLOAD_TRACKER_TOPIC}
+      - replicas: 1  # TODO find right param
+        partitions: 1  # TODO find right param
+        topicName: ${KAFKA_OUTGOING_TOPIC}
 
 - kind: ConfigMap
   apiVersion: v1
@@ -193,7 +196,10 @@ objects:
             dest_bucket: ${TARGET_S3_BUCKET}
             archives_path_prefix: archives/compressed
         publisher:
-          name: insights_messaging.publishers.Publisher
+          name: ccx_messaging.publishers.rule_processing_publisher.RuleProcessingPublisher
+          kwargs:
+            outgoing_topic: ${KAFKA_OUTGOING_TOPIC}
+            bootstrap.servers: ${KAFKA_CONSUMER_SERVER}
         watchers:
           - name: ccx_messaging.watchers.stats_watcher.StatsWatcher
             kwargs:
@@ -274,6 +280,9 @@ parameters:
 
 - name: KAFKA_INCOMING_TOPIC
   value: platform.upload.announce
+  required: true
+- name: KAFKA_OUTGOING_TOPIC
+  value: ccx.archive.synced
   required: true
 - name: KAFKA_DEAD_LETTER_QUEUE_TOPIC
   value: ccx.archive.sync.dead.letter.queue
