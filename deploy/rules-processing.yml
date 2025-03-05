@@ -1,0 +1,279 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: rules-processing
+objects:
+  - apiVersion: cloud.redhat.com/v1alpha1
+    kind: ClowdApp
+    metadata:
+      name: rules-processing
+    spec:
+      envName: ${ENV_NAME}
+      testing:
+        iqePlugin: ccx
+      dependencies:
+        - ingress
+      objectStore:
+        - ${SOURCE_S3_BUCKET}
+      deployments:
+        - name: instance
+          minReplicas: ${{MIN_REPLICAS}}
+          maxReplicas: ${{MAX_REPLICAS}}
+          webServices:
+            public:
+              enabled: false
+            private:
+              enabled: false
+            metrics:
+              enabled: true
+          podSpec:
+            image: ${IMAGE}:pr-438-latest
+            command: ["ccx-messaging"]
+            args: ["/data/config.yaml"]
+            env:
+              - name: CLOWDER_ENABLED
+                value: ${CLOWDER_ENABLED}
+              - name: KAFKA_SYNCED_TOPIC
+                value: ${KAFKA_SYNCED_TOPIC}
+              - name: KAFKA_GROUP_ID
+                value: ${KAFKA_GROUP_ID}
+              - name: KAFKA_RULES_TOPIC
+                value: ${KAFKA_RULES_TOPIC}
+              - name: SOURCE_S3_ACCESS_KEY
+                value: ${SOURCE_S3_ACCESS_KEY}
+              - name: SOURCE_S3_SECRET_KEY
+                value: ${SOURCE_S3_SECRET_KEY}
+
+              # S3 Configuration: secrets are populated by Clowder
+              - name: SOURCE_S3_BUCKET
+                value: ${SOURCE_S3_BUCKET}
+            
+              # Sentry configuration
+              #- name: SENTRY_DSN
+              #  value: ${SENTRY_DSN}
+              #- name: SENTRY_ENVIRONMENT
+              #  value: ${SENTRY_ENVIRONMENT}              
+              #- name: SENTRY_CATCH_WARNINGS
+              #  value: ${SENTRY_CATCH_WARNINGS}
+
+            volumeMounts:
+              - mountPath: /data
+                name: rules-processing-config
+            volumes:
+              - configMap:
+                  name: rules-processing-config-map
+                name: rules-processing-config
+            resources:
+              requests:
+                cpu: ${CPU_REQUEST}
+                memory: ${MEMORY_REQUEST}
+              limits:
+                cpu: ${CPU_LIMIT}
+                memory: ${MEMORY_LIMIT}
+
+            readinessProbe:
+              httpGet:
+                path: /health
+                port: 8080
+                scheme: HTTP
+              initialDelaySeconds: 10
+              periodSeconds: 10
+              timeoutSeconds: 5
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 8080
+                scheme: HTTP
+              initialDelaySeconds: 20
+              periodSeconds: 10
+              timeoutSeconds: 5
+            startupProbe:
+              httpGet:
+                path: /health
+                port: 8080
+                scheme: HTTP
+              initialDelaySeconds: 30
+              periodSeconds: 10
+              timeoutSeconds: 5
+
+      kafkaTopics: 
+      - name: synced-topic
+        topicName: ${KAFKA_SYNCED_TOPIC}
+        replicas: 3
+        partitions: 1
+      - name: rules-topic
+        topicName: ${KAFKA_RULES_TOPIC}
+        replicas: 3
+        partitions: 1
+
+      
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: rules-processing-config-map
+      labels:
+        app: rules-processing
+    data:
+      config.yaml: |-
+        plugins:
+          packages:
+            - ccx_messaging
+        service:
+          extract_timeout:
+          extract_tmp_dir:
+          format: insights.formats._json.JsonFormat
+          target_components: []
+          unpacked_archive_size_limit: 1000000000
+          consumer:
+            name: ccx_messaging.consumers.synced_archive_consumer.SyncedArchiveConsumer
+            kwargs:
+                incoming_topic: ${KAFKA_SYNCED_TOPIC}
+                group.id: ${KAFKA_GROUP_ID}
+                bootstrap.servers: ${CLOWDER_KAFKA_BROKERS}
+                security.protocol: ${KAFKA_SECURITY_PROTOCOL}
+                sasl.mechanism: ${KAFKA_SASL_MECHANISM}
+                sasl.username: ${KAFKA_CLIENT_ID}
+                sasl.password: ${KAFKA_CLIENT_SECRET}
+
+          downloader:
+            name: ccx_messaging.downloaders.s3_downloader.S3Downloader
+            kwargs:
+              access_key: ${SOURCE_S3_ACCESS_KEY}
+              secret_key: ${SOURCE_S3_SECRET_KEY}
+              endpoint_url: ${SOURCE_S3_URL}
+              bucket: ${SOURCE_S3_BUCKET}
+          engine:
+            kwargs: {}
+
+          publisher:
+            name: ccx_messaging.publishers.idp_rule_processing_publisher.IDPRuleProcessingPublisher
+            kwargs:
+              outgoing_topic: ${KAFKA_RULES_TOPIC}
+              bootstrap.servers: ${KAFKA_PRODUCER_URL}
+              security.protocol: ${KAFKA_PRODUCER_SECURITY_PROTOCOL}
+              sasl.mechanism: ${KAFKA_PRODUCER_SASL_MECHANISM}
+              sasl.username: ${KAFKA_PRODUCER_CLIENT_ID}
+              sasl.password: ${KAFKA_PRODUCER_CLIENT_SECRET}
+
+          watchers:
+            - name: ccx_messaging.watchers.stats_watcher.StatsWatcher
+              kwargs:
+                prometheus_port: 8001
+
+          logging:
+            version: 1
+            disable_existing_loggers: false
+            handlers:
+              default:
+                level: ${STDOUT_LOG_LEVEL:INFO}
+                class: logging.StreamHandler
+                stream: ext://sys.stdout
+                formatter: default
+
+            formatters:
+              default:
+                format: '%(asctime)s %(name)s %(levelname)-8s %(message)s'
+                datefmt: '%Y-%m-%d %H:%M:%S'
+
+            root:
+              level: WARNING
+              handlers:
+                - default
+
+            loggers:
+              ccx_messaging:
+                level: DEBUG
+
+              insights_messaging:
+                level: WARNING
+
+              insights:
+                level: WARNING
+
+              kafka:
+                level: ${KAFKA_CLIENT_LOGLEVEL:INFO}
+  - kind: Service
+    apiVersion: v1
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8000"
+        prometheus.io/scheme: http
+        prometheus.io/scrape: "true"
+      name: rules-prometheus-exporter
+      labels:
+        app: rules-processing
+    spec:
+      ports:
+        - name: rules-processing-port-metrics
+          port: 8001
+          protocol: TCP
+          targetPort: 8001
+      selector:
+        app: rules-processing
+        
+parameters:
+  - description: Image name
+    name: IMAGE
+    value: quay.io/cloudservices/ccx-messaging
+
+  - description: Determines Clowder deployment
+    name: CLOWDER_ENABLED
+    value: "true"
+  - description: ClowdEnv Name
+    name: ENV_NAME
+    required: true
+
+  - name: IMAGE_TAG
+    value: "pr-438-latest"
+
+  - name: MIN_REPLICAS
+    description: Minimum number of pods to use when autoscaling is enabled
+    value: "1"
+  - name: MAX_REPLICAS
+    description: Maximum number of pods to use when autoscaling is enabled
+    value: "1"
+
+  - name: KAFKA_SYNCED_TOPIC
+    description: ""
+    value: "s3-archive-synced"
+  - name: KAFKA_GROUP_ID
+    description: ""
+    value: "s3-rules-processing-service"
+  - name : KAFKA_RULES_TOPIC
+    description: ""
+    value: "s3-insights-rules-results"
+
+  - name: SOURCE_S3_BUCKET
+    description: "Target S3 bucket for object store configuration"
+    value: "source-bucket"
+
+  - name: CPU_LIMIT
+    value: "1000m"
+  - name: MEMORY_LIMIT
+    value: "1000Mi"
+  - name: CPU_REQUEST
+    value: "700m"
+  - name: MEMORY_REQUEST
+    value: "600Mi"
+  
+  - name: LOGLEVEL_CCX_MESSAGING
+    value: "DEBUG"
+  - name: LOGLEVEL_INSIGHTS_MESSAGING
+    value: "DEBUG"
+  - name: LOGLEVEL_INSIGHTS
+    value: "WARNING"
+  - name: LOGLEVEL_KAFKA
+    value: "INFO"
+  - name: LOGLEVEL_STDOUT
+    value: "DEBUG"
+  - name: LOGLEVEL_ROOT
+    value: "WARNING"
+
+  - name: CLOUDWATCH_DEBUG
+    value: "false"
+    required: true
+  - name: CW_LOG_STREAM
+    value: "rules-processing"
+  - name: ALLOW_UNSAFE_LINKS
+    value: ""
