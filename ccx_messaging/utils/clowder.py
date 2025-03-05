@@ -119,7 +119,7 @@ def _add_buckets_config(config):
     buckets = app_common_python.ObjectBuckets
     common_config = app_common_python.LoadedConfig.objectStore
     if not common_config:
-        logger.warning("The clowder configuration doesn't provide object buckets configuration")
+        print("The clowder configuration doesn't provide object buckets configuration")
         return
 
     prefix = "https://" if common_config.tls else "http://"
@@ -127,11 +127,11 @@ def _add_buckets_config(config):
     engine_config = config["service"]["engine"]["kwargs"]
     target_bucket = engine_config.get("dest_bucket")
 
-    logger.info("Target bucket: %s", target_bucket)
+    print("Target bucket: %s", target_bucket)
     if target_bucket in buckets:
         bucket_config = buckets[target_bucket]
         engine_config["access_key"] = bucket_config.accessKey
         engine_config["secret_key"] = bucket_config.secretKey
         engine_config["endpoint"] = f"{prefix}{common_config.hostname}"
     else:
-        logger.warning("The target bucket %s wasn't found among the Clowder buckets", target_bucket)
+        print("The target bucket %s wasn't found among the Clowder buckets", target_bucket)
