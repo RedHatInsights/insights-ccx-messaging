@@ -492,6 +492,7 @@ def test_broker_creation(deserialized_msg):
     """Check that create_broker returns the expected values."""
     sut = KafkaConsumer(None, None, None, "topic")
     broker = sut.create_broker(deserialized_msg)
+    msg_timestamp = datetime.datetime.fromisoformat(deserialized_msg["timestamp"])
 
     assert broker["original_path"] == deserialized_msg["url"]
     identity = (
@@ -501,6 +502,15 @@ def test_broker_creation(deserialized_msg):
         .get("org_id", None)
     )
     assert broker["org_id"] == identity
+    assert broker["year"] == f"{msg_timestamp.year:04}"
+    assert broker["month"] == f"{msg_timestamp.month:02}"
+    assert broker["day"] == f"{msg_timestamp.day:02}"
+    assert broker["hour"] == f"{msg_timestamp.hour:02}"
+    assert broker["minute"] == f"{msg_timestamp.minute:02}"
+    assert broker["second"] == f"{msg_timestamp.second:02}"
+    assert broker["time"] == (
+        f"{msg_timestamp.hour:02}{msg_timestamp.minute:02}{msg_timestamp.second:02}"
+    )
 
 
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())

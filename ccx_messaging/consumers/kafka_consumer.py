@@ -276,13 +276,13 @@ class KafkaConsumer(Consumer):
         broker["org_id"] = org_id
         broker["cluster_id"] = input_msg["cluster_name"]
         broker["original_path"] = input_msg["url"]
-        broker["year"] = date.year
-        broker["month"] = date.month
-        broker["day"] = date.day
-        broker["time"] = f"{date.hour}:{date.minute}:{date.second}"
-        broker["hour"] = date.hour
-        broker["minute"] = date.minute
-        broker["second"] = date.second
+        broker["year"] = f"{date.year:04}"
+        broker["month"] = f"{date.month:02}"
+        broker["day"] = f"{date.day:02}"
+        broker["hour"] = f"{date.hour:02}"
+        broker["minute"] = f"{date.minute:02}"
+        broker["second"] = f"{date.second:02}"
+        broker["time"] = f"{date.hour:02}{date.minute:02}{date.second:02}"
 
         return broker
 
