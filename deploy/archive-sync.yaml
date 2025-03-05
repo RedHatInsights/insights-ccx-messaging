@@ -184,12 +184,10 @@ objects:
             heartbeat.interval.ms: 10000
             session.timeout.ms: 20000
             dead_letter_queue_topic: ${KAFKA_DEAD_LETTER_QUEUE_TOPIC}
-
         downloader:
           name: ccx_messaging.downloaders.http_downloader.HTTPDownloader
           kwargs:
             allow_unsafe_links: ${ALLOW_UNSAFE_LINKS}
-
         engine:
           name: ccx_messaging.engines.s3_upload_engine.S3UploadEngine
           kwargs:
@@ -207,8 +205,6 @@ objects:
               prometheus_port: 8000
               bootstrap.servers: ${KAFKA_CONSUMER_SERVER}
               topic: ${PAYLOAD_TRACKER_TOPIC}
-
-
         logging:
           version: 1
           disable_existing_loggers: false
@@ -218,27 +214,21 @@ objects:
               class: logging.StreamHandler
               stream: ext://sys.stdout
               formatter: default
-
           formatters:
             default:
               format: '%(asctime)s %(name)s %(levelname)-8s %(message)s'
               datefmt: '%Y-%m-%d %H:%M:%S'
-
           root:
             level: ${LOGLEVEL_ROOT}
             handlers:
               - default
-
           loggers:
             ccx_messaging:
               level: ${LOGLEVEL_CCX_MESSAGING}
-
             insights_messaging:
               level: ${LOGLEVEL_INSIGHTS_MESSAGING}
-
             insights:
               level: ${LOGLEVEL_INSIGHTS}
-
             kafka:
               level: ${LOGLEVEL_KAFKA}
 
