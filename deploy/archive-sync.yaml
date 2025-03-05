@@ -12,13 +12,11 @@ objects:
     envName: ${ENV_NAME}
     objectStore:
       - ${TARGET_S3_BUCKET}
-    testing:
-      iqePlugin: ccx
-    dependencies:
-      - ingress
+#    testing:
+#      iqePlugin: ccx
     deployments:
       - name: instance
-        minReplicas: ${{MIN_REPLICAS}}
+        replicas: ${{MIN_REPLICAS}}
         webServices:
           public:
             enabled: false
@@ -26,6 +24,12 @@ objects:
             enabled: false
           metrics:
             enabled: true
+        autoScalerSimple:  # TODO check is working
+          replicas:
+            min: ${{MIN_REPLICAS}}
+            max: ${{MAX_REPLICAS}}
+          cpu:
+            scaleAtUtilization: 75
         podSpec:
           image: ${IMAGE}:${IMAGE_TAG}
           command: ["ccx-messaging"]
@@ -91,19 +95,8 @@ objects:
                   name: cloudwatch
                   key: aws_secret_access_key
                   optional: true
-
-            - name: LOGLEVEL_CCX_MESSAGING
-              value: ${LOGLEVEL_CCX_MESSAGING}
-            - name: LOGLEVEL_INSIGHTS_MESSAGING
-              value: ${LOGLEVEL_INSIGHTS_MESSAGING}
-            - name: LOGLEVEL_INSIGHTS
-              value: ${LOGLEVEL_INSIGHTS}
-            - name: LOGLEVEL_KAFKA
-              value: ${LOGLEVEL_KAFKA}
-            - name: LOGLEVEL_STDOUT
-              value: ${LOGLEVEL_STDOUT}
-            - name: LOGLEVEL_ROOT
-              value: ${LOGLEVEL_ROOT}
+            - name: PYTHONUNBUFFERED  # TODO needed?
+              value: "1"
           readinessProbe:
             httpGet:
               path: /metrics
@@ -150,14 +143,14 @@ objects:
               memory: ${MEMORY_LIMIT}
 
     kafkaTopics:
-      - replicas: 16
-        partitions: 3
+      - replicas: 16  # TODO needed?
+        partitions: 3  # TODO needed?
         topicName: ${KAFKA_INCOMING_TOPIC}
       - replicas: 1
         partitions: 1
         topicName: ${KAFKA_DEAD_LETTER_QUEUE_TOPIC}
-      - replicas: 3
-        partitions: 1
+      - replicas: 3  # TODO needed?
+        partitions: 1  # TODO needed?
         topicName: ${PAYLOAD_TRACKER_TOPIC}
 
 - kind: ConfigMap
@@ -172,8 +165,8 @@ objects:
         packages:
         - ccx_messaging
       service:
-        extract_timeout: ${EXTRACT_TIMEOUT}
-        extract_tmp_dir: ${EXTRACT_TMP_DIR}
+        extract_timeout:
+        extract_tmp_dir:
         format: insights.formats._json.JsonFormat
         target_components: []
         consumer:
@@ -211,7 +204,7 @@ objects:
           disable_existing_loggers: false
           handlers:
             default:
-              level: ${LOGLEVEL_STDOUT:INFO}
+              level: ${LOGLEVEL_STDOUT}
               class: logging.StreamHandler
               stream: ext://sys.stdout
               formatter: default
@@ -222,22 +215,22 @@ objects:
               datefmt: '%Y-%m-%d %H:%M:%S'
 
           root:
-            level: ${LOGLEVEL_ROOT:WARNING}
+            level: ${LOGLEVEL_ROOT}
             handlers:
               - default
 
           loggers:
             ccx_messaging:
-              level: ${LOGLEVEL_CCX_MESSAGING:DEBUG}
+              level: ${LOGLEVEL_CCX_MESSAGING}
 
             insights_messaging:
-              level: ${LOGLEVEL_INSIGHTS_MESSAGING:DEBUG}
+              level: ${LOGLEVEL_INSIGHTS_MESSAGING}
 
             insights:
-              level: ${LOGLEVEL_INSIGHTS:WARNING}
+              level: ${LOGLEVEL_INSIGHTS}
 
             kafka:
-              level: ${LOGLEVEL_KAFKA:INFO}
+              level: ${LOGLEVEL_KAFKA}
 
 - kind: Service
   apiVersion: v1
@@ -275,15 +268,12 @@ parameters:
 - description: Minimum number of pods to use when autoscaling is enabled
   name: MIN_REPLICAS
   value: '1'
-- description: Minimum number of pods to use when autoscaling is enabled
+- description: Maximum number of pods to use when autoscaling is enabled
   name: MAX_REPLICAS
-  value: '1'
+  value: '8'
 
 - name: KAFKA_INCOMING_TOPIC
   value: platform.upload.announce
-  required: true
-- name: KAFKA_SYNCED_TOPIC
-  value: eph-archive-synced
   required: true
 - name: KAFKA_DEAD_LETTER_QUEUE_TOPIC
   value: ccx.archive.sync.dead.letter.queue
@@ -292,10 +282,10 @@ parameters:
   value: platform.payload-status
   required: true
 - name: KAFKA_GROUP_ID
-  value: archive_sync_app
+  value: archive_sync_app  # TODO update for ols
   required: true
 - name: KAFKA_CONSUMER_SERVER
-  description: External data pipeline Kafka
+  description: App-SRE Kafka
   value: mq-kafka:29092
   required: true
 - description: Service name for filtering received Kafka message from announce topic
