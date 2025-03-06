@@ -132,6 +132,6 @@ def _add_buckets_config(config):
         bucket_config = buckets[target_bucket]
         engine_config["access_key"] = bucket_config.accessKey
         engine_config["secret_key"] = bucket_config.secretKey
-        engine_config["endpoint"] = f"{prefix}{common_config.hostname}"
+        engine_config["endpoint"] = f"{prefix}{common_config.hostname}:{common_config.port}"
     else:
         print("The target bucket %s wasn't found among the Clowder buckets", target_bucket)
