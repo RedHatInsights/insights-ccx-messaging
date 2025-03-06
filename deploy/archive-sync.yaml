@@ -204,7 +204,6 @@ objects:
               prometheus_port: 8000
           - name: ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher
             kwargs:
-              prometheus_port: 8000
               bootstrap.servers: ${KAFKA_CONSUMER_SERVER}
               topic: ${PAYLOAD_TRACKER_TOPIC}
         logging:
