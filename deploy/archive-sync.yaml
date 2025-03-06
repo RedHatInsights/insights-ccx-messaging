@@ -144,9 +144,6 @@ objects:
 
     kafkaTopics:
       - topicName: ${KAFKA_INCOMING_TOPIC}
-      - topicName: ${KAFKA_DEAD_LETTER_QUEUE_TOPIC}
-        replicas: 1
-        partitions: 1
       - topicName: ${PAYLOAD_TRACKER_TOPIC}
         partitions: 1
       - topicName: ${KAFKA_OUTGOING_TOPIC}
@@ -178,7 +175,6 @@ objects:
             max.poll.interval.ms: 600000
             heartbeat.interval.ms: 10000
             session.timeout.ms: 20000
-            dead_letter_queue_topic: ${KAFKA_DEAD_LETTER_QUEUE_TOPIC}
         downloader:
           name: ccx_messaging.downloaders.http_downloader.HTTPDownloader
           kwargs:
@@ -273,9 +269,6 @@ parameters:
   required: true
 - name: KAFKA_OUTGOING_TOPIC
   value: ccx.archive.synced
-  required: true
-- name: KAFKA_DEAD_LETTER_QUEUE_TOPIC
-  value: ccx.archive.sync.dead.letter.queue
   required: true
 - name: PAYLOAD_TRACKER_TOPIC
   value: platform.payload-status
