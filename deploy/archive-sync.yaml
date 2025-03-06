@@ -188,8 +188,8 @@ objects:
           kwargs:
             dest_bucket: ${TARGET_S3_BUCKET}
             archives_path_prefix: archives/compressed
-      publisher:
-        name: ccx_messaging.publishers.synced_archive_publisher.SyncedArchivePublisher
+        publisher:
+          name: ccx_messaging.publishers.synced_archive_publisher.SyncedArchivePublisher
           kwargs:
             outgoing_topic: ${KAFKA_OUTGOING_TOPIC}
             bootstrap.servers: ${KAFKA_CONSUMER_SERVER}
