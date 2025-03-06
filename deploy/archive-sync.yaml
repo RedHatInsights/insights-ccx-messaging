@@ -143,18 +143,13 @@ objects:
               memory: ${MEMORY_LIMIT}
 
     kafkaTopics:
-      - replicas: 16  # TODO needed?
-        partitions: 3  # TODO needed?
-        topicName: ${KAFKA_INCOMING_TOPIC}
-      - replicas: 1
+      - topicName: ${KAFKA_INCOMING_TOPIC}
+      - topicName: ${KAFKA_DEAD_LETTER_QUEUE_TOPIC}
+        replicas: 1
         partitions: 1
-        topicName: ${KAFKA_DEAD_LETTER_QUEUE_TOPIC}
-      - replicas: 3  # TODO needed?
-        partitions: 1  # TODO needed?
-        topicName: ${PAYLOAD_TRACKER_TOPIC}
-      - replicas: 1  # TODO find right param
-        partitions: 1  # TODO find right param
-        topicName: ${KAFKA_OUTGOING_TOPIC}
+      - topicName: ${PAYLOAD_TRACKER_TOPIC}
+        partitions: 1
+      - topicName: ${KAFKA_OUTGOING_TOPIC}
 
 - kind: ConfigMap
   apiVersion: v1
@@ -168,7 +163,7 @@ objects:
         packages:
         - ccx_messaging
       service:
-        extract_timeout:
+        extract_timeout:  # TODO validate
         extract_tmp_dir:
         format: insights.formats._json.JsonFormat
         target_components: []
@@ -286,7 +281,7 @@ parameters:
   value: platform.payload-status
   required: true
 - name: KAFKA_GROUP_ID
-  value: archive_sync_app  # TODO update for ols
+  value: archive_sync_app
   required: true
 - name: KAFKA_CONSUMER_SERVER
   description: App-SRE Kafka
