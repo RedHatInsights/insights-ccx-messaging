@@ -265,7 +265,7 @@ parameters:
   value: '8'
 
 - name: KAFKA_INCOMING_TOPIC
-  value: platform.upload.announce
+  value: ccx.new.archive.io
   required: true
 - name: KAFKA_OUTGOING_TOPIC
   value: ccx.archive.synced
