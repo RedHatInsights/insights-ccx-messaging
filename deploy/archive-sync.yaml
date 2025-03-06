@@ -200,6 +200,8 @@ objects:
             bootstrap.servers: ${KAFKA_CONSUMER_SERVER}
         watchers:
           - name: ccx_messaging.watchers.stats_watcher.StatsWatcher
+            kwargs:
+              prometheus_port: 8000
           - name: ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher
             kwargs:
               prometheus_port: 8000
