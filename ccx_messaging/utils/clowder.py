@@ -135,3 +135,16 @@ def _add_buckets_config(config):
         engine_config["endpoint"] = f"{prefix}{common_config.hostname}:{common_config.port}"
     else:
         print("The target bucket %s wasn't found among the Clowder buckets", target_bucket)
+
+    s3downloader_config = config.get("service", {}).get("downloader", {}).get("kwargs", {})
+    if s3downloader_config.get("name") == "ccx_messaging.downloaders.s3_downloader.S3Downloader":
+        source_bucket = s3downloader_config.get("bucket")
+
+        print("Source bucket: %s", source_bucket)
+        if source_bucket in buckets:
+            bucket_config = buckets[source_bucket]
+            s3downloader_config["access_key"] = bucket_config.accessKey
+            s3downloader_config["secret_key"] = bucket_config.secretKey
+            s3downloader_config["endpoint"] = (
+                f"{prefix}{common_config.hostname}:{common_config.port}"
+            )
