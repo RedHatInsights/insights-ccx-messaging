@@ -4,6 +4,7 @@ kind: Template
 metadata:
   name: archive-sync
 objects:
+
 - kind: HorizontalPodAutoscaler
   apiVersion: autoscaling/v1
   metadata:
