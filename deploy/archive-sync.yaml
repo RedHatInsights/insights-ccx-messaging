@@ -275,38 +275,28 @@ parameters:
 
 - name: KAFKA_INCOMING_TOPIC
   value: ccx.new.archive.io
-  required: true
 - name: KAFKA_OUTGOING_TOPIC
   value: ccx.archive.synced
-  required: true
 - name: PAYLOAD_TRACKER_TOPIC
   value: platform.payload-status
-  required: true
 - name: KAFKA_GROUP_ID
   value: archive_sync_app
-  required: true
 - name: KAFKA_CONSUMER_SERVER
   description: App-SRE Kafka
   value: mq-kafka:29092
-  required: true
 - description: Service name for filtering received Kafka message from announce topic
   name: KAFKA_PLATFORM_SERVICE
-  required: true
   value: openshift
 - name: KAFKA_CONSUMER_SECURITY_PROTOCOL
   value: SASL_SSL
-  required: true
 - name: KAFKA_CONSUMER_SASL_MECHANISM
   value: SCRAM-SHA-512
-  required: true
 
 - name: TARGET_S3_BUCKET
   value: ccx-bucket
-  required: true
 
 - name: CLOUDWATCH_DEBUG
   value: "false"
-  required: true
 - name: CW_LOG_STREAM
   value: "archive-sync"
 - name: ALLOW_UNSAFE_LINKS
