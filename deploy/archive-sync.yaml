@@ -4,6 +4,20 @@ kind: Template
 metadata:
   name: archive-sync
 objects:
+- kind: HorizontalPodAutoscaler
+  apiVersion: autoscaling/v1
+  metadata:
+    labels:
+      app: ccx-data-pipeline
+    name: archive-sync
+  spec:
+    minReplicas: ${{MIN_REPLICAS}}
+    maxReplicas: ${{MAX_REPLICAS}}
+    scaleTargetRef:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: archive-sync-instance
+    targetCPUUtilizationPercentage: 50
 - apiVersion: cloud.redhat.com/v1alpha1
   kind: ClowdApp
   metadata:
@@ -23,12 +37,6 @@ objects:
             enabled: false
           metrics:
             enabled: true
-        autoScalerSimple:  # TODO check is working
-          replicas:
-            min: ${{MIN_REPLICAS}}
-            max: ${{MAX_REPLICAS}}
-          cpu:
-            scaleAtUtilization: 75
         podSpec:
           image: ${IMAGE}:${IMAGE_TAG}
           command: ["ccx-messaging"]
