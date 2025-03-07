@@ -167,7 +167,7 @@ objects:
         packages:
         - ccx_messaging
       service:
-        extract_timeout:  # TODO validate
+        extract_timeout:
         extract_tmp_dir:
         format: insights.formats._json.JsonFormat
         target_components: []
