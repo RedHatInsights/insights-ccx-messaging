@@ -114,6 +114,7 @@ def _add_kafka_config(config):
             "It can cause errors",
         )
 
+
 def _update_bucket_config(bucket_name, configuration):
     buckets = app_common_python.ObjectBuckets
     common_config = app_common_python.LoadedConfig.objectStore
@@ -130,6 +131,7 @@ def _update_bucket_config(bucket_name, configuration):
         configuration["endpoint"] = f"{prefix}{common_config.hostname}:{common_config.port}"
     else:
         print("The bucket %s wasn't found among the Clowder buckets", bucket_name)
+
 
 def _add_buckets_config(config):
     # Handle engine config
