@@ -114,8 +114,7 @@ def _add_kafka_config(config):
             "It can cause errors",
         )
 
-
-def _add_buckets_config(config):
+def _update_bucket_config(bucket_name, configuration):
     buckets = app_common_python.ObjectBuckets
     common_config = app_common_python.LoadedConfig.objectStore
     if not common_config:
@@ -124,27 +123,20 @@ def _add_buckets_config(config):
 
     prefix = "https://" if common_config.tls else "http://"
 
-    engine_config = config.get("service", {}).get("engine", {}).get("kwargs", {})
-    target_bucket = engine_config.get("dest_bucket")
-
-    print("Target bucket: %s", target_bucket)
-    if target_bucket in buckets:
-        bucket_config = buckets[target_bucket]
-        engine_config["access_key"] = bucket_config.accessKey
-        engine_config["secret_key"] = bucket_config.secretKey
-        engine_config["endpoint"] = f"{prefix}{common_config.hostname}:{common_config.port}"
+    if bucket_name in buckets:
+        bucket_config = buckets[bucket_name]
+        configuration["access_key"] = bucket_config.accessKey
+        configuration["secret_key"] = bucket_config.secretKey
+        configuration["endpoint"] = f"{prefix}{common_config.hostname}:{common_config.port}"
     else:
-        print("The target bucket %s wasn't found among the Clowder buckets", target_bucket)
+        print("The bucket %s wasn't found among the Clowder buckets", bucket_name)
 
+def _add_buckets_config(config):
+    # Handle engine config
+    engine_config = config.get("service", {}).get("engine", {}).get("kwargs", {})
+    _update_bucket_config(engine_config.get("dest_bucket"), engine_config)
+
+    # Handle s3downloader config
     s3downloader_config = config.get("service", {}).get("downloader", {}).get("kwargs", {})
     if s3downloader_config.get("name") == "ccx_messaging.downloaders.s3_downloader.S3Downloader":
-        source_bucket = s3downloader_config.get("bucket")
-
-        print("Source bucket: %s", source_bucket)
-        if source_bucket in buckets:
-            bucket_config = buckets[source_bucket]
-            s3downloader_config["access_key"] = bucket_config.accessKey
-            s3downloader_config["secret_key"] = bucket_config.secretKey
-            s3downloader_config["endpoint"] = (
-                f"{prefix}{common_config.hostname}:{common_config.port}"
-            )
+        _update_bucket_config(s3downloader_config.get("bucket"), s3downloader_config)
