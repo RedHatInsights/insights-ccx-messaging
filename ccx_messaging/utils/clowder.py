@@ -124,7 +124,7 @@ def _add_buckets_config(config):
 
     prefix = "https://" if common_config.tls else "http://"
 
-    engine_config = config["service"]["engine"]["kwargs"]
+    engine_config = config.get("service", {}).get("engine", {}).get("kwargs", {})
     target_bucket = engine_config.get("dest_bucket")
 
     print("Target bucket: %s", target_bucket)
