@@ -12,7 +12,7 @@ objects:
     name: archive-sync
   spec:
     minReplicas: ${{MIN_REPLICAS}}
-    maxReplicas: 8
+    maxReplicas: ${{MAX_REPLICAS}}
     scaleTargetRef:
       apiVersion: apps/v1
       kind: Deployment
