@@ -17,7 +17,7 @@ objects:
       apiVersion: apps/v1
       kind: Deployment
       name: archive-sync-instance
-    targetCPUUtilizationPercentage: 50
+    targetCPUUtilizationPercentage: 30
 - apiVersion: cloud.redhat.com/v1alpha1
   kind: ClowdApp
   metadata:
