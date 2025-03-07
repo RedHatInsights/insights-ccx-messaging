@@ -32,6 +32,7 @@ objects:
 #      iqePlugin: ccx
     deployments:
       - name: instance
+        replicas: ${{MIN_REPLICAS}}
         webServices:
           public:
             enabled: false
