@@ -53,11 +53,11 @@ objects:
             - name: KAFKA_PLATFORM_SERVICE
               value: ${KAFKA_PLATFORM_SERVICE}
             - name: KAFKA_CONSUMER_SERVER
-              value: ${KAFKA_CONSUMER_SERVER}
+              value: ${KAFKA_SERVER}
             - name: KAFKA_CONSUMER_SECURITY_PROTOCOL
-              value: ${KAFKA_CONSUMER_SECURITY_PROTOCOL}
+              value: ${KAFKA_SECURITY_PROTOCOL}
             - name: KAFKA_CONSUMER_SASL_MECHANISM
-              value: ${KAFKA_CONSUMER_SASL_MECHANISM}
+              value: ${KAFKA_SASL_MECHANISM}
             - name: KAFKA_INCOMING_TOPIC
               value: ${KAFKA_INCOMING_TOPIC}
 
@@ -179,7 +179,7 @@ objects:
             incoming_topic: ${KAFKA_INCOMING_TOPIC}
             platform_service: ${KAFKA_PLATFORM_SERVICE}
             group.id: ${KAFKA_GROUP_ID}
-            bootstrap.servers: ${KAFKA_CONSUMER_SERVER}
+            bootstrap.servers: ${KAFKA_SERVER}
             processing_timeout_s: 0
             max.poll.interval.ms: 600000
             heartbeat.interval.ms: 10000
@@ -197,14 +197,14 @@ objects:
           name: ccx_messaging.publishers.synced_archive_publisher.SyncedArchivePublisher
           kwargs:
             outgoing_topic: ${KAFKA_OUTGOING_TOPIC}
-            bootstrap.servers: ${KAFKA_CONSUMER_SERVER}
+            bootstrap.servers: ${KAFKA_SERVER}
         watchers:
           - name: ccx_messaging.watchers.stats_watcher.StatsWatcher
             kwargs:
               prometheus_port: 8000
           - name: ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher
             kwargs:
-              bootstrap.servers: ${KAFKA_CONSUMER_SERVER}
+              bootstrap.servers: ${KAFKA_SERVER}
               topic: ${PAYLOAD_TRACKER_TOPIC}
         logging:
           version: 1
@@ -281,15 +281,15 @@ parameters:
   value: platform.payload-status
 - name: KAFKA_GROUP_ID
   value: archive_sync_app
-- name: KAFKA_CONSUMER_SERVER
+- name: KAFKA_SERVER
   description: App-SRE Kafka
   value: mq-kafka:29092
 - description: Service name for filtering received Kafka message from announce topic
   name: KAFKA_PLATFORM_SERVICE
   value: openshift
-- name: KAFKA_CONSUMER_SECURITY_PROTOCOL
+- name: KAFKA_SECURITY_PROTOCOL
   value: SASL_SSL
-- name: KAFKA_CONSUMER_SASL_MECHANISM
+- name: KAFKA_SASL_MECHANISM
   value: SCRAM-SHA-512
 
 - name: TARGET_S3_BUCKET
