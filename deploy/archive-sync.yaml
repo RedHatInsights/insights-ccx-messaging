@@ -4,6 +4,22 @@ kind: Template
 metadata:
   name: archive-sync
 objects:
+
+- kind: HorizontalPodAutoscaler
+  apiVersion: autoscaling/v1
+  metadata:
+    labels:
+      app: ccx-data-pipeline
+    name: archive-sync
+  spec:
+    minReplicas: ${{MIN_REPLICAS}}
+    maxReplicas: ${{MAX_REPLICAS}}
+    scaleTargetRef:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: archive-sync-instance
+    targetCPUUtilizationPercentage: 50
+
 - apiVersion: cloud.redhat.com/v1alpha1
   kind: ClowdApp
   metadata:
@@ -12,13 +28,10 @@ objects:
     envName: ${ENV_NAME}
     objectStore:
       - ${TARGET_S3_BUCKET}
-    testing:
-      iqePlugin: ccx
-    dependencies:
-      - ingress
+#    testing:
+#      iqePlugin: ccx
     deployments:
       - name: instance
-        minReplicas: ${{MIN_REPLICAS}}
         webServices:
           public:
             enabled: false
@@ -40,11 +53,11 @@ objects:
             - name: KAFKA_PLATFORM_SERVICE
               value: ${KAFKA_PLATFORM_SERVICE}
             - name: KAFKA_CONSUMER_SERVER
-              value: ${KAFKA_CONSUMER_SERVER}
+              value: ${KAFKA_SERVER}
             - name: KAFKA_CONSUMER_SECURITY_PROTOCOL
-              value: ${KAFKA_CONSUMER_SECURITY_PROTOCOL}
+              value: ${KAFKA_SECURITY_PROTOCOL}
             - name: KAFKA_CONSUMER_SASL_MECHANISM
-              value: ${KAFKA_CONSUMER_SASL_MECHANISM}
+              value: ${KAFKA_SASL_MECHANISM}
             - name: KAFKA_INCOMING_TOPIC
               value: ${KAFKA_INCOMING_TOPIC}
 
@@ -91,19 +104,8 @@ objects:
                   name: cloudwatch
                   key: aws_secret_access_key
                   optional: true
-
-            - name: LOGLEVEL_CCX_MESSAGING
-              value: ${LOGLEVEL_CCX_MESSAGING}
-            - name: LOGLEVEL_INSIGHTS_MESSAGING
-              value: ${LOGLEVEL_INSIGHTS_MESSAGING}
-            - name: LOGLEVEL_INSIGHTS
-              value: ${LOGLEVEL_INSIGHTS}
-            - name: LOGLEVEL_KAFKA
-              value: ${LOGLEVEL_KAFKA}
-            - name: LOGLEVEL_STDOUT
-              value: ${LOGLEVEL_STDOUT}
-            - name: LOGLEVEL_ROOT
-              value: ${LOGLEVEL_ROOT}
+            - name: PYTHONUNBUFFERED
+              value: "1"
           readinessProbe:
             httpGet:
               path: /metrics
@@ -150,15 +152,10 @@ objects:
               memory: ${MEMORY_LIMIT}
 
     kafkaTopics:
-      - replicas: 16
-        partitions: 3
-        topicName: ${KAFKA_INCOMING_TOPIC}
-      - replicas: 1
+      - topicName: ${KAFKA_INCOMING_TOPIC}
+      - topicName: ${PAYLOAD_TRACKER_TOPIC}
         partitions: 1
-        topicName: ${KAFKA_DEAD_LETTER_QUEUE_TOPIC}
-      - replicas: 3
-        partitions: 1
-        topicName: ${PAYLOAD_TRACKER_TOPIC}
+      - topicName: ${KAFKA_OUTGOING_TOPIC}
 
 - kind: ConfigMap
   apiVersion: v1
@@ -172,8 +169,8 @@ objects:
         packages:
         - ccx_messaging
       service:
-        extract_timeout: ${EXTRACT_TIMEOUT}
-        extract_tmp_dir: ${EXTRACT_TMP_DIR}
+        extract_timeout:
+        extract_tmp_dir:
         format: insights.formats._json.JsonFormat
         target_components: []
         consumer:
@@ -182,62 +179,59 @@ objects:
             incoming_topic: ${KAFKA_INCOMING_TOPIC}
             platform_service: ${KAFKA_PLATFORM_SERVICE}
             group.id: ${KAFKA_GROUP_ID}
-            bootstrap.servers: ${KAFKA_CONSUMER_SERVER}
+            bootstrap.servers: ${KAFKA_SERVER}
             processing_timeout_s: 0
             max.poll.interval.ms: 600000
             heartbeat.interval.ms: 10000
             session.timeout.ms: 20000
-            dead_letter_queue_topic: ${KAFKA_DEAD_LETTER_QUEUE_TOPIC}
-
         downloader:
           name: ccx_messaging.downloaders.http_downloader.HTTPDownloader
           kwargs:
             allow_unsafe_links: ${ALLOW_UNSAFE_LINKS}
-
         engine:
           name: ccx_messaging.engines.s3_upload_engine.S3UploadEngine
           kwargs:
             dest_bucket: ${TARGET_S3_BUCKET}
             archives_path_prefix: archives/compressed
         publisher:
-          name: insights_messaging.publishers.Publisher
+          name: ccx_messaging.publishers.synced_archive_publisher.SyncedArchivePublisher
+          kwargs:
+            outgoing_topic: ${KAFKA_OUTGOING_TOPIC}
+            bootstrap.servers: ${KAFKA_SERVER}
         watchers:
           - name: ccx_messaging.watchers.stats_watcher.StatsWatcher
             kwargs:
               prometheus_port: 8000
-
+          - name: ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher
+            kwargs:
+              bootstrap.servers: ${KAFKA_SERVER}
+              topic: ${PAYLOAD_TRACKER_TOPIC}
         logging:
           version: 1
           disable_existing_loggers: false
           handlers:
             default:
-              level: ${LOGLEVEL_STDOUT:INFO}
+              level: ${LOGLEVEL_STDOUT}
               class: logging.StreamHandler
               stream: ext://sys.stdout
               formatter: default
-
           formatters:
             default:
               format: '%(asctime)s %(name)s %(levelname)-8s %(message)s'
               datefmt: '%Y-%m-%d %H:%M:%S'
-
           root:
-            level: ${LOGLEVEL_ROOT:WARNING}
+            level: ${LOGLEVEL_ROOT}
             handlers:
               - default
-
           loggers:
             ccx_messaging:
-              level: ${LOGLEVEL_CCX_MESSAGING:DEBUG}
-
+              level: ${LOGLEVEL_CCX_MESSAGING}
             insights_messaging:
-              level: ${LOGLEVEL_INSIGHTS_MESSAGING:DEBUG}
-
+              level: ${LOGLEVEL_INSIGHTS_MESSAGING}
             insights:
-              level: ${LOGLEVEL_INSIGHTS:WARNING}
-
+              level: ${LOGLEVEL_INSIGHTS}
             kafka:
-              level: ${LOGLEVEL_KAFKA:INFO}
+              level: ${LOGLEVEL_KAFKA}
 
 - kind: Service
   apiVersion: v1
@@ -275,47 +269,34 @@ parameters:
 - description: Minimum number of pods to use when autoscaling is enabled
   name: MIN_REPLICAS
   value: '1'
-- description: Minimum number of pods to use when autoscaling is enabled
+- description: Maximum number of pods to use when autoscaling is enabled
   name: MAX_REPLICAS
-  value: '1'
+  value: '8'
 
 - name: KAFKA_INCOMING_TOPIC
-  value: platform.upload.announce
-  required: true
-- name: KAFKA_SYNCED_TOPIC
-  value: eph-archive-synced
-  required: true
-- name: KAFKA_DEAD_LETTER_QUEUE_TOPIC
-  value: ccx.archive.sync.dead.letter.queue
-  required: true
+  value: ccx.new.archive.io
+- name: KAFKA_OUTGOING_TOPIC
+  value: ccx.archive.synced
 - name: PAYLOAD_TRACKER_TOPIC
   value: platform.payload-status
-  required: true
 - name: KAFKA_GROUP_ID
   value: archive_sync_app
-  required: true
-- name: KAFKA_CONSUMER_SERVER
-  description: External data pipeline Kafka
+- name: KAFKA_SERVER
+  description: App-SRE Kafka
   value: mq-kafka:29092
-  required: true
 - description: Service name for filtering received Kafka message from announce topic
   name: KAFKA_PLATFORM_SERVICE
-  required: true
   value: openshift
-- name: KAFKA_CONSUMER_SECURITY_PROTOCOL
+- name: KAFKA_SECURITY_PROTOCOL
   value: SASL_SSL
-  required: true
-- name: KAFKA_CONSUMER_SASL_MECHANISM
+- name: KAFKA_SASL_MECHANISM
   value: SCRAM-SHA-512
-  required: true
 
 - name: TARGET_S3_BUCKET
-  value: target-bucket
-  required: true
+  value: ccx-bucket
 
 - name: CLOUDWATCH_DEBUG
   value: "false"
-  required: true
 - name: CW_LOG_STREAM
   value: "archive-sync"
 - name: ALLOW_UNSAFE_LINKS
