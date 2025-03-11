@@ -28,6 +28,8 @@ objects:
     envName: ${ENV_NAME}
 #    testing:
 #      iqePlugin: ccx
+    dependencies:
+      - ingress
     deployments:
       - name: instance
         webServices:
