@@ -263,9 +263,6 @@ parameters:
 - name: KAFKA_SERVER
   description: App-SRE Kafka
   value: mq-kafka:29092
-- description: Service name for filtering received Kafka message from announce topic
-  name: KAFKA_PLATFORM_SERVICE
-  value: openshift
 
 - name: TARGET_S3_BUCKET
   value: ccx-bucket
