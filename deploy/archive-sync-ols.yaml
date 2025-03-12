@@ -158,7 +158,6 @@ objects:
           name: ccx_messaging.consumers.kafka_consumer.KafkaConsumer
           kwargs:
             incoming_topic: ${KAFKA_INCOMING_TOPIC}
-            platform_service: ${KAFKA_PLATFORM_SERVICE}
             group.id: ${KAFKA_GROUP_ID}
             bootstrap.servers: ${KAFKA_SERVER}
             processing_timeout_s: 0
@@ -260,9 +259,6 @@ parameters:
 - name: KAFKA_SERVER
   description: App-SRE Kafka
   value: mq-kafka:29092
-- description: Service name for filtering received Kafka message from announce topic
-  name: KAFKA_PLATFORM_SERVICE
-  value: openshift
 
 - name: TARGET_S3_BUCKET
   value: ccx-bucket-ols
