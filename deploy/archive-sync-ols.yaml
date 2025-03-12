@@ -47,24 +47,6 @@ objects:
             - name: CLOWDER_ENABLED
               value: ${CLOWDER_ENABLED}
 
-            # Kafka configuration
-            - name: KAFKA_GROUP_ID
-              value: ${KAFKA_GROUP_ID}
-            - name: KAFKA_PLATFORM_SERVICE
-              value: ${KAFKA_PLATFORM_SERVICE}
-            - name: KAFKA_CONSUMER_SERVER
-              value: ${KAFKA_SERVER}
-            - name: KAFKA_CONSUMER_SECURITY_PROTOCOL
-              value: ${KAFKA_SECURITY_PROTOCOL}
-            - name: KAFKA_CONSUMER_SASL_MECHANISM
-              value: ${KAFKA_SASL_MECHANISM}
-            - name: KAFKA_INCOMING_TOPIC
-              value: ${KAFKA_INCOMING_TOPIC}
-
-            # S3 Configuration: secrets are populated by Clowder
-            - name: TARGET_S3_BUCKET
-              value: ${TARGET_S3_BUCKET}
-
             # TODO: Configure Sentry when the PoC is done
             # - name: SENTRY_DSN
             #   valueFrom:
@@ -281,10 +263,6 @@ parameters:
 - description: Service name for filtering received Kafka message from announce topic
   name: KAFKA_PLATFORM_SERVICE
   value: openshift
-- name: KAFKA_SECURITY_PROTOCOL
-  value: SASL_SSL
-- name: KAFKA_SASL_MECHANISM
-  value: SCRAM-SHA-512
 
 - name: TARGET_S3_BUCKET
   value: ccx-bucket-ols
