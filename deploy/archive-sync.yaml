@@ -177,7 +177,6 @@ objects:
           name: ccx_messaging.consumers.multiplexor_consumer.KafkaMultiplexorConsumer
           kwargs:
             incoming_topic: ${KAFKA_INCOMING_TOPIC}
-            platform_service: ${KAFKA_PLATFORM_SERVICE}
             group.id: ${KAFKA_GROUP_ID}
             bootstrap.servers: ${KAFKA_SERVER}
             processing_timeout_s: 0
