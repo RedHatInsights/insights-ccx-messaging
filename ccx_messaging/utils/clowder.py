@@ -135,10 +135,13 @@ def _update_bucket_config(bucket_name, configuration):
 
 def _add_buckets_config(config):
     # Handle engine config
-    engine_config = config.get("service", {}).get("engine", {}).get("kwargs", {})
-    _update_bucket_config(engine_config.get("dest_bucket"), engine_config)
+    engine = config.get("service", {}).get("engine", {})
+    if engine is not None:
+        engine_config = engine.get("kwargs", {})
+        _update_bucket_config(engine_config.get("dest_bucket"), engine_config)
 
-    # Handle s3downloader config
-    s3downloader_config = config.get("service", {}).get("downloader", {}).get("kwargs", {})
-    if s3downloader_config.get("name") == "ccx_messaging.downloaders.s3_downloader.S3Downloader":
+    # Handle downloader config
+    downloader = config.get("service", {}).get("downloader", {})
+    if downloader.get("name") == "ccx_messaging.downloaders.s3_downloader.S3Downloader":
+        s3downloader_config = downloader.get("kwargs", {})
         _update_bucket_config(s3downloader_config.get("bucket"), s3downloader_config)
