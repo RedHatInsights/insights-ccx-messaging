@@ -56,8 +56,6 @@ objects:
             #       optional: true
             # - name: SENTRY_ENVIRONMENT
             #   value: ${ENV_NAME}
-            - name: ALLOW_UNSAFE_LINKS
-              value: ${ALLOW_UNSAFE_LINKS}
             - name: LOGGING_TO_CW_ENABLED
               value: "True"
             - name: CW_STREAM_NAME
