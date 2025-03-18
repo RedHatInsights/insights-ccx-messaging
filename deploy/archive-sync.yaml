@@ -174,7 +174,7 @@ objects:
         format: insights.formats._json.JsonFormat
         target_components: []
         consumer:
-          name: ccx_messaging.consumers.multiplexor_consumer.KafkaMultiplexorConsumer
+          name: ccx_messaging.consumers.decoded_ingress_consumer.DecodedIngressConsumer
           kwargs:
             incoming_topic: ${KAFKA_INCOMING_TOPIC}
             group.id: ${KAFKA_GROUP_ID}

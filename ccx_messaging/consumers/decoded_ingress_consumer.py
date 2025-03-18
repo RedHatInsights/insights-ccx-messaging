@@ -13,7 +13,7 @@ from ccx_messaging.schemas import IDENTITY_SCHEMA
 LOG = logging.getLogger(__name__)
 
 
-class KafkaMultiplexorConsumer(KafkaConsumer):
+class DecodedIngressConsumer(KafkaConsumer):
     """Kafka consumer for decoded ingress messages produced by KafkaConsumer."""
 
     INPUT_MESSAGE_SCHEMA = {
@@ -33,7 +33,7 @@ class KafkaMultiplexorConsumer(KafkaConsumer):
         try:
             deserialized_message = json.loads(message)
             jsonschema.validate(
-                instance=deserialized_message, schema=KafkaMultiplexorConsumer.INPUT_MESSAGE_SCHEMA
+                instance=deserialized_message, schema=DecodedIngressConsumer.INPUT_MESSAGE_SCHEMA
             )
 
         except TypeError as ex:
