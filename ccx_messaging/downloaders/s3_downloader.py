@@ -28,20 +28,21 @@ class S3Downloader(ICMS3Downloader):
         """Set up the S3 downloader."""
         self.access_key = kwargs.get("access_key")
         self.secret_key = kwargs.get("secret_key")
-        self.endpoint_url = kwargs.get("endpoint_url")
+        # 'endpoint_url' key is legacy and retained for backward compatibility.
+        self.endpoint = kwargs.get("endpoint", kwargs.get("endpoint_url"))
         self.bucket = kwargs.get("bucket")
         if not self.access_key:
             raise CCXMessagingError("Access Key environment variable not set.")
         if not self.secret_key:
             raise CCXMessagingError("Secret Key environment variable not set.")
-        if not self.endpoint_url:
+        if not self.endpoint:
             raise CCXMessagingError("Endpoint environment variable not set.")
         if not self.bucket:
             raise CCXMessagingError("Bucket environment variable not set.")
         super().__init__(
             key=self.access_key,
             secret=self.secret_key,
-            client_kwargs={"endpoint_url": self.endpoint_url},
+            client_kwargs={"endpoint_url": self.endpoint},
         )
 
     @contextmanager
