@@ -61,10 +61,9 @@ class IDPRuleProcessingPublisher(KafkaPublisher):
         output_msg = {
             "path": input_msg["path"],
             "metadata": input_msg["metadata"],
-            "request_id": input_msg.get("request_id"),
             "report": report,
         }
-
+        output_msg["RequestId"] = input_msg.get("request_id")
         message = json.dumps(output_msg)
         log.debug("Sending response to the %s topic.", self.topic)
         # Convert message string into a byte array.
