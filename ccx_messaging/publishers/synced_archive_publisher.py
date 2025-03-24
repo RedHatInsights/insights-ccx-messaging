@@ -29,6 +29,7 @@ class SyncedArchivePublisher(KafkaPublisher):
         """Publish response as Kafka message to outgoing topic."""
         output_msg = json.loads(report)
         output_msg.pop("reports", None)
+        output_msg["RequestId"] = input_msg.get("request_id")
         message = json.dumps(output_msg)
 
         LOG.debug("Sending response to the %s topic.", self.topic)

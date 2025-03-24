@@ -61,6 +61,7 @@ class IDPRuleProcessingPublisher(KafkaPublisher):
         output_msg = {
             "path": input_msg["path"],
             "metadata": input_msg["metadata"],
+            "request_id": input_msg.get("request_id"),
             "report": report,
         }
 
