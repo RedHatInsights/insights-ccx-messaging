@@ -113,7 +113,7 @@ VALID_INPUT_MSG = [
             "report": {
                 "reports": [],
             },
-            "RequestId": "ingress-service-7777777777-q4444/4444444444-000001",
+            "request_id": "ingress-service-7777777777-q4444/4444444444-000001",
         },
         id="minimal valid",
     ),
@@ -130,7 +130,7 @@ VALID_INPUT_MSG = [
             "report": {
                 "reports": [],
             },
-            "RequestId": "ingress-service-7777777777-q4444/4444444444-000001",
+            "request_id": "ingress-service-7777777777-q4444/4444444444-000001",
         },
         id="adding optional elements",
     ),
