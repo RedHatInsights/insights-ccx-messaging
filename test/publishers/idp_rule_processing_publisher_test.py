@@ -103,6 +103,7 @@ VALID_INPUT_MSG = [
             "metadata": {
                 "cluster_id": "uuid",
             },
+            "request_id": "ingress-service-7777777777-q4444/4444444444-000001",
         },
         {
             "path": "bucket/path/to/archive.tgz",
@@ -112,6 +113,7 @@ VALID_INPUT_MSG = [
             "report": {
                 "reports": [],
             },
+            "request_id": "ingress-service-7777777777-q4444/4444444444-000001",
         },
         id="minimal valid",
     ),
@@ -120,6 +122,7 @@ VALID_INPUT_MSG = [
             "path": "bucket/path/to/archive.tgz",
             "original_path": "other_than_current_path",
             "metadata": {"cluster_id": "uuid", "external_organization": "an organization"},
+            "request_id": "ingress-service-7777777777-q4444/4444444444-000001",
         },
         {
             "path": "bucket/path/to/archive.tgz",
@@ -127,6 +130,7 @@ VALID_INPUT_MSG = [
             "report": {
                 "reports": [],
             },
+            "request_id": "ingress-service-7777777777-q4444/4444444444-000001",
         },
         id="adding optional elements",
     ),
