@@ -277,14 +277,14 @@ parameters:
   value: 256Mi
 
 - name: LOGLEVEL_CCX_MESSAGING
-  value: DEBUG
+  value: INFO
 - name: LOGLEVEL_INSIGHTS_MESSAGING
-  value: DEBUG
+  value: INFO
 - name: LOGLEVEL_INSIGHTS
   value: WARNING
 - name: LOGLEVEL_KAFKA
   value: INFO
 - name: LOGLEVEL_STDOUT
-  value: DEBUG
+  value: INFO
 - name: LOGLEVEL_ROOT
   value: WARNING
