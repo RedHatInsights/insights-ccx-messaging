@@ -239,7 +239,7 @@ objects:
 parameters:
 - description: Image name
   name: IMAGE
-  value: quay.io/cloudservices/ccx-messaging
+  value: quay.io/redhat-services-prod/obsint-processing-tenant/ccx-messaging/ccx-messaging
 - description: Image tag
   name: IMAGE_TAG
   required: true
