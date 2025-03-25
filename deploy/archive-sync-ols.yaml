@@ -280,7 +280,7 @@ parameters:
 - name: LOGLEVEL_CCX_MESSAGING
   value: INFO
 - name: LOGLEVEL_INSIGHTS_MESSAGING
-  value: INFO
+  value: WARNING
 - name: LOGLEVEL_INSIGHTS
   value: WARNING
 - name: LOGLEVEL_KAFKA
