@@ -287,7 +287,7 @@ data:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "rate(inserted_rows{job=\"parquet-factory\", namespace=\"$parquet_factory_namespace\"}[5m])",
+              "expr": "inserted_rows{job=\"parquet-factory\", namespace=\"$parquet_factory_namespace\"}",
               "format": "time_series",
               "hide": false,
               "instant": false,
