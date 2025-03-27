@@ -77,7 +77,7 @@ def ccx_messaging() -> None:
         sys.exit(0)
 
     init_sentry(
-        os.environ.get("SENTRY_DSN", None), None, os.environ.get("SENTRY_ENVIRONMENT", None)
+        os.environ.get("SENTRY_DSN", None), None, os.environ.get("SENTRY_ENVIRONMENT", None), os.environ.get("SENTRY_ENABLED", False)
     )
 
     if args.config:
