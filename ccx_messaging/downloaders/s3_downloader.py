@@ -15,15 +15,16 @@
 """S3 Downloader for internal data pipeline."""
 
 from contextlib import contextmanager
+import logging
 
 from insights_messaging.downloaders.s3 import S3Downloader as ICMS3Downloader
 
 from ccx_messaging.error import CCXMessagingError
 
-
+LOG = logging.getLogger(__name__)
 class S3Downloader(ICMS3Downloader):
     """Downloader for S3 bucket."""
-
+    LOG.error("Test error log for glitchtip in s3_dowloader rules-processing")
     def __init__(self, **kwargs):
         """Set up the S3 downloader."""
         self.access_key = kwargs.get("access_key")

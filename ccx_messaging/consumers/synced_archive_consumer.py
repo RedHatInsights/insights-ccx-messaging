@@ -27,6 +27,7 @@ class SyncedArchiveConsumer(KafkaConsumer):
 
     def process_msg(self, msg: Message) -> None:
         """Process a single message received from the topic."""
+        LOG.error("Test error log for glitchtip in synced consumer (rules processing)")
         if not msg:
             LOG.debug("Empty record. Should not happen")
             return
