@@ -48,14 +48,15 @@ objects:
               value: ${CLOWDER_ENABLED}
 
             # TODO: Configure Sentry when the PoC is done
-            # - name: SENTRY_DSN
+            - name: SENTRY_DSN
+              value: ${SENTRY_DSN}
             #   valueFrom:
             #     secretKeyRef:
             #       key: dsn
             #       name: multiplexor-dsn
             #       optional: true
-            # - name: SENTRY_ENVIRONMENT
-            #   value: ${ENV_NAME}
+            - name: SENTRY_ENVIRONMENT
+              value: ${ENV_NAME}
             - name: LOGGING_TO_CW_ENABLED
               value: "True"
             - name: CW_STREAM_NAME
@@ -301,3 +302,5 @@ parameters:
   value: INFO
 - name: LOGLEVEL_ROOT
   value: WARNING
+- name: SENTRY_DSN
+  value: ""
