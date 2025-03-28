@@ -52,6 +52,7 @@ class MultiplexorEngine(Engine):
         )
         self.filters = filters if filters is not None else {}
         self.logger = logging.getLogger(__name__)
+        self.logger.error("Test error message for sentry")
 
     def process(self, broker: Broker, path: str) -> set[str]:
         """Open an archive to check its content and classify it according to filters."""

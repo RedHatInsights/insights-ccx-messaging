@@ -74,6 +74,7 @@ class S3UploadEngine(Engine):
             archive path or other availables timestamps.
           - `archive`: it will be replaced by the base name of the archive.
         """
+        LOG.error("Test sentry error message")
         super().__init__(
             formatter=formatter,
             target_components=target_components,
