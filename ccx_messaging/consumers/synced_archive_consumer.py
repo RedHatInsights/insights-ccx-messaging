@@ -40,7 +40,7 @@ class SyncedArchiveConsumer(KafkaConsumer):
             value = self.deserialize(msg)
 
             if self.ocp_rules_version:
-                LOG.info("Processing message using OCP rules version %s", self.ocp_rules_version)
+                LOG.debug("Processing message using OCP rules version %s", self.ocp_rules_version)
 
             # Core Messaging process
             self.process(value)

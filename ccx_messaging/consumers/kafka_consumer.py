@@ -195,7 +195,7 @@ class KafkaConsumer(Consumer):
 
         try:
             if self.ocp_rules_version:
-                LOG.info("Processing message using OCP rules version %s", self.ocp_rules_version)
+                LOG.debug("Processing message using OCP rules version %s", self.ocp_rules_version)
             # Deserialize
             value = self.deserialize(msg)
 
