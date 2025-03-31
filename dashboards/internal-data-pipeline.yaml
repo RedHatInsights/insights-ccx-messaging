@@ -498,7 +498,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(rate(ccx_consumer_received_total{namespace=\"$namespace\", service=~\"$services.*\"}[1m])) by(service)",
+              "expr": "sum(rate(ccx_consumer_received_total{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}[1m])) by(service)",
               "instant": false,
               "legendFormat": "Received",
               "range": true,
@@ -510,7 +510,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(rate(ccx_engine_processed_total{namespace=\"$namespace\", service=~\"$services.*\"}[1m])) by(service)",
+              "expr": "sum(rate(ccx_engine_processed_total{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}[1m])) by(service)",
               "hide": false,
               "instant": false,
               "legendFormat": "Processed",
@@ -523,7 +523,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(rate(ccx_published_total{namespace=\"$namespace\", service=~\"$services.*\"}[1m])) by(service)",
+              "expr": "sum(rate(ccx_published_total{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}[1m])) by(service)",
               "hide": false,
               "instant": false,
               "legendFormat": "Published",
@@ -536,7 +536,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(rate(ccx_not_handled_total{namespace=\"$namespace\", service=~\"$services.*\"}[1m])) by(service)",
+              "expr": "sum(rate(ccx_not_handled_total{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}[1m])) by(service)",
               "hide": false,
               "instant": false,
               "legendFormat": "Not handled",
@@ -549,7 +549,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(rate(ccx_failures_total{namespace=\"$namespace\", service=~\"$services.*\"}[1m])) by(service)",
+              "expr": "sum(rate(ccx_failures_total{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}[1m])) by(service)",
               "hide": false,
               "instant": false,
               "legendFormat": "Failures",
@@ -659,7 +659,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(process_cpu_seconds_total{namespace=\"$namespace\", service=~\"$services.*\"}) by(pod)",
+              "expr": "sum(process_cpu_seconds_total{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}) by(pod)",
               "hide": true,
               "instant": false,
               "legendFormat": "__auto",
@@ -672,10 +672,10 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"cpu\", pod=~\"$services.*\"}) by(pod)",
+              "expr": "sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"cpu\", pod=~\"$services-instance.*\"}) by(pod, service)",
               "hide": true,
               "instant": false,
-              "legendFormat": "__auto",
+              "legendFormat": "{{pod}}",
               "range": true,
               "refId": "B"
             },
@@ -685,7 +685,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "max(sum(rate(process_cpu_seconds_total{namespace=\"$namespace\", service=~\"$services.*\"}[1m])) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"cpu\", pod=~\"$services.*\"}) by(pod))",
+              "expr": "max(sum(rate(process_cpu_seconds_total{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}[1m])) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"cpu\", pod=~\"$services-instance.*\"}) by(pod))",
               "hide": false,
               "instant": false,
               "legendFormat": "__auto",
@@ -795,7 +795,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(process_resident_memory_bytes{namespace=\"$namespace\", service=~\"$services.*\"}) by(pod)",
+              "expr": "sum(process_resident_memory_bytes{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}) by(pod)",
               "hide": true,
               "instant": false,
               "legendFormat": "__auto",
@@ -808,7 +808,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"memory\", pod=~\"$services.*\"}) by(pod)",
+              "expr": "sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"memory\", pod=~\"$services-prometheus-exporter\"}) by(pod)",
               "hide": true,
               "instant": false,
               "legendFormat": "__auto",
@@ -821,7 +821,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "max(sum(process_resident_memory_bytes{namespace=\"$namespace\", service=~\"$services.*\"}) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"memory\", pod=~\"$services.*\"}) by(pod))",
+              "expr": "max(sum(process_resident_memory_bytes{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"memory\", pod=~\"$services-instance.*\"}) by(pod))",
               "hide": false,
               "instant": false,
               "legendFormat": "__auto",
@@ -888,7 +888,7 @@ data:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum(up{namespace=\"$namespace\", service=~\"$services.*\"}) by(service)",
+              "expr": "sum(up{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}) by(service)",
               "instant": false,
               "legendFormat": "__auto",
               "range": true,
@@ -1062,6 +1062,6 @@ data:
       "timezone": "browser",
       "title": "CCX Internal Data Pipeline",
       "uid": "ccxinternaldatapipeline",
-      "version": 5,
+      "version": 6,
       "weekStart": ""
     }
