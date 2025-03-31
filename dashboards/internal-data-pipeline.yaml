@@ -80,7 +80,8 @@ data:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -93,7 +94,7 @@ data:
           },
           "gridPos": {
             "h": 5,
-            "w": 12,
+            "w": 8,
             "x": 0,
             "y": 0
           },
@@ -101,7 +102,7 @@ data:
           "options": {
             "legend": {
               "calcs": [],
-              "displayMode": "list",
+              "displayMode": "table",
               "placement": "bottom",
               "showLegend": true
             },
@@ -190,7 +191,8 @@ data:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -223,16 +225,16 @@ data:
           },
           "gridPos": {
             "h": 5,
-            "w": 12,
-            "x": 12,
+            "w": 7,
+            "x": 8,
             "y": 0
           },
           "id": 49,
           "options": {
             "legend": {
               "calcs": [],
-              "displayMode": "list",
-              "placement": "right",
+              "displayMode": "table",
+              "placement": "bottom",
               "showLegend": true
             },
             "tooltip": {
@@ -300,6 +302,103 @@ data:
           "type": "timeseries"
         },
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$datasource"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "Lag",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 9,
+            "x": 15,
+            "y": 0
+          },
+          "id": 70,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "8.4.1",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$datasource"
+              },
+              "editorMode": "code",
+              "expr": "sum(kafka_consumergroup_group_lag{group=~\"ccx-rules-processing-service|ccx_parquet_factory_group|archive_sync_app|archive_sync_ols_app|multiplexor_app|rules-uploader-app\"}) by (group, topic)",
+              "hide": false,
+              "legendFormat": "{{group}} ({{topic}})",
+              "range": true,
+              "refId": "B"
+            }
+          ],
+          "title": "Kafka lag",
+          "type": "timeseries"
+        },
+        {
           "collapsed": false,
           "gridPos": {
             "h": 1,
@@ -361,7 +460,8 @@ data:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "red",
@@ -511,7 +611,8 @@ data:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "yellow",
@@ -646,7 +747,8 @@ data:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "green"
+                    "color": "green",
+                    "value": null
                   },
                   {
                     "color": "yellow",
@@ -746,7 +848,8 @@ data:
                 "mode": "absolute",
                 "steps": [
                   {
-                    "color": "blue"
+                    "color": "blue",
+                    "value": null
                   }
                 ]
               }
@@ -802,9 +905,9 @@ data:
         "list": [
           {
             "current": {
-              "selected": false,
-              "text": "crcs02ue1-prometheus",
-              "value": "PDD8BE47D10408F45"
+              "selected": true,
+              "text": "crcp01ue1-prometheus",
+              "value": "PC1EAC84DCBBF0697"
             },
             "hide": 0,
             "includeAll": false,
@@ -821,9 +924,9 @@ data:
           },
           {
             "current": {
-              "selected": false,
-              "text": "ccx-data-pipeline-stage",
-              "value": "ccx-data-pipeline-stage"
+              "selected": true,
+              "text": "ccx-data-pipeline-prod",
+              "value": "ccx-data-pipeline-prod"
             },
             "hide": 0,
             "includeAll": false,
@@ -832,12 +935,12 @@ data:
             "name": "namespace",
             "options": [
               {
-                "selected": true,
+                "selected": false,
                 "text": "ccx-data-pipeline-stage",
                 "value": "ccx-data-pipeline-stage"
               },
               {
-                "selected": false,
+                "selected": true,
                 "text": "ccx-data-pipeline-prod",
                 "value": "ccx-data-pipeline-prod"
               }
@@ -903,8 +1006,8 @@ data:
           {
             "current": {
               "selected": false,
-              "text": "appsres11ue1-prometheus",
-              "value": "PC52EF5F0B75AF530"
+              "text": "appsrep11ue1-prometheus",
+              "value": "P677746A44F299DAF"
             },
             "description": "Parquet Factory doesn't use Prometheus directly. It sends the metrics to a Pushgateway that is in another Prometheus instance, so we need a different variable.",
             "hide": 0,
@@ -923,8 +1026,8 @@ data:
           {
             "current": {
               "selected": false,
-              "text": "app-sre-observability-stage",
-              "value": "app-sre-observability-stage"
+              "text": "app-sre-observability-production",
+              "value": "app-sre-observability-production"
             },
             "description": "The namespace of the pushgateway",
             "hide": 0,
@@ -934,12 +1037,12 @@ data:
             "name": "parquet_factory_namespace",
             "options": [
               {
-                "selected": true,
+                "selected": false,
                 "text": "app-sre-observability-stage",
                 "value": "app-sre-observability-stage"
               },
               {
-                "selected": false,
+                "selected": true,
                 "text": "app-sre-observability-production",
                 "value": "app-sre-observability-production"
               }
@@ -952,13 +1055,13 @@ data:
         ]
       },
       "time": {
-        "from": "now-1h",
+        "from": "now-6h",
         "to": "now"
       },
       "timepicker": {},
       "timezone": "browser",
       "title": "CCX Internal Data Pipeline",
       "uid": "ccxinternaldatapipeline",
-      "version": 4,
+      "version": 5,
       "weekStart": ""
     }
