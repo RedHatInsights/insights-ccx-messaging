@@ -38,7 +38,7 @@ class WorkloadInfoPublisher(KafkaPublisher):
         super().__init__(outgoing_topic, kafka_broker_config, **kwargs)
         self.outdata_schema_version = 2
 
-    def publish(self, input_msg: dict, response: str):
+    def publish(self, input_msg: dict, response: str | None):
         """Publish an EOL-terminated JSON message to the output Kafka topic.
 
         The input_msg contains content of message read from incoming Kafka
@@ -69,7 +69,7 @@ class WorkloadInfoPublisher(KafkaPublisher):
         message = ""
 
         if response is None:
-            log.info("No response was generated for this archive. Skipping")
+            log.debug("No response was generated for this archive. Skipping")
             return
 
         try:

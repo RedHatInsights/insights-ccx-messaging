@@ -46,7 +46,7 @@ class S3Uploader:
 
     def upload_file(self, path, bucket, file_name):
         """Upload file to target path in bucket."""
-        LOG.info(f"Uploading '{file_name}' as '{path}' to '{bucket}'")
+        LOG.debug(f"Uploading '{file_name}' as '{path}' to '{bucket}'")
 
         with open(path, "rb") as file_data:
             if self.acl_enabled:
@@ -55,4 +55,4 @@ class S3Uploader:
                 )
             else:
                 self.client.put_object(Bucket=bucket, Key=file_name, Body=file_data)
-            LOG.info(f"Uploaded '{file_name}' as '{path}' to '{bucket}'")
+            LOG.debug(f"Uploaded '{file_name}' as '{path}' to '{bucket}'")

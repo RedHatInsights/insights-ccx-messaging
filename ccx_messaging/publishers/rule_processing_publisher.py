@@ -86,7 +86,7 @@ class RuleProcessingPublisher(KafkaPublisher):
             raise CCXMessagingError("Could not parse report; report is not in JSON format")
 
         if "reports" not in report.keys():
-            log.info("Report does not contain OCP rules related results; skipping")
+            log.debug("Report does not contain OCP rules related results; skipping")
             return
 
         report.pop("workload_recommendations", None)

@@ -93,7 +93,7 @@ class S3UploadEngine(Engine):
 
     def process(self, broker, local_path):
         """Create metadata and target_path from downloaded archive and uploads it to ceph bucket."""
-        LOG.info("Processing %s for uploading", local_path)
+        LOG.debug("Processing %s for uploading", local_path)
         LOG.debug("Broker content: %s", broker.items())
         self.fire("pre_extract", broker, local_path)
 
@@ -105,9 +105,9 @@ class S3UploadEngine(Engine):
             broker["cluster_id"] = extract_cluster_id(local_path)
 
         target_path = self.compute_target_path(broker)
-        LOG.info(f"Uploading archive '{local_path}' as {self.dest_bucket}/{target_path}")
+        LOG.debug(f"Uploading archive '{local_path}' as {self.dest_bucket}/{target_path}")
         self.uploader.upload_file(local_path, self.dest_bucket, target_path)
-        LOG.info(f"Uploaded archive '{local_path}' as {self.dest_bucket}/{target_path}")
+        LOG.debug(f"Uploaded archive '{local_path}' as {self.dest_bucket}/{target_path}")
 
         metadata = create_metadata(broker)
         report = {
@@ -116,7 +116,7 @@ class S3UploadEngine(Engine):
             "metadata": metadata,
         }
 
-        LOG.info("Generated report: %s", report)
+        LOG.debug("Generated report: %s", report)
         self.fire("on_engine_success", broker, report)
 
         return json.dumps(report)
