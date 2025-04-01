@@ -70,9 +70,12 @@ class DecodedIngressConsumer(KafkaConsumer):
         deserialized_msg = self.parse_decoded_ingress_message(value)
         LOG.debug("JSON message deserialized (%s): %s", self.log_pattern, deserialized_msg)
 
-        if "cluster_name" not in deserialized_msg or deserialized_msg["cluster_name"] is None:
+        if not deserialized_msg.get("cluster_name"):
             cluster_id = (
-                deserialized_msg.get("identity", {}).get("system", {}).get("cluster_id", None)
+                deserialized_msg.get("identity", {})
+                .get("identity", {})
+                .get("system", {})
+                .get("cluster_id", None)
             )
             deserialized_msg["cluster_name"] = cluster_id
 
