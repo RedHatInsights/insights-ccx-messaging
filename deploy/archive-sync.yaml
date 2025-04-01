@@ -4,22 +4,6 @@ kind: Template
 metadata:
   name: archive-sync
 objects:
-
-- kind: HorizontalPodAutoscaler
-  apiVersion: autoscaling/v1
-  metadata:
-    labels:
-      app: ccx-data-pipeline
-    name: archive-sync
-  spec:
-    minReplicas: ${{MIN_REPLICAS}}
-    maxReplicas: ${{MAX_REPLICAS}}
-    scaleTargetRef:
-      apiVersion: apps/v1
-      kind: Deployment
-      name: archive-sync-instance
-    targetCPUUtilizationPercentage: 50
-
 - apiVersion: cloud.redhat.com/v1alpha1
   kind: ClowdApp
   metadata:
@@ -32,6 +16,7 @@ objects:
 #      iqePlugin: ccx
     deployments:
       - name: instance
+        replicas: ${{REPLICAS}}
         webServices:
           public:
             enabled: false
@@ -245,12 +230,9 @@ parameters:
 - description: ClowdEnv Name
   name: ENV_NAME
   required: true
-- description: Minimum number of pods to use when autoscaling is enabled
-  name: MIN_REPLICAS
+- description: Number of pods
+  name: REPLICAS
   value: '1'
-- description: Maximum number of pods to use when autoscaling is enabled
-  name: MAX_REPLICAS
-  value: '8'
 
 - name: KAFKA_INCOMING_TOPIC
   value: ccx.new.archive.io
