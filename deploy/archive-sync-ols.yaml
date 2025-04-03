@@ -168,6 +168,7 @@ objects:
             kwargs:
               bootstrap.servers: ${KAFKA_SERVER}
               topic: ${PAYLOAD_TRACKER_TOPIC}
+              service_name: archive-sync-ols
         logging:
           version: 1
           disable_existing_loggers: false
