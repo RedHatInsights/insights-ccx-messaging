@@ -166,3 +166,29 @@ def test_last_received_message_time_is_updated():
             sut.process_msg(input_msg)
 
         assert sut.last_received_message_time == t2.timestamp()
+
+
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+def test_deserialize_extract_cluster_id():
+    """Check that the cluster_id is extracted from the identity field when not available.
+
+    [CCXDEV-15056] Missing cluster id in some messages
+    """
+    sut = DecodedIngressConsumer(None, None, None, incoming_topic=None)
+    cluster_id = "c9d116ce-93db-4c19-abe3-0de1d3554f99"
+    msg = {
+        "url": "https://s3.com/hash",
+        "identity": {
+            "identity": {
+                "system": {
+                    "cluster_id": cluster_id,
+                },
+                "internal": {
+                    "org_id": "1234",
+                },
+            },
+        },
+        "timestamp": "2020-01-23T16:15:59.478901889Z",
+    }
+
+    assert sut.deserialize(KafkaMessage(json.dumps(msg)))["cluster_name"] == cluster_id
