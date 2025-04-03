@@ -250,7 +250,7 @@ data:
                 "uid": "${parquet_factory_datasource}"
               },
               "editorMode": "code",
-              "expr": "offset_marked{job=\"parquet-factory\", namespace=\"$parquet_factory_namespace\"}",
+              "expr": "sum(offset_marked{job=\"parquet-factory\", namespace=\"$parquet_factory_namespace\"})",
               "instant": false,
               "legendFormat": "Marked",
               "range": true,
@@ -262,7 +262,7 @@ data:
                 "uid": "${parquet_factory_datasource}"
               },
               "editorMode": "code",
-              "expr": "offset_consummed{job=\"parquet-factory\", namespace=\"$parquet_factory_namespace\"}",
+              "expr": "sum(offset_consummed{job=\"parquet-factory\", namespace=\"$parquet_factory_namespace\"})",
               "hide": false,
               "instant": false,
               "legendFormat": "Consumed",
@@ -275,7 +275,7 @@ data:
                 "uid": "${parquet_factory_datasource}"
               },
               "editorMode": "code",
-              "expr": "offset_processed{job=\"parquet-factory\", namespace=\"$parquet_factory_namespace\"}",
+              "expr": "sum(offset_processed{job=\"parquet-factory\", namespace=\"$parquet_factory_namespace\"})",
               "hide": false,
               "instant": false,
               "legendFormat": "Processed",
@@ -289,7 +289,7 @@ data:
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "inserted_rows{job=\"parquet-factory\", namespace=\"$parquet_factory_namespace\"}",
+              "expr": "sum(inserted_rows{job=\"parquet-factory\", namespace=\"$parquet_factory_namespace\"})",
               "format": "time_series",
               "hide": false,
               "instant": false,
@@ -577,6 +577,7 @@ data:
                 "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
+                "axisSoftMin": 0,
                 "barAlignment": 0,
                 "drawStyle": "line",
                 "fillOpacity": 0,
@@ -713,6 +714,7 @@ data:
                 "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
+                "axisSoftMin": 0,
                 "barAlignment": 0,
                 "drawStyle": "line",
                 "fillOpacity": 0,
@@ -1062,6 +1064,6 @@ data:
       "timezone": "browser",
       "title": "CCX Internal Data Pipeline",
       "uid": "ccxinternaldatapipeline",
-      "version": 6,
+      "version": 7,
       "weekStart": ""
     }
