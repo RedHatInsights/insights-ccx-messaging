@@ -70,11 +70,3 @@ class IDPRuleProcessingPublisher(KafkaPublisher):
         # Convert message string into a byte array.
         self.produce(message.encode("utf-8"))
         log.debug("Message has been sent successfully.")
-
-    def error(self, input_msg: dict, ex: Exception):
-        """Handle pipeline errors by logging them."""
-        log.warning(
-            "An error has ocurred during the processing of %s: %s",
-            input_msg,
-            ex,
-        )
