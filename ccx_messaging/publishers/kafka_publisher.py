@@ -86,11 +86,4 @@ class KafkaPublisher(Publisher):
 
     def error(self, input_msg: dict, ex: Exception):
         """Handle pipeline errors by logging them."""
-        # The super call is probably unnecessary because the default behavior
-        # is to do nothing, but let's call it in case it ever does anything.
-        super().error(input_msg, ex)
-
-        if not isinstance(ex, CCXMessagingError):
-            ex = CCXMessagingError(ex)
-
-        log.warning(ex.format(input_msg))
+        log.warning("An error has ocurred during the processing of %s: %s", input_msg, ex)

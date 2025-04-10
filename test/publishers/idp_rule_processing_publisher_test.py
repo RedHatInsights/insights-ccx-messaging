@@ -179,6 +179,6 @@ def test_error(input, output):
 
     sut = IDPRuleProcessingPublisher("outgoing_topic", {"bootstrap.servers": "kafka:9092"})
 
-    with patch("ccx_messaging.publishers.idp_rule_processing_publisher.log") as log_mock:
+    with patch("ccx_messaging.publishers.kafka_publisher.log") as log_mock:
         sut.error(input, None)
         assert log_mock.warning.called
