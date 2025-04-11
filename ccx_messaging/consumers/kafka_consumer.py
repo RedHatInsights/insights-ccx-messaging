@@ -46,6 +46,9 @@ class KafkaConsumer(Consumer):
         requeuer = kwargs.pop("requeuer", None)
         super().__init__(publisher, downloader, engine, requeuer=requeuer)
 
+        if kafka_broker_config:
+            kwargs.update(kafka_broker_config)
+
         # Confluent initialization
         LOG.info(
             "Consuming topic '%s' from brokers %s as group '%s'",
@@ -54,21 +57,7 @@ class KafkaConsumer(Consumer):
             kwargs.get("group.id", None),
         )
 
-        if kafka_broker_config:
-            kwargs.update(kafka_broker_config)
-
-        LOG.debug(
-            "Confluent Kafka consumer configuration arguments: "
-            "Group: %s. "
-            "Server: %s. "
-            "Topic: %s. "
-            "Security protocol: %s. "
-            "",
-            kwargs.get("group.id"),
-            kwargs.get("bootstrap.servers"),
-            incoming_topic,
-            kwargs.get("security.protocol"),
-        )
+        LOG.debug("Confluent Kafka consumer extra configuration arguments: %s", kwargs)
 
         self.consumer = ConfluentConsumer(kwargs)
         self.consumer.subscribe([incoming_topic])
