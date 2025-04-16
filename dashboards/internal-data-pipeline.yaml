@@ -29,7 +29,7 @@ data:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 998764,
+      "id": 765681,
       "links": [],
       "panels": [
         {
@@ -577,6 +577,7 @@ data:
                 "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
+                "axisSoftMax": 1.5,
                 "axisSoftMin": 0,
                 "barAlignment": 0,
                 "drawStyle": "line",
@@ -645,7 +646,7 @@ data:
               "calcs": [],
               "displayMode": "list",
               "placement": "bottom",
-              "showLegend": false
+              "showLegend": true
             },
             "tooltip": {
               "mode": "single",
@@ -692,9 +693,22 @@ data:
               "legendFormat": "Average CPU Usage",
               "range": true,
               "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "max(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$services-.*\"}[1m])) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"cpu\", pod=~\"$services-instance.*\"}) by(pod))",
+              "hide": false,
+              "instant": false,
+              "legendFormat": "Max CPU usage",
+              "range": true,
+              "refId": "D"
             }
           ],
-          "title": "Average CPU usage (% of limit)",
+          "title": "CPU usage (% of limit)",
           "type": "timeseries"
         },
         {
@@ -783,7 +797,7 @@ data:
               "calcs": [],
               "displayMode": "list",
               "placement": "bottom",
-              "showLegend": false
+              "showLegend": true
             },
             "tooltip": {
               "mode": "single",
@@ -830,9 +844,22 @@ data:
               "legendFormat": "Average RAM usage",
               "range": true,
               "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "max(sum(container_memory_working_set_bytes{namespace=\"$namespace\", container=~\"$services-.*\"}) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"memory\", pod=~\"$services-instance.*\"}) by(pod))",
+              "hide": false,
+              "instant": false,
+              "legendFormat": "Max RAM usage",
+              "range": true,
+              "refId": "D"
             }
           ],
-          "title": "Average RAM usage (% of limit)",
+          "title": "RAM usage (% of limit)",
           "type": "timeseries"
         },
         {
@@ -908,7 +935,7 @@ data:
         "list": [
           {
             "current": {
-              "selected": true,
+              "selected": false,
               "text": "crcp01ue1-prometheus",
               "value": "PC1EAC84DCBBF0697"
             },
@@ -927,7 +954,7 @@ data:
           },
           {
             "current": {
-              "selected": true,
+              "selected": false,
               "text": "ccx-data-pipeline-prod",
               "value": "ccx-data-pipeline-prod"
             },
@@ -1058,13 +1085,13 @@ data:
         ]
       },
       "time": {
-        "from": "now-6h",
+        "from": "now-24h",
         "to": "now"
       },
       "timepicker": {},
       "timezone": "browser",
       "title": "CCX Internal Data Pipeline",
       "uid": "ccxinternaldatapipeline",
-      "version": 8,
+      "version": 3,
       "weekStart": ""
     }
