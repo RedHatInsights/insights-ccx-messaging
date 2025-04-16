@@ -29,7 +29,7 @@ data:
       "editable": true,
       "fiscalYearStartMonth": 0,
       "graphTooltip": 0,
-      "id": 998764,
+      "id": 765681,
       "links": [],
       "panels": [
         {
@@ -565,7 +565,7 @@ data:
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "description": "Use this panel to look for anomalies. Spikes are expected. The usage should never reach 1.\nFeel free to enter this panel and enable the hidden metrics which will give you a better view on the individual pods.",
+          "description": "Use this panel to look for anomalies. Spikes are expected. The usage should never reach 100%.\nFeel free to enter this panel and enable the hidden metrics which will give you a better view on the individual pods.\nThe average is calculated by dividing the total sum by the number of active replicas.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -577,6 +577,7 @@ data:
                 "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
+                "axisSoftMax": 1.5,
                 "axisSoftMin": 0,
                 "barAlignment": 0,
                 "drawStyle": "line",
@@ -645,7 +646,7 @@ data:
               "calcs": [],
               "displayMode": "list",
               "placement": "bottom",
-              "showLegend": false
+              "showLegend": true
             },
             "tooltip": {
               "mode": "single",
@@ -660,7 +661,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(process_cpu_seconds_total{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}) by(pod)",
+              "expr": "sum(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$services-.*\"}) by(pod)",
               "hide": true,
               "instant": false,
               "legendFormat": "__auto",
@@ -686,15 +687,28 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "max(sum(rate(process_cpu_seconds_total{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}[1m])) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"cpu\", pod=~\"$services-instance.*\"}) by(pod))",
+              "expr": "sum(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$services-.*\"}[1m])) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"cpu\", pod=~\"$services-instance.*\"}) by(pod)) / sum(up{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"})",
               "hide": false,
               "instant": false,
-              "legendFormat": "__auto",
+              "legendFormat": "Average CPU Usage",
               "range": true,
               "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "max(sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$services-.*\"}[1m])) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"cpu\", pod=~\"$services-instance.*\"}) by(pod))",
+              "hide": false,
+              "instant": false,
+              "legendFormat": "Max CPU usage",
+              "range": true,
+              "refId": "D"
             }
           ],
-          "title": "Maximum CPU usage across all pods (% of limit)",
+          "title": "CPU usage (% of limit)",
           "type": "timeseries"
         },
         {
@@ -714,6 +728,7 @@ data:
                 "axisColorMode": "text",
                 "axisLabel": "",
                 "axisPlacement": "auto",
+                "axisSoftMax": 1,
                 "axisSoftMin": 0,
                 "barAlignment": 0,
                 "drawStyle": "line",
@@ -782,7 +797,7 @@ data:
               "calcs": [],
               "displayMode": "list",
               "placement": "bottom",
-              "showLegend": false
+              "showLegend": true
             },
             "tooltip": {
               "mode": "single",
@@ -797,7 +812,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(process_resident_memory_bytes{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}) by(pod)",
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\", container=~\"$services-.*\"}) by(pod)",
               "hide": true,
               "instant": false,
               "legendFormat": "__auto",
@@ -823,15 +838,28 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "max(sum(process_resident_memory_bytes{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"}) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"memory\", pod=~\"$services-instance.*\"}) by(pod))",
+              "expr": "sum(sum(container_memory_working_set_bytes{namespace=\"$namespace\", container=~\"$services-.*\"}) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"memory\", pod=~\"$services-instance.*\"}) by(pod)) / sum(up{namespace=\"$namespace\", service=~\"$services-prometheus-exporter\"})",
               "hide": false,
               "instant": false,
-              "legendFormat": "__auto",
+              "legendFormat": "Average RAM usage",
               "range": true,
               "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "max(sum(container_memory_working_set_bytes{namespace=\"$namespace\", container=~\"$services-.*\"}) by(pod) / sum(kube_pod_resource_limit{namespace=\"$namespace\", resource=\"memory\", pod=~\"$services-instance.*\"}) by(pod))",
+              "hide": false,
+              "instant": false,
+              "legendFormat": "Max RAM usage",
+              "range": true,
+              "refId": "D"
             }
           ],
-          "title": "Maximum RAM usage across all pods (% of limit)",
+          "title": "RAM usage (% of limit)",
           "type": "timeseries"
         },
         {
@@ -907,7 +935,7 @@ data:
         "list": [
           {
             "current": {
-              "selected": true,
+              "selected": false,
               "text": "crcp01ue1-prometheus",
               "value": "PC1EAC84DCBBF0697"
             },
@@ -926,7 +954,7 @@ data:
           },
           {
             "current": {
-              "selected": true,
+              "selected": false,
               "text": "ccx-data-pipeline-prod",
               "value": "ccx-data-pipeline-prod"
             },
@@ -1057,13 +1085,13 @@ data:
         ]
       },
       "time": {
-        "from": "now-6h",
+        "from": "now-24h",
         "to": "now"
       },
       "timepicker": {},
       "timezone": "browser",
       "title": "CCX Internal Data Pipeline",
       "uid": "ccxinternaldatapipeline",
-      "version": 7,
+      "version": 3,
       "weekStart": ""
     }
