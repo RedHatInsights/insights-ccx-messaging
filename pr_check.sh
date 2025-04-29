@@ -1,20 +1,67 @@
 #!/bin/bash
+# Copyright 2025 Red Hat, Inc
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-CICD_TOOLS_URL="https://raw.githubusercontent.com/RedHatInsights/cicd-tools/main/src/bootstrap.sh"
-export CICD_IMAGE_BUILDER_IMAGE_NAME='quay.io/cloudservices/ccx-messaging'
-export CICD_IMAGE_BUILDER_ADDITIONAL_TAGS=("latest")
+set -exv
 
-# shellcheck source=/dev/null
-if ! source <(curl -sSL "$CICD_TOOLS_URL") image_builder; then
-    echo "Error loading image_builder module!"
-    exit 1
-fi
 
-if ! cicd::image_builder::build_and_push; then
-    echo "Error building image!"
-    exit 1
-fi
+# --------------------------------------------
+# Options that must be configured by app owner
+# --------------------------------------------
+APP_NAME="ccx-data-pipeline"  # name of app-sre "application" folder this component lives in
+COMPONENT_NAME="multiplexor archive-sync archive-sync-ols rules-uploader"  # name of app-sre "resourceTemplate" in deploy.yaml for this component
+IMAGE="quay.io/cloudservices/ccx-messaging"
+COMPONENTS="multiplexor archive-sync archive-sync-ols rules-processing rules-uploader"  # space-separated list of components to load
+COMPONENTS_W_RESOURCES=""  # component to keep
+CACHE_FROM_LATEST_IMAGE="true"
+DEPLOY_FRONTENDS="false"
+# Set the correct images for pull requests.
+# pr_check in pull requests still uses the old cloudservices images
+EXTRA_DEPLOY_ARGS="\
+    --set-parameter multiplexor/IMAGE=quay.io/cloudservices/ccx-messaging \
+    --set-parameter archive-sync/IMAGE=quay.io/cloudservices/ccx-messaging \
+    --set-parameter archive-sync-ols/IMAGE=quay.io/cloudservices/ccx-messaging \
+    --set-parameter rules-uploader/IMAGE=quay.io/cloudservices/ccx-messaging
+"
 
-# Temporary stub
-mkdir -p artifacts
-echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.014" timestamp="2021-05-13T07:54:11.934144" hostname="thinkpad-t480s"><testcase classname="test" name="test_stub" time="0.000" /></testsuite></testsuites>' > artifacts/junit-stub.xml
+export IQE_PLUGINS="ccx"
+# Run all pipeline and ui tests
+export IQE_MARKER_EXPRESSION="internal"
+export IQE_FILTER_EXPRESSION="not parquet"
+export IQE_REQUIREMENTS_PRIORITY=""
+export IQE_TEST_IMPORTANCE=""
+export IQE_CJI_TIMEOUT="30m"
+export IQE_SELENIUM="false"
+export IQE_ENV="ephemeral"
+export IQE_ENV_VARS="DYNACONF_USER_PROVIDER__rbac_enabled=false"
+
+
+function run_tests() {
+    # component name needs to be re-export to match ClowdApp name (as bonfire requires for this)
+    export COMPONENT_NAME="archive-sync"
+    source $CICD_ROOT/cji_smoke_test.sh
+    source $CICD_ROOT/post_test_results.sh  # publish results in Ibutsu
+}
+
+# Install bonfire repo/initialize
+CICD_URL=https://raw.githubusercontent.com/RedHatInsights/bonfire/master/cicd
+curl -s $CICD_URL/bootstrap.sh > .cicd_bootstrap.sh && source .cicd_bootstrap.sh
+echo "creating PR image"
+source $CICD_ROOT/build.sh
+
+echo "deploying to ephemeral"
+source $CICD_ROOT/deploy_ephemeral_env.sh
+
+echo "running PR tests"
+run_tests
