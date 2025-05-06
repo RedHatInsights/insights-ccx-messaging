@@ -34,7 +34,7 @@ EXTRA_DEPLOY_ARGS="\
     --set-parameter archive-sync-ols/IMAGE=quay.io/cloudservices/ccx-messaging \
     --set-parameter rules-uploader/IMAGE=quay.io/cloudservices/ccx-messaging
 "
-IQE_IMAGE=quay.io/cloudservices/iqe-tests:ccx"
+IQE_IMAGE="quay.io/cloudservices/iqe-tests:ccx"
 
 export IQE_PLUGINS="ccx"
 # Run all pipeline and ui tests
