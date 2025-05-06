@@ -12,8 +12,8 @@ objects:
     envName: ${ENV_NAME}
     objectStore:
       - ${TARGET_S3_BUCKET}
-#    testing:
-#      iqePlugin: ccx
+    testing:
+      iqePlugin: ccx
     deployments:
       - name: instance
         replicas: ${{REPLICAS}}

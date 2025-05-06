@@ -10,8 +10,8 @@ objects:
     name: multiplexor
   spec:
     envName: ${ENV_NAME}
-#    testing:
-#      iqePlugin: ccx
+    testing:
+      iqePlugin: ccx
     dependencies:
       - ingress
     deployments:
