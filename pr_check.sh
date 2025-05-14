@@ -22,7 +22,7 @@ set -exv
 APP_NAME="ccx-data-pipeline"  # name of app-sre "application" folder this component lives in
 COMPONENT_NAME="multiplexor archive-sync archive-sync-ols rules-uploader"  # name of app-sre "resourceTemplate" in deploy.yaml for this component
 IMAGE="quay.io/cloudservices/ccx-messaging"
-COMPONENTS="multiplexor archive-sync archive-sync-ols rules-processing rules-uploader"  # space-separated list of components to load
+COMPONENTS="multiplexor archive-sync archive-sync-ols rules-processing rules-uploader parquet-factory"  # space-separated list of components to load
 COMPONENTS_W_RESOURCES=""  # component to keep
 CACHE_FROM_LATEST_IMAGE="true"
 DEPLOY_FRONTENDS="false"
