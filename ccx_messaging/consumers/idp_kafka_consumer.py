@@ -5,10 +5,10 @@ import json
 import re
 
 from confluent_kafka import Message
-from insights import dr
 
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
+from ccx_messaging.monitored_broker import SentryMonitoredBroker
 
 
 # Path example: <org_id>/<cluster_id>/<year><month><day><time>-<id>
@@ -80,7 +80,7 @@ class IDPConsumer(KafkaConsumer):
     def create_broker(self, input_msg):
         """Create a suitable `Broker` to be pass arguments to the `Engine`."""
         path = input_msg.get("path")
-        broker = dr.Broker()
+        broker = SentryMonitoredBroker()
         broker["original_path"] = path
 
         if "cluster_id" in input_msg:

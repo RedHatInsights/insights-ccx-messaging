@@ -9,12 +9,12 @@ from typing import Any
 
 
 from confluent_kafka import KafkaException
-from insights import dr
 from insights.core.exceptions import InvalidContentType
 
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.internal_pipeline import parse_rules_results_msg
+from ccx_messaging.monitored_broker import SentryMonitoredBroker
 
 
 LOG = logging.getLogger(__name__)
@@ -89,9 +89,9 @@ class RulesResultsConsumer(KafkaConsumer):
         LOG.debug("JSON message deserialized (%s): %s", self.log_pattern, deseralized_msg)
         return deseralized_msg
 
-    def create_broker(self, input_msg: dict[str, Any]) -> dr.Broker:
+    def create_broker(self, input_msg: dict[str, Any]) -> SentryMonitoredBroker:
         """Create a suitable `Broker`."""
-        broker = dr.Broker()
+        broker = SentryMonitoredBroker()
         broker["cluster_id"] = input_msg["metadata"]["cluster_id"]
         broker["report_path"] = self.create_report_path(input_msg)
         return broker
