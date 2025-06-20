@@ -304,7 +304,7 @@ data:
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "$datasource"
+            "uid": "${aws_msk}"
           },
           "fieldConfig": {
             "defaults": {
@@ -385,12 +385,12 @@ data:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "$datasource"
+                "uid": "${aws_msk}"
               },
               "editorMode": "code",
-              "expr": "sum(kafka_consumergroup_group_lag{group=~\"ccx-rules-processing-service|ccx_parquet_factory_group|archive_sync_app|archive_sync_ols_app|multiplexor_app|rules-uploader-app\"}) by (group, topic)",
+              "expr": "sum(aws_kafka_max_offset_lag_average{consumer_group=~\"ccx-rules-processing-service|ccx_parquet_factory_group|archive_sync_app|archive_sync_ols_app|multiplexor_app|rules-uploader-app\"}) by (consumer_group, topic)",
               "hide": false,
-              "legendFormat": "{{group}} ({{topic}})",
+              "legendFormat": "{{consumer_group}} ({{topic}})",
               "range": true,
               "refId": "B"
             }
@@ -982,7 +982,7 @@ data:
           },
           {
             "current": {
-              "selected": false,
+              "selected": true,
               "text": [
                 "All"
               ],
@@ -1081,6 +1081,24 @@ data:
             "queryValue": "",
             "skipUrlSync": false,
             "type": "custom"
+          },
+          {
+            "current": {
+              "selected": false,
+              "text": "aws-resources-exporter-production",
+              "value": "PCEFB875D6FD018FC"
+            },
+            "description": "Datasource used for AWS MSK metrics",
+            "hide": 0,
+            "includeAll": false,
+            "multi": false,
+            "name": "aws_msk",
+            "options": [],
+            "query": "prometheus",
+            "refresh": 1,
+            "regex": "/^aws-resources-exporter-/",
+            "skipUrlSync": false,
+            "type": "datasource"
           }
         ]
       },
@@ -1092,6 +1110,6 @@ data:
       "timezone": "browser",
       "title": "CCX Internal Data Pipeline",
       "uid": "ccxinternaldatapipeline",
-      "version": 3,
+      "version": 4,
       "weekStart": ""
     }
