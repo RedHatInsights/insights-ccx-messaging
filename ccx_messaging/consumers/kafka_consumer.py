@@ -13,12 +13,12 @@ from confluent_kafka import (
     Producer,
     TIMESTAMP_NOT_AVAILABLE,
 )
-from insights import dr
 from insights.core.exceptions import InvalidContentType
 from insights_messaging.consumers import Consumer
 
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.ingress import parse_ingress_message
+from ccx_messaging.monitored_broker import SentryMonitoredBroker
 from ccx_messaging.utils.kafka_config import kafka_producer_config_cleanup
 
 
@@ -249,7 +249,7 @@ class KafkaConsumer(Consumer):
 
     def create_broker(self, input_msg):
         """Create a suitable `Broker` to be pass arguments to the `Engine`."""
-        broker = dr.Broker()
+        broker = SentryMonitoredBroker()
 
         # Some engines expect some data for its own usage, like the following:
         # (NOTE: The fields should be always present because of schema validation
