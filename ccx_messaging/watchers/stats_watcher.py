@@ -200,6 +200,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
                 data = json.load(f)
                 version = data["version"]
                 self._gathering_conditions_remote_configuration_version.labels(version).inc()
+                LOG.debug("Gathering_conditions_remote_configuration version is: " + version)
         except FileNotFoundError:
             LOG.debug("this archive didn't use remote-configurations")
         except KeyError:

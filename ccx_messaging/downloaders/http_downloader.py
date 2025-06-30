@@ -17,6 +17,7 @@
 import logging
 import re
 from contextlib import contextmanager
+import shutil
 from tempfile import NamedTemporaryFile
 
 import requests
@@ -96,23 +97,27 @@ class HTTPDownloader:
                 raise CCXMessagingError("Invalid URL format")
 
         try:
-            response = requests.get(src)
-            data = response.content
-            size = len(data)
+            with requests.get(src, stream=True, timeout=(3.05, 300)) as response:
+                response.raise_for_status()
 
-            if size == 0:
-                LOG.warning("Empty input archive from: %s", src)
-                raise CCXMessagingError("Empty input archive")
+                size = 0
+                with NamedTemporaryFile() as file_data:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if not chunk:          # keep-alive chunk
+                            continue
+                        file_data.write(chunk)
+                        size += len(chunk)
 
-            if self.max_archive_size is not None and size > self.max_archive_size:
-                LOG.warning("The archive is too big ({size} > {self.max_archive_size})", size=size)
-                raise CCXMessagingError("The archive is too big. Skipping")
+                        if self.max_archive_size is not None and size > self.max_archive_size:
+                            LOG.warning("The archive is too big ({size} > {self.max_archive_size})", size=size)
+                            raise CCXMessagingError("The archive is too big. Skipping")
 
-            with NamedTemporaryFile() as file_data:
-                file_data.write(data)
-                file_data.flush()
-                yield file_data.name
-            response.close()
+                    if size == 0:
+                        LOG.warning("Empty input archive from: %s", src)
+                        raise CCXMessagingError("Empty input archive")
+
+                    file_data.flush()
+                    yield file_data.name
 
         except requests.exceptions.ConnectionError as err:
             LOG.error("Connection error while downloading the file: %s", err)
