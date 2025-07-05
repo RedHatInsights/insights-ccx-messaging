@@ -13,3 +13,4 @@ watchtower>=3.0.0
 setuptools>=70.0.0
 aiobotocore==2.23.0
 s3fs==2025.5.1
+psutil>=5.9.0

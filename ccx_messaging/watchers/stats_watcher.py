@@ -19,6 +19,9 @@ import os
 import tarfile
 import time
 import json
+import sys
+import tracemalloc
+import psutil
 
 from insights.core.archives import TarExtractor, ZipExtractor
 from insights_messaging.watchers import EngineWatcher
@@ -41,6 +44,10 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
     def __init__(self, prometheus_port=8000):
         """Create the needed Counter objects and start serving Prometheus stats."""
         super().__init__()
+        self._proc = psutil.Process(os.getpid())
+        tracemalloc.start()
+        self._baseline_rss = self._proc.memory_info().rss  # bytes
+        self._baseline_py = tracemalloc.get_traced_memory()[0]  # bytes
 
         self._recv_total = Counter(
             "ccx_consumer_received_total", "Counter of received Kafka messages"
@@ -128,7 +135,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         self._archive_metadata = {"type": "ocp", "size": 0, "s3_path": ""}
 
         self._initialize_metrics_with_labels()
-
+        self._log_metric_memory("after metric initialization")
         start_http_server(prometheus_port)
         LOG.info("StatWatcher created and listening on port %s", prometheus_port)
 
@@ -226,7 +233,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         """On processed event handler."""
         LOG.debug("Receiving 'on_process' callback")
         self._processed_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
-
+        self._log_metric_memory("after on_process")
         self._processed_time = time.time()
         self._process_duration.labels(
             **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
@@ -301,6 +308,35 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
             self._process_duration.labels(val)
             self._publish_duration.labels(val)
             self._processed_timeout_total.labels(val)
+
+    def _log_metric_memory(self, ctx: str = "") -> None:
+        """
+        Print how much resident memory and Python-tracked memory the metric
+        objects are consuming.  Use `ctx` to identify the call-site.
+        """
+        curr_rss = self._proc.memory_info().rss
+        curr_py = tracemalloc.get_traced_memory()[0]
+
+        LOG.info(
+            "[mem] %s → +%.2f MiB RSS  |  +%.2f MiB traced (%s)",
+            ctx,
+            (curr_rss - self._baseline_rss) / (1024**2),
+            (curr_py - self._baseline_py) / (1024**2),
+            ctx or "initialisation",
+        )
+
+        # Optional: very shallow sizes of each metric object (debug only)
+        for m in (
+            self._downloaded_total,
+            self._archive_size,
+            self._extracted_total,
+            self._processed_total,
+            self._published_total,
+            self._failures_total,
+            self._process_duration,
+            self._publish_duration,
+        ):
+            LOG.debug("[mem] %-30s ≈ %.1f KiB (shallow)", m._name, sys.getsizeof(m) / 1024)
 
     def __del__(self):
         """Destructor for handling counters unregistering."""
