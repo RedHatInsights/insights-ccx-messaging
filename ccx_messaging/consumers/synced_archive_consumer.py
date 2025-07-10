@@ -5,13 +5,12 @@ import time
 from typing import Any
 
 from confluent_kafka import Message, KafkaException
-from insights import dr
 from insights.core.exceptions import InvalidContentType
-from insights_messaging.consumers import Consumer
 
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.internal_pipeline import parse_archive_sync_msg
 from ccx_messaging.error import CCXMessagingError
+from ccx_messaging.monitored_broker import SentryMonitoredBroker
 
 
 LOG = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ LOG = logging.getLogger(__name__)
 class SyncedArchiveConsumer(KafkaConsumer):
     """Consumer for the topic produced by `synced_archive_publisher.SyncedArchivePublisher`."""
 
-    def get_url(self, input_msg: dict[str:str]) -> str:
+    def get_url(self, input_msg: dict[str, str]) -> str:
         """Retrieve path to the archive in the S3 storage from Kafka message."""
         # it's safe to asume the "path" is there because the message format is validated
         return input_msg["path"]
@@ -86,6 +85,6 @@ class SyncedArchiveConsumer(KafkaConsumer):
         LOG.debug("JSON message deserialized (%s): %s", self.log_pattern, deseralized_msg)
         return deseralized_msg
 
-    def create_broker(self, input_msg: dict[str, Any]) -> dr.Broker:
+    def create_broker(self, input_msg: dict[str, Any]) -> SentryMonitoredBroker:
         """Create a suitable `Broker`."""
-        return Consumer.create_broker(self, input_msg)
+        return SentryMonitoredBroker()
