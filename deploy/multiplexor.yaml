@@ -71,36 +71,6 @@ objects:
                   optional: true
             - name: PYTHONUNBUFFERED
               value: "1"
-          readinessProbe:
-            httpGet:
-              path: /metrics
-              port: 8000
-              scheme: HTTP
-            initialDelaySeconds: 20
-            successThreshold: 1
-            periodSeconds: 10
-            timeoutSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /metrics
-              port: 8000
-              scheme: HTTP
-            initialDelaySeconds: 20
-            successThreshold: 1
-            failureThreshold: 1
-            periodSeconds: 10
-            timeoutSeconds: 10
-          startupProbe:
-            httpGet:
-              path: /metrics
-              port: 8000
-              scheme: HTTP
-            initialDelaySeconds: 20
-            successThreshold: 1
-            # Wait for 10x10 seconds
-            failureThreshold: 10
-            periodSeconds: 10
-            timeoutSeconds: 10
           volumeMounts:
             - mountPath: /data
               name: multiplexor-config
@@ -166,15 +136,7 @@ objects:
             outgoing_topics:
               OLS: ${KAFKA_OUTGOING_TOPIC_OLS}
               DEFAULT: ${KAFKA_OUTGOING_TOPIC_IO}
-        watchers:
-          - name: ccx_messaging.watchers.stats_watcher.StatsWatcher
-            kwargs:
-              prometheus_port: 8000
-          - name: ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher
-            kwargs:
-              bootstrap.servers: ${KAFKA_SERVER}
-              topic: ${PAYLOAD_TRACKER_TOPIC}
-              service_name: multiplexor
+        watchers: []
         logging:
           version: 1
           disable_existing_loggers: false
@@ -273,17 +235,17 @@ parameters:
   value: 256Mi
 
 - name: LOGLEVEL_CCX_MESSAGING
-  value: INFO
+  value: DEBUG
 - name: LOGLEVEL_INSIGHTS_MESSAGING
-  value: WARNING
+  value: DEBUG
 - name: LOGLEVEL_INSIGHTS
-  value: WARNING
+  value: DEBUG
 - name: LOGLEVEL_KAFKA
-  value: INFO
+  value: DEBUG
 - name: LOGLEVEL_STDOUT
-  value: INFO
+  value: DEBUG
 - name: LOGLEVEL_ROOT
-  value: WARNING
+  value: DEBUG
 - name: LOGGING_TO_CW_ENABLED
   value: "true"
 

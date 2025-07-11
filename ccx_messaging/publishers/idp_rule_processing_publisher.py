@@ -70,3 +70,4 @@ class IDPRuleProcessingPublisher(KafkaPublisher):
         # Convert message string into a byte array.
         self.produce(message.encode("utf-8"))
         log.debug("Message has been sent successfully.")
+        self.flush()

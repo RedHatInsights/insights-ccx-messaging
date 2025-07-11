@@ -84,6 +84,15 @@ class KafkaPublisher(Publisher):
         """
         raise NotImplementedError()
 
+    def flush(self, timeout: float = -1.0):
+        """Wait for all messages in the producer queue to be delivered."""
+        log.debug("Flushing producer...")
+        remaining = self.producer.flush(timeout)
+        if remaining > 0:
+            log.warning("%d messages were not delivered after flush", remaining)
+        else:
+            log.debug("Producer flushed successfully.")
+
     def error(self, input_msg: dict, ex: Exception):
         """Handle pipeline errors by logging them."""
         log.warning("An error has ocurred during the processing of %s: %s", input_msg, ex)

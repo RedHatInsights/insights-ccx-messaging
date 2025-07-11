@@ -42,3 +42,4 @@ class SyncedArchivePublisher(KafkaPublisher):
             output_msg["original_path"],
             output_msg["metadata"],
         )
+        self.flush()
