@@ -1,10 +1,14 @@
 """Handlers for CLI commands and some utility functions."""
 
 import argparse
+import gc
 import importlib.metadata
 import logging
 import os
 import sys
+import threading
+import time
+import psutil
 
 from app_common_python import isClowderEnabled
 from insights_messaging.appbuilder import AppBuilder
@@ -13,6 +17,30 @@ from ccx_messaging.utils.clowder import apply_clowder_config
 from ccx_messaging.utils.logging import setup_watchtower
 from ccx_messaging.utils.sentry import init_sentry
 
+
+GC_RAM_THRESHOLD = float(os.getenv("GC_RAM_THRESHOLD", 70.0))
+GC_CHECK_EVERY   = float(os.getenv("GC_CHECK_EVERY", 0.5))
+
+
+def _start_gb_collection_watcher(threshold: float = GC_RAM_THRESHOLD,interval: float = GC_CHECK_EVERY):
+    def _watch():
+        
+        proc = psutil.Process(os.getpid())
+        while True:
+            logging.getLogger(__name__).debug(
+                    "[gc] RAM %.1f %%",
+                    proc.memory_percent()
+                )
+            if proc.memory_percent() >= threshold:
+                unreachable = gc.collect()
+                logging.getLogger(__name__).debug(
+                    "[gc] RAM %.1f %% → zozbieraných %d objektov",
+                    proc.memory_percent(),
+                    unreachable,
+                )
+            time.sleep(interval)
+
+    threading.Thread(target=_watch, daemon=True,name="GCWatchdog").start()
 
 def parse_args() -> argparse.Namespace:
     """Parse the command line options and arguments."""
@@ -55,13 +83,13 @@ def apply_config(config) -> int:
         app_builder = AppBuilder(manifest)
         logging_config = app_builder.service["logging"]
         logging.config.dictConfig(logging_config)
+        _start_gb_collection_watcher()
         print_version()
         try:
             consumer = app_builder.build_app()
             setup_watchtower(logging_config)
             consumer.run()
             return 0
-
         except ModuleNotFoundError as ex:
             logging.error("Module not found: %s. Did you miss some dependency?", ex.name)
             return 1
