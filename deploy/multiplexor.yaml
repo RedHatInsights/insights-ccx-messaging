@@ -40,6 +40,19 @@ objects:
           metrics:
             enabled: true
         podSpec:
+          initContainers:
+          - name: setup-memray-dir
+            image: registry.access.redhat.com/ubi9/ubi:latest
+            command: ["/bin/bash", "-c"]
+            args:
+              - |
+                mkdir -p /memray-profiles
+                chmod 777 /memray-profiles
+                chown 1001:0 /memray-profiles
+                ls -la /memray-profiles
+            volumeMounts:
+            - mountPath: /memray-profiles
+              name: memray-profiles
           image: ${IMAGE}:${IMAGE_TAG}
           command: ["ccx-messaging"]
           args: 
@@ -90,11 +103,6 @@ objects:
                   optional: true
             - name: PYTHONUNBUFFERED
               value: "1"
-            # Memray environment variables (fallback)
-            - name: MEMRAY_PROFILE
-              value: "/memray-profiles/multiplexor-instance.bin"
-            - name: MEMRAY_NATIVE_MODE
-              value: ${MEMRAY_NATIVE_MODE}
           readinessProbe:
             httpGet:
               path: /metrics
