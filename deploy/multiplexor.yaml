@@ -4,6 +4,21 @@ kind: Template
 metadata:
   name: multiplexor
 objects:
+# PersistentVolumeClaim for memray profiles
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: multiplexor-memray-profiles
+    labels:
+      app: multiplexor
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${MEMRAY_STORAGE_SIZE}
+    storageClassName: ${STORAGE_CLASS}
+
 - apiVersion: cloud.redhat.com/v1alpha1
   kind: ClowdApp
   metadata:
@@ -27,7 +42,11 @@ objects:
         podSpec:
           image: ${IMAGE}:${IMAGE_TAG}
           command: ["ccx-messaging"]
-          args: ["/data/config.yaml"]
+          args: 
+            - "--memray-profile"
+            - "/memray-profiles/multiplexor-instance.bin"
+            - "--memray-native-mode"
+            - "/data/config.yaml"
           env:
             - name: CLOWDER_ENABLED
               value: ${CLOWDER_ENABLED}
@@ -71,6 +90,11 @@ objects:
                   optional: true
             - name: PYTHONUNBUFFERED
               value: "1"
+            # Memray environment variables (fallback)
+            - name: MEMRAY_PROFILE
+              value: "/memray-profiles/multiplexor-instance.bin"
+            - name: MEMRAY_NATIVE_MODE
+              value: ${MEMRAY_NATIVE_MODE}
           readinessProbe:
             httpGet:
               path: /metrics
@@ -104,10 +128,15 @@ objects:
           volumeMounts:
             - mountPath: /data
               name: multiplexor-config
+            - mountPath: /memray-profiles
+              name: memray-profiles
           volumes:
             - configMap:
                 name: multiplexor-config-map
               name: multiplexor-config
+            - persistentVolumeClaim:
+                claimName: multiplexor-memray-profiles
+              name: memray-profiles
           resources:
             requests:
               cpu: ${CPU_REQUEST}
@@ -289,3 +318,14 @@ parameters:
 
 - name: SENTRY_ENABLED
   value: "false"
+
+# Memray-specific parameters
+- name: MEMRAY_NATIVE_MODE
+  description: Enable native C/C++ allocation tracking
+  value: "true"
+- name: MEMRAY_STORAGE_SIZE
+  description: Storage size for memray profiles (large for unlimited-like storage)
+  value: "100Gi"
+- name: STORAGE_CLASS
+  description: Storage class for PVC
+  value: "gp2"
