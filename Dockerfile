@@ -10,7 +10,7 @@ WORKDIR $HOME
 
 COPY . $HOME
 
-RUN microdnf install --nodocs -y python3.11 unzip tar git-core && \
+RUN microdnf install --nodocs -y python3.11 python3.11-devel gcc-c++ unzip tar git-core && \
     python3.11 -m venv $VENV && \
     pip install --no-cache-dir -U pip && \
     pip install --no-cache-dir -r requirements.txt && \
@@ -20,11 +20,15 @@ RUN microdnf install --nodocs -y python3.11 unzip tar git-core && \
 # Stage 2: Final
 FROM base AS final
 
-RUN microdnf remove -y git-core && \
+RUN microdnf remove -y git-core gcc-c++ python3.11-devel && \
     microdnf clean all && \
     rpm -e --nodeps sqlite-libs krb5-libs libxml2 readline pam openssh openssh-clients
 
-RUN chmod -R g=u $HOME $VENV /etc/passwd && \
+RUN mkdir -p $HOME/memray-profiles && \
+    chmod -R g=u $HOME $VENV /etc/passwd && \
     chgrp -R 0 $HOME $VENV
+
+# Volume for memray profile outputs
+VOLUME ["$HOME/memray-profiles"]
 
 USER 1001
