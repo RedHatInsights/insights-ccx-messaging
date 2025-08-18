@@ -19,6 +19,7 @@ import logging
 import os
 import tarfile
 
+import sentry_sdk
 from insights_messaging.engine import Engine
 
 from ccx_messaging.error import CCXMessagingError
@@ -146,7 +147,16 @@ def extract_cluster_id(tar_path: str) -> str:
                 return id_file.read().decode()
 
     except KeyError as ex:
-        raise CCXMessagingError(f"The tar in {tar_path} doesn't contain cluster id") from ex
+        sentry_sdk.set_context("archive_processing", {
+            "tar_path": tar_path,
+            "error_type": "missing_cluster_id",
+            "id_path": ID_PATH
+        })
+        raise CCXMessagingError("Archive doesn't contain cluster id") from ex
 
     except tarfile.ReadError as ex:
-        raise CCXMessagingError(f"The file in {tar_path} doesn't look as a tarfile") from ex
+        sentry_sdk.set_context("archive_processing", {
+            "tar_path": tar_path,
+            "error_type": "invalid_tarfile"
+        })
+        raise CCXMessagingError("File doesn't look as a tarfile") from ex

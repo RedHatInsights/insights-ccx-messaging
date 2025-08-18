@@ -15,11 +15,13 @@
 """Module that defines a Downloader object to get HTTP urls."""
 
 import logging
+import os
 import re
 from contextlib import contextmanager
 from tempfile import NamedTemporaryFile
 
 import requests
+from sentry_sdk import push_scope
 
 from ccx_messaging.error import CCXMessagingError
 
@@ -118,5 +120,14 @@ class HTTPDownloader:
             LOG.error("Connection error while downloading the file: %s", err)
             raise CCXMessagingError("Connection error while downloading the file") from err
         except Exception as err:
-            LOG.error("Unknown error while downloading the file: %s", err)
+            if "doesn't contain cluster id" in str(err):
+                with push_scope() as scope:
+                    scope.fingerprint = [
+                        "http_downloader",
+                        "Tar doesn't contain cluster id",
+                        os.getenv("SENTRY_ENVIRONMENT", "unknown"),
+                    ]
+                    LOG.error("Unknown error while downloading the file: %s", err)
+            else:
+                LOG.error("Unknown error while downloading the file: %s", err)
             raise CCXMessagingError("Unknown error while downloading the file") from err
