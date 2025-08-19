@@ -118,5 +118,22 @@ class HTTPDownloader:
             LOG.error("Connection error while downloading the file: %s", err)
             raise CCXMessagingError("Connection error while downloading the file") from err
         except Exception as err:
-            LOG.error("Unknown error while downloading the file: %s", err)
+            if hasattr(err, "__notes__"):
+                tar_path = next(
+                    (
+                        item
+                        for item in err.__notes__
+                        if isinstance(item, str) and "tar_path:" in item
+                    ),
+                    None,
+                )
+                if tar_path:
+                    key, tar_path = tar_path.split(":", 1)
+                    LOG.error(
+                        "Unknown error while downloading the file: %s", err, extra={key: tar_path}
+                    )
+                else:
+                    LOG.error("Unknown error while downloading the file: %s", err)
+            else:
+                LOG.error("Unknown error while downloading the file: %s", err)
             raise CCXMessagingError("Unknown error while downloading the file") from err
