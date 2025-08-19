@@ -146,7 +146,11 @@ def extract_cluster_id(tar_path: str) -> str:
                 return id_file.read().decode()
 
     except KeyError as ex:
-        raise CCXMessagingError(f"The tar in {tar_path} doesn't contain cluster id") from ex
+        error = CCXMessagingError("Archive doesn't contain cluster id")
+        error.add_note("tar_path:" + str(tar_path))
+        raise error from ex
 
     except tarfile.ReadError as ex:
-        raise CCXMessagingError(f"The file in {tar_path} doesn't look as a tarfile") from ex
+        error = CCXMessagingError("File doesn't look as a tarfile")
+        error.add_note("tar_path:" + str(tar_path))
+        raise error from ex
