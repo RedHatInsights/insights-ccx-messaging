@@ -31,13 +31,11 @@ objects:
           env:
             - name: CLOWDER_ENABLED
               value: ${CLOWDER_ENABLED}
-
-            # TODO: Configure Sentry when the PoC is done
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
                   key: dsn
-                  name: archive-sync-ols-copy-dsn
+                  name: archive-sync-ols-dsn
                   optional: true
             - name: SENTRY_ENVIRONMENT
               value: ${ENV_NAME}
