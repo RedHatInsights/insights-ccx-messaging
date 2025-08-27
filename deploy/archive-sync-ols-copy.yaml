@@ -35,7 +35,7 @@ objects:
               valueFrom:
                 secretKeyRef:
                   key: dsn
-                  name: archive-sync-ols-dsn
+                  name: archive-sync-ols-copy-dsn
                   optional: true
             - name: SENTRY_ENVIRONMENT
               value: ${ENV_NAME}
