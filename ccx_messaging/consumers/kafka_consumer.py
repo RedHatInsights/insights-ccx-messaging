@@ -130,6 +130,12 @@ class KafkaConsumer(Consumer):
         finally:
             LOG.info("Closing consumer")
             self.consumer.close()
+            # MEMORY LEAK FIX: Zabezpečiť, že DLQ producer je správne zatvorený
+            if self.dlq_producer:
+                LOG.info("Flushing and closing DLQ producer")
+                self.dlq_producer.flush(timeout=5.0)
+                # Poznámka: confluent-kafka Producer nemá explicitný close() metódu
+                # Flush zabezpečuje, že všetky buffered správy sú odoslané
 
     def handles(self, msg: Message) -> bool:
         """Check headers, format and other characteristics that can make the message unusable."""
@@ -285,3 +291,5 @@ class KafkaConsumer(Consumer):
             self.dead_letter_queue_topic,
             msg.value(),
         )
+        # CRITICAL FIX: Flush producer buffers to prevent memory accumulation
+        self.dlq_producer.flush(timeout=1.0)

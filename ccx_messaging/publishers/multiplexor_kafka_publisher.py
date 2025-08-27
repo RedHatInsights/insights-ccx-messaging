@@ -73,6 +73,8 @@ class MultiplexorPublisher(Publisher):
         else:
             self.producer.produce(topic, outgoing_message)
         self.producer.poll(0)
+        # MEMORY LEAK FIX: Periodicky flush aby sa zabránilo akumulácii bufferov
+        self.producer.flush(timeout=0.1)
 
     def publish(self, input_msg: dict[str, Any], response: set[str]) -> None:
         """Check to which topic should the `input_msg` be sent."""
