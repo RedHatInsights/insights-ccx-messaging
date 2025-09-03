@@ -229,7 +229,6 @@ class KafkaConsumer(Consumer):
             raise CCXMessagingError("Unable to read incoming message: %s", value)
 
         deserialized_msg = parse_ingress_message(value)
-        LOG.debug("JSON message deserialized (%s): %s", self.log_pattern, deserialized_msg)
 
         if not deserialized_msg.get("cluster_name"):
             cluster_id = (
