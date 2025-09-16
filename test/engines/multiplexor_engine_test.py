@@ -106,3 +106,31 @@ def test_process_several_matches():
     assert "IO" in result
     assert "WORKLOAD_INFO" in result
     assert len(result) == 2
+
+
+def test_multiplexor_engine_tarfile_error():
+    """Test MultiplexorEngine tarfile.ReadError handling."""
+    import tarfile
+    from unittest.mock import patch
+    from ccx_messaging.error import CCXMessagingError
+
+    sut = MultiplexorEngine(HumanReadableFormat, [], None, 10)
+    sut.watchers = []
+    sut.extract_tmp_dir = ""
+
+    broker = None
+    test_path = "/tmp/test_corrupted_archive.tar"
+
+    # Mock tarfile.open to raise ReadError
+    with patch("tarfile.open") as mock_open:
+        mock_open.side_effect = tarfile.ReadError("file could not be opened successfully")
+
+        # Test that CCXMessagingError is raised with correct format
+        with pytest.raises(CCXMessagingError) as exc_info:
+            sut.process(broker, test_path)
+
+        # Verify the error structure
+        error = exc_info.value
+        assert str(error) == "ReadError reading the archive"
+        assert error.additional_data is not None
+        assert error.additional_data["archive_path"] == test_path
