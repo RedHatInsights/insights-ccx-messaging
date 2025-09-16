@@ -26,9 +26,9 @@ class CCXMessagingError(Exception):
         """Initialize CCXMessagingError with optional additional data.
 
         Args:
-        
             message: The error message
             additional_data: Optional dict containing additional context data
+
         """
         super().__init__(message)
         self.additional_data = additional_data
