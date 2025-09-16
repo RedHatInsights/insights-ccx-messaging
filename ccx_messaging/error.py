@@ -22,6 +22,17 @@ class CCXMessagingError(Exception):
     exceptions caused by internal and external code.
     """
 
+    def __init__(self, message, additional_data=None):
+        """Initialize CCXMessagingError with optional additional data.
+
+        Args:
+        
+            message: The error message
+            additional_data: Optional dict containing additional context data
+        """
+        super().__init__(message)
+        self.additional_data = additional_data
+
     def format(self, input_msg):
         """Format the error by adding information about input Kafka message."""
         return f"Status: Error; Topic: {input_msg['topic']}; Cause: {self}"
