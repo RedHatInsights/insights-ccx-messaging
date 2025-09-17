@@ -29,8 +29,13 @@ class CCXMessagingError(Exception):
             message: The error message
             additional_data: Optional dict containing additional context data
 
+        Raises:
+            TypeError: If additional_data is not None or dict
+
         """
         super().__init__(message)
+        if additional_data is not None and not isinstance(additional_data, dict):
+            raise TypeError("additional_data must be a dict or None")
         self.additional_data = additional_data
 
     def format(self, input_msg):
