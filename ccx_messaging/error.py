@@ -22,18 +22,20 @@ class CCXMessagingError(Exception):
     exceptions caused by internal and external code.
     """
 
-    def __init__(self, message, additional_data=None):
+    def __init__(self, message, *args, additional_data=None):
         """Initialize CCXMessagingError with optional additional data.
 
         Args:
-            message: The error message
+            message: The error message (may contain format specifiers)
+            *args: Arguments for string formatting (for backward compatibility)
             additional_data: Optional dict containing additional context data
 
         Raises:
             TypeError: If additional_data is not None or dict
 
         """
-        super().__init__(message)
+        super().__init__(message, *args)
+
         if additional_data is not None and not isinstance(additional_data, dict):
             raise TypeError("additional_data must be a dict or None")
         self.additional_data = additional_data
