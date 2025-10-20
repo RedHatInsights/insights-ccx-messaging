@@ -359,7 +359,24 @@ data:
               },
               "unit": "short"
             },
-            "overrides": []
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "ccx_parquet_factory_group (ccx.insights.rules.results)"
+                },
+                "properties": [
+                  {
+                    "id": "custom.axisPlacement",
+                    "value": "right"
+                  },
+                  {
+                    "id": "custom.axisLabel",
+                    "value": "Parquet Factory"
+                  }
+                ]
+              }
+            ]
           },
           "gridPos": {
             "h": 5,
@@ -388,11 +405,23 @@ data:
                 "uid": "${aws_msk}"
               },
               "editorMode": "code",
-              "expr": "sum(aws_kafka_max_offset_lag_average{consumer_group=~\"ccx-rules-processing-service|ccx_parquet_factory_group|archive_sync_app|archive_sync_ols_app|multiplexor_app|rules-uploader-app\"}) by (consumer_group, topic)",
+              "expr": "sum(aws_kafka_max_offset_lag_average{consumer_group=~\"ccx-rules-processing-service|archive_sync_app|archive_sync_ols_app|multiplexor_app|rules-uploader-app\"}) by (consumer_group, topic)",
               "hide": false,
               "legendFormat": "{{consumer_group}} ({{topic}})",
               "range": true,
               "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${aws_msk}"
+              },
+              "editorMode": "code",
+              "expr": "sum(aws_kafka_max_offset_lag_average{consumer_group=~\"ccx_parquet_factory_group\"}) by (consumer_group, topic)",
+              "hide": false,
+              "legendFormat": "{{consumer_group}} ({{topic}})",
+              "range": true,
+              "refId": "A"
             }
           ],
           "title": "Kafka lag",
