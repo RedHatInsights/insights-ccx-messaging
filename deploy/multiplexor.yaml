@@ -8,8 +8,6 @@ objects:
   kind: ClowdApp
   metadata:
     name: multiplexor
-    annotations:
-      ignore-check.kube-linter.io/minimum-three-replicas: "This app doesn't have that much traffic in stage"
   spec:
     envName: ${ENV_NAME}
     testing:
