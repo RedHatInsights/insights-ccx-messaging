@@ -65,8 +65,7 @@ class HTTPDownloader:
     # https://<hostname>/service_id/file_id?<credentials and other params>
     HTTP_RE = re.compile(
         r"^(?:https://[^/]+\.s3\.amazonaws\.com/[0-9a-zA-Z/\-]+|"
-        r"https://s3\.[0-9a-zA-Z\-]+\.amazonaws\.com/[0-9a-zA-Z\-]+/[0-9a-zA-Z/\-]+|"
-        r"[0-9a-zA-Z\-]+)\?"
+        r"https://s3\.[0-9a-zA-Z\-]+\.amazonaws\.com/[0-9a-zA-Z\-]+/[0-9a-zA-Z/\-]+)\?"
         r"X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=[^/]+$"
     )
 
