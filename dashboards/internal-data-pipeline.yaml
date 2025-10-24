@@ -1048,11 +1048,6 @@ data:
               },
               {
                 "selected": false,
-                "text": "archive-sync-ols-copy",
-                "value": "archive-sync-ols-copy"
-              },
-              {
-                "selected": false,
                 "text": "rules-processing",
                 "value": "rules-processing"
               },
@@ -1062,7 +1057,7 @@ data:
                 "value": "rules-uploader"
               }
             ],
-            "query": "multiplexor,archive-sync,archive-sync-ols,archive-sync-ols-copy,rules-processing,rules-uploader,",
+            "query": "multiplexor,archive-sync,archive-sync-ols,rules-processing,rules-uploader,",
             "queryValue": "",
             "skipUrlSync": false,
             "type": "custom"
