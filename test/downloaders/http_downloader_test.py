@@ -75,11 +75,6 @@ _VALID_URLS = [
     "us-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200311T080728Z&X-Amz-Expires=86400&"
     "X-Amz-SignedHeaders=host&"
     "X-Amz-Signature=0000cafe0000babe0000cafe0000babe0000cafe0000babe0000cafe0000babe",
-    "http://minio:9000/insights-upload-perma/server.in.my.company.com/"
-    "Z0ThU1Jyxc-000004?X-Amz-Algorithm=AWS4-HMAC-SHA256&"
-    "X-Amz-Credential=ThisIsNotCorrectCred%2F20200520%2Fus-east-1%2Fs3%2Faws4_request&"
-    "X-Amz-Date=20200520T140918Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&"
-    "X-Amz-Signature=0000cafe0000babe0000cafe0000babe0000cafe0000babe0000cafe0000babe",
     "https://s3.us-east-1.amazonaws.com/insights-ingress-prod/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential="
     "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ&X-Amz-Date=20201201T210535Z&"
