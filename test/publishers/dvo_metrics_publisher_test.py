@@ -143,12 +143,12 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": 1,
             "ClusterName": "uuid",
             "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
             "LastChecked": "a timestamp",
             "Version": 0,
+            "AccountNumber": 1,
         },
         id="with account",
     ),
@@ -169,7 +169,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
@@ -195,7 +194,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
@@ -220,7 +218,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
@@ -246,7 +243,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
@@ -272,7 +268,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
@@ -298,7 +293,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
@@ -324,7 +318,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Metrics": {"workload_recommendations": []},
             "RequestId": "a request id",
@@ -392,12 +385,12 @@ VALID_REPORTS = [
         ),
         {
             "OrgID": 10,
-            "AccountNumber": 1,
             "ClusterName": "uuid",
             "Metrics": {"pass": [], "info": [], "workload_recommendations": []},
             "RequestId": "a request id",
             "LastChecked": "a timestamp",
             "Version": 1,
+            "AccountNumber": 1,
         },
         id="valid_report",
     )

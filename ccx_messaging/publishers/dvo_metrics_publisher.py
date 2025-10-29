@@ -59,7 +59,7 @@ class DVOMetricsPublisher(KafkaPublisher):
             account_number = int(input_msg["identity"]["identity"]["account_number"])
         except (ValueError, KeyError, TypeError) as err:
             log.warning("Error extracting the Account number: %s", err)
-            account_number = ""
+            account_number = None
 
         if "cluster_name" not in input_msg:
             raise CCXMessagingError("Can't find 'cluster_name'")
@@ -67,13 +67,16 @@ class DVOMetricsPublisher(KafkaPublisher):
         msg_version = report.pop("version", 0)
         output_msg = {
             "OrgID": org_id,
-            "AccountNumber": account_number,
             "ClusterName": input_msg["cluster_name"],
             "Metrics": report,
             "RequestId": input_msg.get("request_id"),
             "LastChecked": input_msg.get("timestamp"),
             "Version": msg_version,
         }
+
+        if account_number is not None:
+            output_msg["AccountNumber"] = account_number
+
         message = json.dumps(output_msg) + "\n"
 
         log.debug("Sending response to the %s topic.", self.topic)
@@ -83,6 +86,6 @@ class DVOMetricsPublisher(KafkaPublisher):
         log.debug(
             'Message context: OrgId=%s, AccountNumber=%s, ClusterName="%s"',
             output_msg["OrgID"],
-            output_msg["AccountNumber"],
+            output_msg.get("AccountNumber", ""),
             output_msg["ClusterName"],
         )
