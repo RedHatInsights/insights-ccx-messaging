@@ -142,12 +142,12 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": 1,
             "ClusterName": "uuid",
             "Images": {},
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
+            "AccountNumber": 1,
         },
         id="with account",
     ),
@@ -168,7 +168,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Images": {},
             "LastChecked": "a timestamp",
@@ -194,7 +193,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Images": {},
             "LastChecked": "a timestamp",
@@ -219,7 +217,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Images": {},
             "LastChecked": "a timestamp",

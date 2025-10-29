@@ -102,14 +102,13 @@ class RuleProcessingPublisher(KafkaPublisher):
             account_number = int(input_msg["identity"]["identity"]["account_number"])
         except (ValueError, KeyError, TypeError) as err:
             log.warning("Error extracting the Account number: %s", err)
-            account_number = ""
+            account_number = None
 
         try:
             msg_timestamp = input_msg["timestamp"]
             msg_version = report.pop("version", 0)
             output_msg = {
                 "OrgID": org_id,
-                "AccountNumber": account_number,
                 "ClusterName": input_msg["cluster_name"],
                 "Report": report,
                 "LastChecked": msg_timestamp,
@@ -117,6 +116,9 @@ class RuleProcessingPublisher(KafkaPublisher):
                 "RequestId": input_msg.get("request_id"),
                 "Metadata": {"gathering_time": self.get_gathering_time(input_msg)},
             }
+
+            if account_number is not None:
+                output_msg["AccountNumber"] = account_number
 
             message = json.dumps(output_msg) + "\n"
 
@@ -128,7 +130,7 @@ class RuleProcessingPublisher(KafkaPublisher):
                 "Message context: OrgId=%s, AccountNumber=%s, "
                 'ClusterName="%s", LastChecked="%s, Version=%d"',
                 output_msg["OrgID"],
-                output_msg["AccountNumber"],
+                output_msg.get("AccountNumber", ""),
                 output_msg["ClusterName"],
                 output_msg["LastChecked"],
                 output_msg["Version"],
