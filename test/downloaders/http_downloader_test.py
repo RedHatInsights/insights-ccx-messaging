@@ -16,6 +16,7 @@
 
 from unittest.mock import MagicMock, patch
 
+import requests
 import pytest
 
 from ccx_messaging.downloaders.http_downloader import HTTPDownloader, parse_human_input
@@ -96,3 +97,51 @@ def test_get_valid_url(get_mock, url):
         with open(filename, "rb") as file_desc:
             file_content = file_desc.read()
             assert file_content == response_mock.content
+
+
+@patch("requests.get")
+def test_get_empty_archive(get_mock):
+    """Test that passing an empty archive to `get` raises an exception."""
+    response_mock = MagicMock()
+    get_mock.return_value = response_mock
+    response_mock.content = b""
+
+    with pytest.raises(CCXMessagingError, match="Empty input archive"):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("https://example.com/empty.tar.gz"):
+            pass
+
+
+@patch("requests.get")
+def test_max_archive_size_enforced(get_mock):
+    """Test that the max archive size is enforced."""
+    response_mock = MagicMock()
+    get_mock.return_value = response_mock
+    response_mock.content = b"file content"
+
+    with pytest.raises(CCXMessagingError, match="The archive is too big. Skipping"):
+        sut = HTTPDownloader(max_archive_size="2", allow_unsafe_links=True)
+        with sut.get("https://example.com/large.tar.gz"):
+            pass
+
+
+@patch("requests.get")
+def test_connection_error(get_mock):
+    """Test that a connection error raises an exception."""
+    get_mock.side_effect = requests.exceptions.ConnectionError("Connection error")
+
+    with pytest.raises(CCXMessagingError, match="Connection error while downloading the file"):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("https://example.com/connection_error.tar.gz"):
+            pass
+
+
+@patch("requests.get")
+def test_other_error(get_mock):
+    """Test that other errors raise an exception."""
+    get_mock.side_effect = Exception("Other error")
+
+    with pytest.raises(CCXMessagingError, match="Unknown error while downloading the file"):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("https://example.com/other_error.tar.gz"):
+            pass

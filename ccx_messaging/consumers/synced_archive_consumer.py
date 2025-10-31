@@ -63,7 +63,7 @@ class SyncedArchiveConsumer(KafkaConsumer):
             self.process_dead_letter(msg)
 
         except Exception as ex:  # pylint: disable=broad-exception-caught
-            LOG.warning("Unexpected error processing incoming message: %s", ex)
+            LOG.exception(ex)
             self.process_dead_letter(msg)
 
     def deserialize(self, msg: Message) -> dict:
