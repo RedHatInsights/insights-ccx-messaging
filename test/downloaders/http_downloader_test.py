@@ -145,3 +145,25 @@ def test_other_error(get_mock):
         sut = HTTPDownloader(allow_unsafe_links=True)
         with sut.get("https://example.com/other_error.tar.gz"):
             pass
+
+
+@patch("ccx_messaging.downloaders.http_downloader.LOG.warning")
+@patch("requests.get")
+def test_additional_data_handling(get_mock, log_mock):
+    """Test that an invalid URL format raises an exception."""
+    expected_additional_data = {"archive_path": "test.tar"}
+    exception_to_be_raised = CCXMessagingError(
+        "Test exception", additional_data=expected_additional_data
+    )
+    get_mock.side_effect = exception_to_be_raised
+
+    with pytest.raises(CCXMessagingError):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("invalid_url"):
+            pass
+
+    log_mock.assert_called_with(
+        "Error while downloading the file: %s",
+        exception_to_be_raised,
+        extra=expected_additional_data,
+    )
