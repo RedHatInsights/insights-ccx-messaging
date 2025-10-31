@@ -101,11 +101,12 @@ class HTTPDownloader:
 
             if size == 0:
                 LOG.warning("Empty input archive from: %s", src)
-                raise CCXMessagingError("Empty input archive")
+                return
 
             if self.max_archive_size is not None and size > self.max_archive_size:
-                LOG.warning("The archive is too big ({size} > {self.max_archive_size})", size=size)
-                raise CCXMessagingError("The archive is too big. Skipping")
+                LOG.warning(
+                    "The archive is too big (%d > %d). Skipping", size, self.max_archive_size
+                )
 
             with NamedTemporaryFile() as file_data:
                 file_data.write(data)
@@ -114,19 +115,22 @@ class HTTPDownloader:
             response.close()
 
         except requests.exceptions.ConnectionError as err:
-            LOG.error("Connection error while downloading the file: %s", err)
+            LOG.warning("Connection error while downloading the file: %s", err)
             raise CCXMessagingError("Connection error while downloading the file") from err
+
         except CCXMessagingError as err:
             additional_data = getattr(err, "additional_data", None)
             if additional_data is not None:
-                LOG.error(
+                LOG.warning(
                     "Unknown error while downloading the file: %s",
                     err,
                     extra=additional_data,
                 )
             else:
-                LOG.error("Unknown error while downloading the file: %s", err)
+                LOG.warning("Unknown error while downloading the file: %s", err)
+
             raise CCXMessagingError("Unknown error while downloading the file") from err
+
         except Exception as err:
-            LOG.error("Unknown error while downloading the file: %s", err)
+            LOG.warning("Unknown error while downloading the file: %s", err)
             raise CCXMessagingError("Unknown error while downloading the file") from err
