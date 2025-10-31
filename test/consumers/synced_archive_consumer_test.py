@@ -15,12 +15,14 @@
 """Module containing unit tests for the `KafkaConsumer` class."""
 
 import datetime
+import json
 from unittest.mock import MagicMock, patch
 
 import pytest
 from freezegun import freeze_time
 
 from confluent_kafka import KafkaException
+from insights.core.exceptions import InvalidContentType
 
 from ccx_messaging.consumers.synced_archive_consumer import SyncedArchiveConsumer
 from ccx_messaging.error import CCXMessagingError
@@ -248,3 +250,26 @@ def test_last_received_message_time_is_updated():
             sut.process_msg(input_msg)
 
         assert sut.last_received_message_time == t2.timestamp()
+
+
+_EXPECTED_EXCEPTIONS = [
+    InvalidContentType(content_type="application/json"),
+    CCXMessagingError("Test exception"),
+    TimeoutError("Test timeout"),
+    Exception("Test exception"),
+]
+
+
+@pytest.mark.parametrize("exception", _EXPECTED_EXCEPTIONS)
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+@patch("ccx_messaging.consumers.synced_archive_consumer.SyncedArchiveConsumer.deserialize")
+def test_process_to_dlq(deserialize_mock, exception):
+    """Test that the message is processed to DLQ when an error is raised."""
+    deserialize_mock.side_effect = exception
+    sut = SyncedArchiveConsumer(None, None, None, None)
+
+    with patch(
+        "ccx_messaging.consumers.synced_archive_consumer.SyncedArchiveConsumer.process_dead_letter",
+    ) as dlq_mock:
+        sut.process_msg(KafkaMessage(json.dumps(_VALID_RECORD_VALUES[0])))
+        assert dlq_mock.called

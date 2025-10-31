@@ -59,7 +59,7 @@ class SyncedArchiveConsumer(KafkaConsumer):
 
         except TimeoutError as ex:
             self.fire("on_process_timeout")
-            LOG.exception(ex)
+            LOG.warning("Process timeout: %s", ex)
             self.process_dead_letter(msg)
 
         except Exception as ex:  # pylint: disable=broad-exception-caught
