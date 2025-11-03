@@ -1,0 +1,9 @@
+language: "en-US"
+profile: "chill"
+early_access: false
+reviews:
+  sequence_diagrams: true
+  poem: false
+  estimate_code_review_effort: false
+chat:
+  art: false
