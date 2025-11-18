@@ -19,7 +19,6 @@ import logging
 import os
 import tarfile
 
-import sentry_sdk
 from insights_messaging.engine import Engine
 
 from ccx_messaging.error import CCXMessagingError
@@ -101,6 +100,15 @@ class S3UploadEngine(Engine):
         for w in self.watchers:
             w.watch_broker(broker)
 
+        # Always fire on_extract for archive type detection (needed for metrics)
+        try:
+            with tarfile.open(local_path) as tf:
+                self.fire("on_extract", None, broker, tf)
+        except tarfile.ReadError:
+            # Not a tarfile (e.g., JSON report) - skip gracefully
+            LOG.debug("File %s is not a tarfile, skipping on_extract", local_path)
+
+        # Extract cluster_id if needed
         if broker["cluster_id"] is None:
             del broker["cluster_id"]
             broker["cluster_id"] = extract_cluster_id(local_path)
@@ -144,17 +152,10 @@ def extract_cluster_id(tar_path: str) -> str:
     try:
         with tarfile.open(tar_path) as tf:
             with tf.extractfile(ID_PATH) as id_file:
-                return id_file.read().decode()
+                return id_file.read().decode().strip()
 
     except KeyError as ex:
-        sentry_sdk.set_context(
-            "archive_processing",
-            {"tar_path": tar_path, "error_type": "missing_cluster_id", "id_path": ID_PATH},
-        )
-        raise CCXMessagingError("Archive doesn't contain cluster id") from ex
+        raise CCXMessagingError(f"The tar in {tar_path} doesn't contain cluster id") from ex
 
     except tarfile.ReadError as ex:
-        sentry_sdk.set_context(
-            "archive_processing", {"tar_path": tar_path, "error_type": "invalid_tarfile"}
-        )
-        raise CCXMessagingError("File doesn't look as a tarfile") from ex
+        raise CCXMessagingError(f"The file in {tar_path} doesn't look as a tarfile") from ex
