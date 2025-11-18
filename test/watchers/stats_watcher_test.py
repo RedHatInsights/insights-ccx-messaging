@@ -188,6 +188,8 @@ def test_stats_watcher_on_process(label_value):
     assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
+    # Verify process duration was recorded with correct label
+    assert w._process_duration.labels(**{ARCHIVE_TYPE_LABEL: label_value})._sum.get() > 0
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
@@ -234,6 +236,8 @@ def test_stats_watcher_on_consumer_success(label_value):
     assert w._published_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 1
     assert w._failures_total.labels(**{ARCHIVE_TYPE_LABEL: label_value})._value.get() == 0
     assert w._not_handling_total._value.get() == 0
+    # Verify publish duration was recorded with correct label
+    assert w._publish_duration.labels(**{ARCHIVE_TYPE_LABEL: label_value})._sum.get() > 0
 
 
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
@@ -378,11 +382,23 @@ ON_EXTRACT_WITH_TARFILE_IDENTIFIERS = [
 @patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
 @pytest.mark.parametrize("type_, file_content", ON_EXTRACT_WITH_TARFILE_IDENTIFIERS)
 def test_on_extract_with_tarfile(type_, file_content):
-    """Test the method on_extract."""
+    """Test the method on_extract with tarfile, including archive type detection and metrics."""
     # construct watcher object
     w = StatsWatcher(prometheus_port=8009)
+
+    # Set archive size to test that it's recorded
+    test_size = 1024 * 1024  # 1MB
+    w._archive_metadata["size"] = test_size
 
     extraction_mock = MagicMock(spec=TarFile)
     extraction_mock.getnames.return_value = file_content
     w.on_extract(None, None, extraction_mock)
+
+    # Verify archive type was detected correctly
     assert w._archive_metadata["type"] == type_
+
+    # Verify archive size metric was recorded
+    assert w._archive_size.labels(**{ARCHIVE_TYPE_LABEL: type_})._sum.get() == test_size
+
+    # Verify extracted counter was incremented
+    assert w._extracted_total.labels(**{ARCHIVE_TYPE_LABEL: type_})._value.get() == 1
