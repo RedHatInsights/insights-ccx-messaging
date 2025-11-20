@@ -229,7 +229,7 @@ def test_cluster_id_extraction_when_none():
     )
     engine.uploader = MagicMock()
 
-    # Process with real OCP archive that has cluster_id in config/id
+    # Process with test OCP archive that has cluster_id in config/id
     engine.process(broker, "test/ocp_with_id.tar")
 
     # Verify cluster_id was extracted from the archive
