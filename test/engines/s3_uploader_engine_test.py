@@ -266,20 +266,42 @@ def test_non_tarfile_handling():
 
 
 def test_extract_cluster_id_from_non_tarfile():
-    """Test extract_cluster_id raises error for non-tarfile when cluster_id is None."""
+    """Test that processing raises error for non-tarfile when cluster_id is None."""
     from ccx_messaging.error import CCXMessagingError
-    from ccx_messaging.engines.s3_upload_engine import extract_cluster_id
 
-    # Try to extract cluster_id from a non-tarfile
+    broker = BROKER.copy()
+    broker["cluster_id"] = None  # cluster_id is None, so extraction will be attempted
+
+    engine = S3UploadEngine(
+        None,
+        access_key="test",
+        secret_key="test",
+        endpoint="https://s3.amazonaws.com",
+        dest_bucket=DEST_BUCKET,
+    )
+    engine.uploader = MagicMock()
+
+    # Try to process a non-tarfile when cluster_id is None - should raise error
     with pytest.raises(CCXMessagingError, match="doesn't look as a tarfile"):
-        extract_cluster_id(__file__)
+        engine.process(broker, __file__)
 
 
 def test_extract_cluster_id_missing_config_id():
-    """Test extract_cluster_id raises error when tar doesn't have config/id."""
+    """Test that processing raises error when tar doesn't have config/id and cluster_id is None."""
     from ccx_messaging.error import CCXMessagingError
-    from ccx_messaging.engines.s3_upload_engine import extract_cluster_id
+
+    broker = BROKER.copy()
+    broker["cluster_id"] = None  # cluster_id is None, so extraction will be attempted
+
+    engine = S3UploadEngine(
+        None,
+        access_key="test",
+        secret_key="test",
+        endpoint="https://s3.amazonaws.com",
+        dest_bucket=DEST_BUCKET,
+    )
+    engine.uploader = MagicMock()
 
     # Use an archive without config/id (OLS archive doesn't have it)
     with pytest.raises(CCXMessagingError, match="doesn't contain cluster id"):
-        extract_cluster_id("test/ols.tar")
+        engine.process(broker, "test/ols.tar")

@@ -101,17 +101,29 @@ class S3UploadEngine(Engine):
             w.watch_broker(broker)
 
         # Always fire on_extract for archive type detection (needed for metrics)
+        # If cluster_id is None, also extract it in the same pass to avoid opening the archive twice
         try:
             with tarfile.open(local_path) as tf:
                 self.fire("on_extract", None, broker, tf)
+
+                # Extract cluster_id if needed (reuse already opened archive)
+                if broker["cluster_id"] is None:
+                    del broker["cluster_id"]
+                    ID_PATH = os.path.join("config", "id")
+                    try:
+                        with tf.extractfile(ID_PATH) as id_file:
+                            broker["cluster_id"] = id_file.read().decode().strip()
+                    except KeyError as ex:
+                        raise CCXMessagingError(
+                            f"The tar in {local_path} doesn't contain cluster id"
+                        ) from ex
         except tarfile.ReadError:
             # Not a tarfile (e.g., JSON report) - skip gracefully
             LOG.debug("File %s is not a tarfile, skipping on_extract", local_path)
 
-        # Extract cluster_id if needed
-        if broker["cluster_id"] is None:
-            del broker["cluster_id"]
-            broker["cluster_id"] = extract_cluster_id(local_path)
+            # If cluster_id is still None and it's not a tarfile, we can't extract it
+            if broker["cluster_id"] is None:
+                raise CCXMessagingError(f"The file in {local_path} doesn't look as a tarfile")
 
         target_path = self.compute_target_path(broker)
         LOG.debug(f"Uploading archive '{local_path}' as {self.dest_bucket}/{target_path}")
@@ -142,20 +154,3 @@ class S3UploadEngine(Engine):
 
         else:
             return path
-
-
-def extract_cluster_id(tar_path: str) -> str:
-    """Check the content of the file in `tar_path` and extract the cluster_id."""
-    ID_PATH = os.path.join("config", "id")
-    LOG.debug("Looking for %s in file %s", ID_PATH, tar_path)
-
-    try:
-        with tarfile.open(tar_path) as tf:
-            with tf.extractfile(ID_PATH) as id_file:
-                return id_file.read().decode().strip()
-
-    except KeyError as ex:
-        raise CCXMessagingError(f"The tar in {tar_path} doesn't contain cluster id") from ex
-
-    except tarfile.ReadError as ex:
-        raise CCXMessagingError(f"The file in {tar_path} doesn't look as a tarfile") from ex
