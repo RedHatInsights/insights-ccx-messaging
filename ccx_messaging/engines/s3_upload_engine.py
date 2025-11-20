@@ -106,24 +106,19 @@ class S3UploadEngine(Engine):
             with tarfile.open(local_path) as tf:
                 self.fire("on_extract", None, broker, tf)
 
-                # Extract cluster_id if needed (reuse already opened archive)
+                # Extract cluster_id if needed
                 if broker["cluster_id"] is None:
                     del broker["cluster_id"]
-                    ID_PATH = os.path.join("config", "id")
-                    try:
-                        with tf.extractfile(ID_PATH) as id_file:
-                            broker["cluster_id"] = id_file.read().decode().strip()
-                    except KeyError as ex:
-                        raise CCXMessagingError(
-                            f"The tar in {local_path} doesn't contain cluster id"
-                        ) from ex
-        except tarfile.ReadError:
+                    broker["cluster_id"] = extract_cluster_id(tf, local_path)
+        except tarfile.ReadError as ex:
             # Not a tarfile (e.g., JSON report) - skip gracefully
             LOG.debug("File %s is not a tarfile, skipping on_extract", local_path)
 
             # If cluster_id is still None and it's not a tarfile, we can't extract it
             if broker["cluster_id"] is None:
-                raise CCXMessagingError(f"The file in {local_path} doesn't look as a tarfile")
+                raise CCXMessagingError(
+                    f"The file in {local_path} doesn't look as a tarfile"
+                ) from ex
 
         target_path = self.compute_target_path(broker)
         LOG.debug(f"Uploading archive '{local_path}' as {self.dest_bucket}/{target_path}")
@@ -154,3 +149,27 @@ class S3UploadEngine(Engine):
 
         else:
             return path
+
+
+def extract_cluster_id(tf: tarfile.TarFile, tar_path: str) -> str:
+    """Extract cluster_id from an already-opened tarfile.
+
+    Args:
+        tf: Already opened tarfile object
+        tar_path: Path to the tarfile (used for error messages only)
+
+    Returns:
+        The extracted cluster_id string
+
+    Raises:
+        CCXMessagingError: If the tarfile doesn't contain config/id
+
+    """
+    ID_PATH = os.path.join("config", "id")
+    LOG.debug("Looking for %s in file %s", ID_PATH, tar_path)
+
+    try:
+        with tf.extractfile(ID_PATH) as id_file:
+            return id_file.read().decode().strip()
+    except KeyError as ex:
+        raise CCXMessagingError(f"The tar in {tar_path} doesn't contain cluster id") from ex

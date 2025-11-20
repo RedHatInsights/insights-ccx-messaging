@@ -21,7 +21,8 @@ import pytest
 import tarfile
 from unittest.mock import MagicMock, patch
 
-from ccx_messaging.engines.s3_upload_engine import S3UploadEngine
+from ccx_messaging.engines.s3_upload_engine import S3UploadEngine, extract_cluster_id
+from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.utils.s3_uploader import S3Uploader
 from ccx_messaging.watchers.stats_watcher import StatsWatcher
 
@@ -267,8 +268,6 @@ def test_non_tarfile_handling():
 
 def test_extract_cluster_id_from_non_tarfile():
     """Test that processing raises error for non-tarfile when cluster_id is None."""
-    from ccx_messaging.error import CCXMessagingError
-
     broker = BROKER.copy()
     broker["cluster_id"] = None  # cluster_id is None, so extraction will be attempted
 
@@ -287,21 +286,15 @@ def test_extract_cluster_id_from_non_tarfile():
 
 
 def test_extract_cluster_id_missing_config_id():
-    """Test that processing raises error when tar doesn't have config/id and cluster_id is None."""
-    from ccx_messaging.error import CCXMessagingError
-
-    broker = BROKER.copy()
-    broker["cluster_id"] = None  # cluster_id is None, so extraction will be attempted
-
-    engine = S3UploadEngine(
-        None,
-        access_key="test",
-        secret_key="test",
-        endpoint="https://s3.amazonaws.com",
-        dest_bucket=DEST_BUCKET,
-    )
-    engine.uploader = MagicMock()
-
+    """Test that extract_cluster_id raises error when tar doesn't have config/id."""
     # Use an archive without config/id (OLS archive doesn't have it)
-    with pytest.raises(CCXMessagingError, match="doesn't contain cluster id"):
-        engine.process(broker, "test/ols.tar")
+    with tarfile.open("test/ols.tar") as tf:
+        with pytest.raises(CCXMessagingError, match="doesn't contain cluster id"):
+            extract_cluster_id(tf, "test/ols.tar")
+
+
+def test_extract_cluster_id_success():
+    """Test that extract_cluster_id successfully extracts cluster_id."""
+    with tarfile.open("test/ocp_with_id.tar") as tf:
+        cluster_id = extract_cluster_id(tf, "test/ocp_with_id.tar")
+        assert cluster_id == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
