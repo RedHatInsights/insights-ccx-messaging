@@ -19,7 +19,6 @@ import logging
 import os
 import tarfile
 
-import sentry_sdk
 from insights_messaging.engine import Engine
 
 from ccx_messaging.error import CCXMessagingError
@@ -101,9 +100,25 @@ class S3UploadEngine(Engine):
         for w in self.watchers:
             w.watch_broker(broker)
 
-        if broker["cluster_id"] is None:
-            del broker["cluster_id"]
-            broker["cluster_id"] = extract_cluster_id(local_path)
+        # Always fire on_extract for archive type detection (needed for metrics)
+        # If cluster_id is None, also extract it in the same pass to avoid opening the archive twice
+        try:
+            with tarfile.open(local_path) as tf:
+                self.fire("on_extract", None, broker, tf)
+
+                # Extract cluster_id if needed
+                if broker["cluster_id"] is None:
+                    del broker["cluster_id"]
+                    broker["cluster_id"] = extract_cluster_id(tf, local_path)
+        except tarfile.ReadError as ex:
+            # Not a tarfile (e.g., JSON report) - skip gracefully
+            LOG.debug("File %s is not a tarfile, skipping on_extract", local_path)
+
+            # If cluster_id is still None and it's not a tarfile, we can't extract it
+            if broker["cluster_id"] is None:
+                raise CCXMessagingError(
+                    f"The file in {local_path} doesn't look as a tarfile"
+                ) from ex
 
         target_path = self.compute_target_path(broker)
         LOG.debug(f"Uploading archive '{local_path}' as {self.dest_bucket}/{target_path}")
@@ -136,25 +151,25 @@ class S3UploadEngine(Engine):
             return path
 
 
-def extract_cluster_id(tar_path: str) -> str:
-    """Check the content of the file in `tar_path` and extract the cluster_id."""
+def extract_cluster_id(tf: tarfile.TarFile, tar_path: str) -> str:
+    """Extract cluster_id from an already-opened tarfile.
+
+    Args:
+        tf: Already opened tarfile object
+        tar_path: Path to the tarfile (used for error messages only)
+
+    Returns:
+        The extracted cluster_id string
+
+    Raises:
+        CCXMessagingError: If the tarfile doesn't contain config/id
+
+    """
     ID_PATH = os.path.join("config", "id")
     LOG.debug("Looking for %s in file %s", ID_PATH, tar_path)
 
     try:
-        with tarfile.open(tar_path) as tf:
-            with tf.extractfile(ID_PATH) as id_file:
-                return id_file.read().decode()
-
+        with tf.extractfile(ID_PATH) as id_file:
+            return id_file.read().decode().strip()
     except KeyError as ex:
-        sentry_sdk.set_context(
-            "archive_processing",
-            {"tar_path": tar_path, "error_type": "missing_cluster_id", "id_path": ID_PATH},
-        )
-        raise CCXMessagingError("Archive doesn't contain cluster id") from ex
-
-    except tarfile.ReadError as ex:
-        sentry_sdk.set_context(
-            "archive_processing", {"tar_path": tar_path, "error_type": "invalid_tarfile"}
-        )
-        raise CCXMessagingError("File doesn't look as a tarfile") from ex
+        raise CCXMessagingError(f"The tar in {tar_path} doesn't contain cluster id") from ex
