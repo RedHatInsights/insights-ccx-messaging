@@ -18,10 +18,13 @@
 import json
 import os
 import pytest
-from unittest.mock import MagicMock
+import tarfile
+from unittest.mock import MagicMock, patch
 
-from ccx_messaging.engines.s3_upload_engine import S3UploadEngine
+from ccx_messaging.engines.s3_upload_engine import S3UploadEngine, extract_cluster_id
+from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.utils.s3_uploader import S3Uploader
+from ccx_messaging.watchers.stats_watcher import StatsWatcher
 
 
 BROKER = {
@@ -101,8 +104,10 @@ def test_bad_url():
         )
 
 
-def test_engine_metadata():
+@patch("ccx_messaging.engines.s3_upload_engine.tarfile.open")
+def test_engine_metadata(mock_tarfile):
     """Test of engines processing of metadata."""
+    mock_tarfile.side_effect = tarfile.ReadError("not a tarfile")
     engine = S3UploadEngine(
         None,
         access_key="test",
@@ -116,8 +121,10 @@ def test_engine_metadata():
     assert metadata == json.dumps(METADATA)
 
 
-def test_engine_upload_file():
+@patch("ccx_messaging.engines.s3_upload_engine.tarfile.open")
+def test_engine_upload_file(mock_tarfile):
     """Test if upload_file metode was called with correct arguments."""
+    mock_tarfile.side_effect = tarfile.ReadError("not a tarfile")
     engine = S3UploadEngine(
         None,
         access_key="test",
@@ -159,8 +166,10 @@ def test_uploader_no_existing_file():
         uploader.upload_file(path="file_path", bucket=DEST_BUCKET, file_name=METADATA.get("path"))
 
 
-def test_path_using_timestamp():
+@patch("ccx_messaging.engines.s3_upload_engine.tarfile.open")
+def test_path_using_timestamp(mock_tarfile):
     """Check path creation using timestamp elements."""
+    mock_tarfile.side_effect = tarfile.ReadError("not a tarfile")
     engine = S3UploadEngine(
         None,
         access_key="test",
@@ -178,3 +187,114 @@ def test_path_using_timestamp():
         report.get("path")
         == "7777/77/77/22222222-3333-4444-5555-666666666666-88888888888888888888888888888888.tar.gz"
     )
+
+
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
+def test_archive_type_detection_with_prepopulated_cluster_id():
+    """Test that archive type is detected even when cluster_id is pre-populated."""
+    broker = BROKER.copy()
+    broker["cluster_id"] = "11111111-2222-3333-4444-555555555555"  # Pre-populated
+
+    engine = S3UploadEngine(
+        None,
+        access_key="test",
+        secret_key="test",
+        endpoint="https://s3.amazonaws.com",
+        dest_bucket=DEST_BUCKET,
+    )
+    engine.uploader = MagicMock()
+
+    # Attach StatsWatcher to verify archive type detection
+    watcher = StatsWatcher(prometheus_port=9000)
+    engine.watchers.append(watcher)
+
+    # Process with real OLS archive
+    engine.process(broker, "test/ols.tar")
+
+    # Verify archive type was detected as "ols"
+    assert watcher._archive_metadata["type"] == "ols"
+    assert broker["cluster_id"] == "11111111-2222-3333-4444-555555555555"  # Unchanged
+
+
+def test_cluster_id_extraction_when_none():
+    """Test that cluster_id is extracted when broker has None."""
+    broker = BROKER.copy()
+    broker["cluster_id"] = None  # No cluster_id
+
+    engine = S3UploadEngine(
+        None,
+        access_key="test",
+        secret_key="test",
+        endpoint="https://s3.amazonaws.com",
+        dest_bucket=DEST_BUCKET,
+    )
+    engine.uploader = MagicMock()
+
+    # Process with test OCP archive that has cluster_id in config/id
+    engine.process(broker, "test/ocp_with_id.tar")
+
+    # Verify cluster_id was extracted from the archive
+    assert broker["cluster_id"] is not None
+    assert len(broker["cluster_id"]) > 0
+    # Verify the exact value and ensure no trailing newline
+    assert broker["cluster_id"] == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+
+
+def test_non_tarfile_handling():
+    """Test that non-tarfile (like JSON) is handled gracefully."""
+    broker = BROKER.copy()
+    broker["cluster_id"] = "pre-populated-id"
+
+    engine = S3UploadEngine(
+        None,
+        access_key="test",
+        secret_key="test",
+        endpoint="https://s3.amazonaws.com",
+        dest_bucket=DEST_BUCKET,
+    )
+    engine.uploader = MagicMock()
+
+    # Use this test file itself as a non-tarfile
+    non_tarfile = __file__
+
+    # Process non-tarfile - should not raise exception
+    engine.process(broker, non_tarfile)
+
+    # Verify it still uploaded (even though on_extract failed)
+    assert engine.uploader.upload_file.called
+    # Cluster ID should remain unchanged
+    assert broker["cluster_id"] == "pre-populated-id"
+
+
+def test_extract_cluster_id_from_non_tarfile():
+    """Test that processing raises error for non-tarfile when cluster_id is None."""
+    broker = BROKER.copy()
+    broker["cluster_id"] = None  # cluster_id is None, so extraction will be attempted
+
+    engine = S3UploadEngine(
+        None,
+        access_key="test",
+        secret_key="test",
+        endpoint="https://s3.amazonaws.com",
+        dest_bucket=DEST_BUCKET,
+    )
+    engine.uploader = MagicMock()
+
+    # Try to process a non-tarfile when cluster_id is None - should raise error
+    with pytest.raises(CCXMessagingError, match="doesn't look as a tarfile"):
+        engine.process(broker, __file__)
+
+
+def test_extract_cluster_id_missing_config_id():
+    """Test that extract_cluster_id raises error when tar doesn't have config/id."""
+    # Use an archive without config/id (OLS archive doesn't have it)
+    with tarfile.open("test/ols.tar") as tf:
+        with pytest.raises(CCXMessagingError, match="doesn't contain cluster id"):
+            extract_cluster_id(tf, "test/ols.tar")
+
+
+def test_extract_cluster_id_success():
+    """Test that extract_cluster_id successfully extracts cluster_id."""
+    with tarfile.open("test/ocp_with_id.tar") as tf:
+        cluster_id = extract_cluster_id(tf, "test/ocp_with_id.tar")
+        assert cluster_id == "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"

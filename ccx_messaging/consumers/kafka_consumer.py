@@ -228,12 +228,18 @@ class KafkaConsumer(Consumer):
         if not value:
             raise CCXMessagingError("Unable to read incoming message: %s", value)
 
-        deseralized_msg = parse_ingress_message(value)
-        LOG.debug("JSON message deserialized (%s): %s", self.log_pattern, deseralized_msg)
+        deserialized_msg = parse_ingress_message(value)
 
-        cluster_id = deseralized_msg.get("identity", {}).get("system", {}).get("cluster_id", None)
-        deseralized_msg["cluster_name"] = cluster_id
-        return deseralized_msg
+        if not deserialized_msg.get("cluster_name"):
+            cluster_id = (
+                deserialized_msg.get("identity", {})
+                .get("identity", {})
+                .get("system", {})
+                .get("cluster_id", None)
+            )
+            deserialized_msg["cluster_name"] = cluster_id
+
+        return deserialized_msg
 
     def check_last_message_received_time(self):
         """Verify elapsed time between received messages and warn if too long.

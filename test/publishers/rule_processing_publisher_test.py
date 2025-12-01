@@ -143,13 +143,13 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": 1,
             "ClusterName": "uuid",
             "Report": {"reports": []},
             "LastChecked": "a timestamp",
             "Version": 0,
             "RequestId": "a request id",
             "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
+            "AccountNumber": 1,
         },
         id="with account",
     ),
@@ -170,7 +170,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Report": {"reports": []},
             "LastChecked": "a timestamp",
@@ -197,7 +196,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Report": {"reports": []},
             "LastChecked": "a timestamp",
@@ -223,7 +221,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Report": {"reports": []},
             "LastChecked": "a timestamp",
@@ -250,7 +247,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Report": {"reports": []},
             "LastChecked": "a timestamp",
@@ -277,7 +273,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Report": {"reports": []},
             "LastChecked": "a timestamp",
@@ -304,7 +299,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Report": {"reports": []},
             "LastChecked": "a timestamp",
@@ -331,7 +325,6 @@ VALID_INPUT_MSG = [
         },
         {
             "OrgID": 10,
-            "AccountNumber": "",
             "ClusterName": "uuid",
             "Report": {"reports": []},
             "LastChecked": "a timestamp",
@@ -400,13 +393,13 @@ VALID_REPORTS = [
         ),
         {
             "OrgID": 10,
-            "AccountNumber": 1,
             "ClusterName": "uuid",
             "Report": {"reports": [], "pass": [], "info": []},
             "LastChecked": "a timestamp",
             "Version": 1,
             "RequestId": "a request id",
             "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
+            "AccountNumber": 1,
         },
         id="valid_report",
     ),
@@ -416,13 +409,13 @@ VALID_REPORTS = [
         ),
         {
             "OrgID": 10,
-            "AccountNumber": 1,
             "ClusterName": "uuid",
             "Report": {"reports": [], "pass": [], "info": []},
             "LastChecked": "a timestamp",
             "Version": 2,
             "RequestId": "a request id",
             "Metadata": {"gathering_time": "2012-01-14T00:00:00Z"},
+            "AccountNumber": 1,
         },
         id="valid_report",
     ),

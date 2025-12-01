@@ -16,6 +16,7 @@
 
 from unittest.mock import MagicMock, patch
 
+import requests
 import pytest
 
 from ccx_messaging.downloaders.http_downloader import HTTPDownloader, parse_human_input
@@ -75,11 +76,6 @@ _VALID_URLS = [
     "us-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200311T080728Z&X-Amz-Expires=86400&"
     "X-Amz-SignedHeaders=host&"
     "X-Amz-Signature=0000cafe0000babe0000cafe0000babe0000cafe0000babe0000cafe0000babe",
-    "http://minio:9000/insights-upload-perma/server.in.my.company.com/"
-    "Z0ThU1Jyxc-000004?X-Amz-Algorithm=AWS4-HMAC-SHA256&"
-    "X-Amz-Credential=ThisIsNotCorrectCred%2F20200520%2Fus-east-1%2Fs3%2Faws4_request&"
-    "X-Amz-Date=20200520T140918Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&"
-    "X-Amz-Signature=0000cafe0000babe0000cafe0000babe0000cafe0000babe0000cafe0000babe",
     "https://s3.us-east-1.amazonaws.com/insights-ingress-prod/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential="
     "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ&X-Amz-Date=20201201T210535Z&"
@@ -101,3 +97,73 @@ def test_get_valid_url(get_mock, url):
         with open(filename, "rb") as file_desc:
             file_content = file_desc.read()
             assert file_content == response_mock.content
+
+
+@patch("requests.get")
+def test_get_empty_archive(get_mock):
+    """Test that passing an empty archive to `get` raises an exception."""
+    response_mock = MagicMock()
+    get_mock.return_value = response_mock
+    response_mock.content = b""
+
+    with pytest.raises(CCXMessagingError, match="Empty input archive"):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("https://example.com/empty.tar.gz"):
+            pass
+
+
+@patch("requests.get")
+def test_max_archive_size_enforced(get_mock):
+    """Test that the max archive size is enforced."""
+    response_mock = MagicMock()
+    get_mock.return_value = response_mock
+    response_mock.content = b"file content"
+
+    with pytest.raises(CCXMessagingError, match="The archive is too big. Skipping"):
+        sut = HTTPDownloader(max_archive_size="2", allow_unsafe_links=True)
+        with sut.get("https://example.com/large.tar.gz"):
+            pass
+
+
+@patch("requests.get")
+def test_connection_error(get_mock):
+    """Test that a connection error raises an exception."""
+    get_mock.side_effect = requests.exceptions.ConnectionError("Connection error")
+
+    with pytest.raises(CCXMessagingError, match="Connection error while downloading the file"):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("https://example.com/connection_error.tar.gz"):
+            pass
+
+
+@patch("requests.get")
+def test_other_error(get_mock):
+    """Test that other errors raise an exception."""
+    get_mock.side_effect = Exception("Other error")
+
+    with pytest.raises(CCXMessagingError, match="Unknown error while downloading the file"):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("https://example.com/other_error.tar.gz"):
+            pass
+
+
+@patch("ccx_messaging.downloaders.http_downloader.LOG.warning")
+@patch("requests.get")
+def test_additional_data_handling(get_mock, log_mock):
+    """Test that an invalid URL format raises an exception."""
+    expected_additional_data = {"archive_path": "test.tar"}
+    exception_to_be_raised = CCXMessagingError(
+        "Test exception", additional_data=expected_additional_data
+    )
+    get_mock.side_effect = exception_to_be_raised
+
+    with pytest.raises(CCXMessagingError):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("invalid_url"):
+            pass
+
+    log_mock.assert_called_with(
+        "Error while downloading the file: %s",
+        exception_to_be_raised,
+        extra=expected_additional_data,
+    )

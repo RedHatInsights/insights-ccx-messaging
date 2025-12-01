@@ -36,3 +36,33 @@ def test_error_formatting():
     fmt = err.format(input_msg)
     expected = "Status: Error; Topic: topic name; Cause: CCXMessagingError"
     assert fmt == expected
+
+
+def test_error_without_additional_data():
+    """Test CCXMessagingError without additional_data (backwards compatibility)."""
+    err = CCXMessagingError("Test error message")
+
+    assert err is not None
+    assert str(err) == "Test error message"
+    assert err.additional_data is None
+
+
+def test_error_with_additional_data():
+    """Test CCXMessagingError with additional_data parameter."""
+    test_data = {"archive_path": "/tmp/test.tar", "cluster_id": "test-cluster"}
+    err = CCXMessagingError("Test error with data", additional_data=test_data)
+
+    assert err is not None
+    assert str(err) == "Test error with data"
+    assert err.additional_data == test_data
+    assert err.additional_data["archive_path"] == "/tmp/test.tar"
+    assert err.additional_data["cluster_id"] == "test-cluster"
+
+
+def test_error_with_empty_additional_data():
+    """Test CCXMessagingError with empty dict as additional_data."""
+    err = CCXMessagingError("Test error", additional_data={})
+
+    assert err is not None
+    assert str(err) == "Test error"
+    assert err.additional_data == {}

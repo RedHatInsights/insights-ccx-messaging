@@ -63,7 +63,7 @@ class WorkloadInfoPublisher(KafkaPublisher):
             account_number = int(input_msg["identity"]["identity"]["account_number"])
         except (ValueError, KeyError, TypeError) as err:
             log.warning("Error extracting the Account number: %s", err)
-            account_number = ""
+            account_number = None
 
         # outgoing message in form of JSON
         message = ""
@@ -76,13 +76,15 @@ class WorkloadInfoPublisher(KafkaPublisher):
             msg_timestamp = input_msg["timestamp"]
             output_msg = {
                 "OrgID": org_id,
-                "AccountNumber": account_number,
                 "ClusterName": input_msg["cluster_name"],
                 "Images": json.loads(response),
                 "LastChecked": msg_timestamp,
                 "Version": self.outdata_schema_version,
                 "RequestId": input_msg.get("request_id"),
             }
+
+            if account_number is not None:
+                output_msg["AccountNumber"] = account_number
 
             # convert dictionary to JSON (string)
             message = json.dumps(output_msg) + "\n"
@@ -96,7 +98,7 @@ class WorkloadInfoPublisher(KafkaPublisher):
                 "Message context: OrgId=%s, AccountNumber=%s, "
                 'ClusterName="%s", NumImages: %d, LastChecked="%s, Version=%d"',
                 output_msg["OrgID"],
-                output_msg["AccountNumber"],
+                output_msg.get("AccountNumber", ""),
                 output_msg["ClusterName"],
                 len(output_msg["Images"]),
                 output_msg["LastChecked"],

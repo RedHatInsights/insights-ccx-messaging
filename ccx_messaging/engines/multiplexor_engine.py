@@ -73,7 +73,9 @@ class MultiplexorEngine(Engine):
                 marks.add("DEFAULT")
 
         except tarfile.ReadError as ex:
-            raise CCXMessagingError(f"ReadError reading the archive {path}") from ex
+            raise CCXMessagingError(
+                "ReadError reading the archive", additional_data={"archive_path": path}
+            ) from ex
 
         self.logger.info("Reporting marks: %s", marks)
         self.fire("on_engine_success", broker, marks)

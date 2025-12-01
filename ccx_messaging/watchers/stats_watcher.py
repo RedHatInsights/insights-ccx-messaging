@@ -177,6 +177,12 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         elif os.path.join("config", "infrastructure.json") in tarfile_contents:
             self._archive_metadata["type"] = "hypershift"
 
+        self._extracted_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
+
+        self._archive_size.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).observe(
+            self._archive_metadata["size"]
+        )
+
     def on_extract_with_extractor(self, extraction: TarExtractor | ZipExtractor) -> None:
         """On extract event handler for engines using extractor."""
         # Set archive_type label based on found file

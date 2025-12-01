@@ -65,8 +65,7 @@ class HTTPDownloader:
     # https://<hostname>/service_id/file_id?<credentials and other params>
     HTTP_RE = re.compile(
         r"^(?:https://[^/]+\.s3\.amazonaws\.com/[0-9a-zA-Z/\-]+|"
-        r"https://s3\.[0-9a-zA-Z\-]+\.amazonaws\.com/[0-9a-zA-Z\-]+/[0-9a-zA-Z/\-]+|"
-        r"http://minio:9000/insights-upload-perma/[0-9a-zA-Z\.\-]+/[0-9a-zA-Z\-]+)\?"
+        r"https://s3\.[0-9a-zA-Z\-]+\.amazonaws\.com/[0-9a-zA-Z\-]+/[0-9a-zA-Z/\-]+)\?"
         r"X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=[^/]+$"
     )
 
@@ -105,7 +104,9 @@ class HTTPDownloader:
                 raise CCXMessagingError("Empty input archive")
 
             if self.max_archive_size is not None and size > self.max_archive_size:
-                LOG.warning("The archive is too big ({size} > {self.max_archive_size})", size=size)
+                LOG.warning(
+                    "The archive is too big (%d > %d). Skipping", size, self.max_archive_size
+                )
                 raise CCXMessagingError("The archive is too big. Skipping")
 
             with NamedTemporaryFile() as file_data:
@@ -115,8 +116,22 @@ class HTTPDownloader:
             response.close()
 
         except requests.exceptions.ConnectionError as err:
-            LOG.error("Connection error while downloading the file: %s", err)
+            LOG.warning("Connection error while downloading the file: %s", err)
             raise CCXMessagingError("Connection error while downloading the file") from err
+
+        except CCXMessagingError as err:
+            additional_data = getattr(err, "additional_data", None)
+            if additional_data is not None:
+                LOG.warning(
+                    "Error while downloading the file: %s",
+                    err,
+                    extra=additional_data,
+                )
+            else:
+                LOG.warning("Error while downloading the file: %s", err)
+
+            raise err
+
         except Exception as err:
-            LOG.error("Unknown error while downloading the file: %s", err)
+            LOG.warning("Unknown error while downloading the file: %s", err)
             raise CCXMessagingError("Unknown error while downloading the file") from err

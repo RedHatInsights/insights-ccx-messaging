@@ -20,6 +20,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 from confluent_kafka import KafkaException
+from insights.core.exceptions import InvalidContentType
 
 from ccx_messaging.consumers.rules_results_consumer import RulesResultsConsumer
 from ccx_messaging.error import CCXMessagingError
@@ -205,3 +206,26 @@ def test_create_report_path():
     consumer = RulesResultsConsumer(None, None, None, incoming_topic=None)
     path = consumer.create_report_path(_VALID_MESSAGE_CONTENT)
     assert path == "insights/aa/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/202101/20/031044/insights.json"
+
+
+_EXPECTED_EXCEPTIONS = [
+    InvalidContentType(content_type="application/json"),
+    CCXMessagingError("Test exception"),
+    TimeoutError("Test timeout"),
+    Exception("Test exception"),
+]
+
+
+@pytest.mark.parametrize("exception", _EXPECTED_EXCEPTIONS)
+@patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())
+@patch("ccx_messaging.consumers.rules_results_consumer.RulesResultsConsumer.process")
+def test_process_to_dlq(process_mock, exception):
+    """Test that the message is processed to DLQ when an error is raised."""
+    process_mock.side_effect = exception
+    sut = RulesResultsConsumer(None, None, None, incoming_topic=None)
+
+    with patch(
+        "ccx_messaging.consumers.rules_results_consumer.RulesResultsConsumer.process_dead_letter",
+    ) as dlq_mock:
+        sut.process_msg(KafkaMessage(json.dumps(_VALID_MESSAGE_CONTENT)))
+        assert dlq_mock.called
