@@ -168,6 +168,21 @@ Follow conventional style:
 - No specific commit message convention.
 - If it is related to one specific Jira task, use the Jira task ID. For example, "[CCXDEV-12345] Fixes the problem"
 
+## Deployment information
+
+- The `/deploy` directory contains configuration files used for the deployment of services based on this software.
+- Those deployment files correspond to the definition of resource templates used in
+  [app-interface repository](https://gitlab.cee.redhat.com/service/app-interface/).
+- The services deployed are:
+  1. archive-sync: service used to copy the incoming files from Ingress S3 bucket to internal S3 bucket for long storage.
+  2. archive-sync-ols: service used to copy the incoming files from Ingress S3 bucket to internal S3 bucket for long storage. Used only
+    by OpenShift LightSpeed archives.
+  3. multiplexor: service that read metadata about incoming archives sent by Ingress and send to the appropriate archive-sync or
+    archive-sync-ols services.
+  4. rules-uploader: consumes the Insights rules result produced by other service and store them, in JSON format, in a S3 bucket for
+    long storage.
+  5. Other deployment files used for internal testing in Ephemeral environments.
+
 ## Common Tasks
 
 ### Adding a New Consumer
