@@ -121,7 +121,6 @@ objects:
       - topicName: ${PAYLOAD_TRACKER_TOPIC}
         partitions: 1
       - topicName: ${KAFKA_OUTGOING_TOPIC_IO}
-      - topicName: ${KAFKA_OUTGOING_TOPIC_OLS}
 
 - kind: ConfigMap
   apiVersion: v1
@@ -156,15 +155,11 @@ objects:
             allow_unsafe_links: ${ALLOW_UNSAFE_LINKS}
         engine:
           name: ccx_messaging.engines.multiplexor_engine.MultiplexorEngine
-          kwargs:
-            filters:
-              openshift_lightspeed.json: OLS
         publisher:
           name: ccx_messaging.publishers.multiplexor_kafka_publisher.MultiplexorPublisher
           kwargs:
             bootstrap.servers: ${KAFKA_SERVER}
             outgoing_topics:
-              OLS: ${KAFKA_OUTGOING_TOPIC_OLS}
               DEFAULT: ${KAFKA_OUTGOING_TOPIC_IO}
         watchers:
           - name: ccx_messaging.watchers.stats_watcher.StatsWatcher
@@ -243,8 +238,6 @@ parameters:
   value: platform.upload.announce
 - name: KAFKA_OUTGOING_TOPIC_IO
   value: ccx.new.archive.io
-- name: KAFKA_OUTGOING_TOPIC_OLS
-  value: ccx.new.archive.ols
 - name: PAYLOAD_TRACKER_TOPIC
   value: platform.payload-status
 - name: KAFKA_GROUP_ID

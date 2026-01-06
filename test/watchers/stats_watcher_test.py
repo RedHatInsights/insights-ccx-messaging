@@ -349,9 +349,8 @@ def test_reset_archive_metadata(label_value):
 
 
 ON_EXTRACT_WITH_EXTRACTOR_IDENTIFIERS = [
-    ("ols", [True, False]),
-    ("hypershift", [False, True]),
-    ("ocp", [False, False]),
+    ("hypershift", [True]),
+    ("ocp", [False]),
 ]
 
 
@@ -373,7 +372,6 @@ def test_on_extract_with_extractor(type_, exists_side_effect):
 
 
 ON_EXTRACT_WITH_TARFILE_IDENTIFIERS = [
-    ("ols", ["openshift_lightspeed.json"]),
     ("hypershift", ["config/id", "config/infrastructure.json"]),
     ("ocp", ["config/id"]),
 ]

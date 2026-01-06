@@ -68,19 +68,6 @@ def test_process_extract_correct_data():
     assert result is not None
 
 
-def test_process_extract_ols_archive():
-    """Basic test for OCPEngine with an OLS file."""
-    e = OCPEngine(HumanReadableFormat)
-    e.watchers = []
-    e.extract_tmp_dir = ""
-
-    broker = None
-    path = "test/ols.tar"
-
-    result = e.process(broker, path)
-    assert result == "{}"
-
-
 def test_process_extract_rapid_recommendation_archive():
     """Basic test for OCPEngine with a rapid recommendation file."""
     e = OCPEngine(HumanReadableFormat)

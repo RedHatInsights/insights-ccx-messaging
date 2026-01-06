@@ -189,33 +189,6 @@ def test_path_using_timestamp(mock_tarfile):
     )
 
 
-@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
-def test_archive_type_detection_with_prepopulated_cluster_id():
-    """Test that archive type is detected even when cluster_id is pre-populated."""
-    broker = BROKER.copy()
-    broker["cluster_id"] = "11111111-2222-3333-4444-555555555555"  # Pre-populated
-
-    engine = S3UploadEngine(
-        None,
-        access_key="test",
-        secret_key="test",
-        endpoint="https://s3.amazonaws.com",
-        dest_bucket=DEST_BUCKET,
-    )
-    engine.uploader = MagicMock()
-
-    # Attach StatsWatcher to verify archive type detection
-    watcher = StatsWatcher(prometheus_port=9000)
-    engine.watchers.append(watcher)
-
-    # Process with real OLS archive
-    engine.process(broker, "test/ols.tar")
-
-    # Verify archive type was detected as "ols"
-    assert watcher._archive_metadata["type"] == "ols"
-    assert broker["cluster_id"] == "11111111-2222-3333-4444-555555555555"  # Unchanged
-
-
 def test_cluster_id_extraction_when_none():
     """Test that cluster_id is extracted when broker has None."""
     broker = BROKER.copy()
@@ -283,14 +256,6 @@ def test_extract_cluster_id_from_non_tarfile():
     # Try to process a non-tarfile when cluster_id is None - should raise error
     with pytest.raises(CCXMessagingError, match="doesn't look as a tarfile"):
         engine.process(broker, __file__)
-
-
-def test_extract_cluster_id_missing_config_id():
-    """Test that extract_cluster_id raises error when tar doesn't have config/id."""
-    # Use an archive without config/id (OLS archive doesn't have it)
-    with tarfile.open("test/ols.tar") as tf:
-        with pytest.raises(CCXMessagingError, match="doesn't contain cluster id"):
-            extract_cluster_id(tf, "test/ols.tar")
 
 
 def test_extract_cluster_id_success():

@@ -405,7 +405,7 @@ data:
                 "uid": "${aws_msk}"
               },
               "editorMode": "code",
-              "expr": "sum(aws_kafka_max_offset_lag_average{consumer_group=~\"ccx-rules-processing-service|archive_sync_app|archive_sync_ols_app|multiplexor_app|rules-uploader-app\"}) by (consumer_group, topic)",
+              "expr": "sum(aws_kafka_max_offset_lag_average{consumer_group=~\"ccx-rules-processing-service|archive_sync_app|multiplexor_app|rules-uploader-app\"}) by (consumer_group, topic)",
               "hide": false,
               "legendFormat": "{{consumer_group}} ({{topic}})",
               "range": true,
@@ -962,7 +962,7 @@ data:
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "description": "Average archive size by archive type (OCP, HyperShift, OLS)",
+          "description": "Average archive size by archive type (OCP, HyperShift)",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1044,21 +1044,6 @@ data:
                   }
                 ]
               },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "ols"
-                },
-                "properties": [
-                  {
-                    "id": "color",
-                    "value": {
-                      "fixedColor": "orange",
-                      "mode": "fixed"
-                    }
-                  }
-                ]
-              }
             ]
           },
           "gridPos": {
@@ -1108,7 +1093,7 @@ data:
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "description": "Average processing time by type (OCP, HyperShift or OLS).",
+          "description": "Average processing time by type (OCP or HyperShift).",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1190,21 +1175,6 @@ data:
                   }
                 ]
               },
-              {
-                "matcher": {
-                  "id": "byName",
-                  "options": "ols"
-                },
-                "properties": [
-                  {
-                    "id": "color",
-                    "value": {
-                      "fixedColor": "orange",
-                      "mode": "fixed"
-                    }
-                  }
-                ]
-              }
             ]
           },
           "gridPos": {
@@ -1335,11 +1305,6 @@ data:
               },
               {
                 "selected": false,
-                "text": "archive-sync-ols",
-                "value": "archive-sync-ols"
-              },
-              {
-                "selected": false,
                 "text": "rules-processing",
                 "value": "rules-processing"
               },
@@ -1349,7 +1314,7 @@ data:
                 "value": "rules-uploader"
               }
             ],
-            "query": "multiplexor,archive-sync,archive-sync-ols,rules-processing,rules-uploader,",
+            "query": "multiplexor,archive-sync,rules-processing,rules-uploader,",
             "queryValue": "",
             "skipUrlSync": false,
             "type": "custom"
