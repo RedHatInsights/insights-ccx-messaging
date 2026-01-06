@@ -24,7 +24,6 @@ from unittest.mock import MagicMock, patch
 from ccx_messaging.engines.s3_upload_engine import S3UploadEngine, extract_cluster_id
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.utils.s3_uploader import S3Uploader
-from ccx_messaging.watchers.stats_watcher import StatsWatcher
 
 
 BROKER = {

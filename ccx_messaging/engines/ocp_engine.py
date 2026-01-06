@@ -15,7 +15,6 @@
 """Module that defines an Engine class for processing a downloaded archive."""
 
 import logging
-import os
 from io import StringIO
 
 from insights.core import dr
