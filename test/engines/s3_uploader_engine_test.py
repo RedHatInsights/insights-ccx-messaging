@@ -24,6 +24,7 @@ from unittest.mock import MagicMock, patch
 from ccx_messaging.engines.s3_upload_engine import S3UploadEngine, extract_cluster_id
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.utils.s3_uploader import S3Uploader
+from ccx_messaging.watchers.stats_watcher import StatsWatcher
 
 
 BROKER = {
@@ -186,6 +187,33 @@ def test_path_using_timestamp(mock_tarfile):
         report.get("path")
         == "7777/77/77/22222222-3333-4444-5555-666666666666-88888888888888888888888888888888.tar.gz"
     )
+
+
+@patch("ccx_messaging.watchers.stats_watcher.start_http_server", lambda *args: None)
+def test_archive_type_detection_with_prepopulated_cluster_id():
+    """Test that archive type is detected even when cluster_id is pre-populated."""
+    broker = BROKER.copy()
+    broker["cluster_id"] = "11111111-2222-3333-4444-555555555555"  # Pre-populated
+
+    engine = S3UploadEngine(
+        None,
+        access_key="test",
+        secret_key="test",
+        endpoint="https://s3.amazonaws.com",
+        dest_bucket=DEST_BUCKET,
+    )
+    engine.uploader = MagicMock()
+
+    # Attach StatsWatcher to verify archive type detection
+    watcher = StatsWatcher(prometheus_port=9000)
+    engine.watchers.append(watcher)
+
+    # Process with a test OCP archive
+    engine.process(broker, "test/ocp_with_id.tar")
+
+    # Verify archive type was detected as "ocp"
+    assert watcher._archive_metadata["type"] == "ocp"
+    assert broker["cluster_id"] == "11111111-2222-3333-4444-555555555555"  # Unchanged
 
 
 def test_cluster_id_extraction_when_none():
