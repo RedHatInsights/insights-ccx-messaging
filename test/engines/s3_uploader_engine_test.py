@@ -285,6 +285,14 @@ def test_extract_cluster_id_from_non_tarfile():
         engine.process(broker, __file__)
 
 
+def test_extract_cluster_id_missing_config_id():
+    """Test that extract_cluster_id raises error when tar doesn't have config/id."""
+    # Use an archive without config/id (wrong_data archive doesn't have it)
+    with tarfile.open("test/wrong_data.tar") as tf:
+        with pytest.raises(CCXMessagingError, match="doesn't contain cluster id"):
+            extract_cluster_id(tf, "test/wrong_data.tar")
+
+
 def test_extract_cluster_id_success():
     """Test that extract_cluster_id successfully extracts cluster_id."""
     with tarfile.open("test/ocp_with_id.tar") as tf:
