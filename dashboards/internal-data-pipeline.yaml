@@ -405,7 +405,7 @@ data:
                 "uid": "${aws_msk}"
               },
               "editorMode": "code",
-              "expr": "sum(aws_kafka_max_offset_lag_average{consumer_group=~\"ccx-rules-processing-service|archive_sync_app|multiplexor_app|rules-uploader-app\"}) by (consumer_group, topic)",
+              "expr": "sum(aws_kafka_max_offset_lag_average{consumer_group=~\"ccx-rules-processing-service|archive_sync_app|rules-uploader-app\"}) by (consumer_group, topic)",
               "hide": false,
               "legendFormat": "{{consumer_group}} ({{topic}})",
               "range": true,
@@ -1295,11 +1295,6 @@ data:
               },
               {
                 "selected": false,
-                "text": "multiplexor",
-                "value": "multiplexor"
-              },
-              {
-                "selected": false,
                 "text": "archive-sync",
                 "value": "archive-sync"
               },
@@ -1314,7 +1309,7 @@ data:
                 "value": "rules-uploader"
               }
             ],
-            "query": "multiplexor,archive-sync,rules-processing,rules-uploader,",
+            "query": "archive-sync,rules-processing,rules-uploader,",
             "queryValue": "",
             "skipUrlSync": false,
             "type": "custom"
