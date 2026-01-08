@@ -47,7 +47,6 @@ def test_init():
     }
     MultiplexorPublisher(
         outgoing_topics={
-            "OLS": "ols-topic",
             "DEFAULT": "io-topic",
         },
         **kakfa_config,

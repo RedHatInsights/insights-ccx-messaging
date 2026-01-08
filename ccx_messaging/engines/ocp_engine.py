@@ -15,7 +15,6 @@
 """Module that defines an Engine class for processing a downloaded archive."""
 
 import logging
-import os
 from io import StringIO
 
 from insights.core import dr
@@ -32,10 +31,8 @@ class OCPEngine(ICMEngine):
     def process(self, broker, path):
         """Get results from applying Insights rules to the downloaded archive.
 
-        The archive is extracted and processed if the `openshift_lightspeed.json`
-        file is not found within its root directory. The JSON resulting from applying
-        the Insights rules is retrieved and returned as the method's output. Otherwise,
-        None is returned.
+        The archive is extracted and processed. The JSON resulting from applying
+        the Insights rules is retrieved and returned as the method's output.
         """
         for w in self.watchers:
             w.watch_broker(broker)
@@ -47,12 +44,6 @@ class OCPEngine(ICMEngine):
             ) as extraction:
                 ctx, broker = initialize_broker(extraction.tmp_dir, broker=broker)
                 self.fire("on_extract", ctx, broker, extraction)
-
-                ols_file = os.path.join(extraction.tmp_dir, "openshift_lightspeed.json")
-                if os.path.exists(ols_file):
-                    log.debug("archive contains openshift_lightspeed.json file; skipping")
-                    return "{}"
-
                 output = StringIO()
                 with self.Formatter(broker, stream=output):
                     dr.run_components(self.target_components, self.components_dict, broker=broker)

@@ -208,11 +208,11 @@ def test_archive_type_detection_with_prepopulated_cluster_id():
     watcher = StatsWatcher(prometheus_port=9000)
     engine.watchers.append(watcher)
 
-    # Process with real OLS archive
-    engine.process(broker, "test/ols.tar")
+    # Process with a test OCP archive
+    engine.process(broker, "test/ocp_with_id.tar")
 
-    # Verify archive type was detected as "ols"
-    assert watcher._archive_metadata["type"] == "ols"
+    # Verify archive type was detected as "ocp"
+    assert watcher._archive_metadata["type"] == "ocp"
     assert broker["cluster_id"] == "11111111-2222-3333-4444-555555555555"  # Unchanged
 
 
@@ -287,10 +287,10 @@ def test_extract_cluster_id_from_non_tarfile():
 
 def test_extract_cluster_id_missing_config_id():
     """Test that extract_cluster_id raises error when tar doesn't have config/id."""
-    # Use an archive without config/id (OLS archive doesn't have it)
-    with tarfile.open("test/ols.tar") as tf:
+    # Use an archive without config/id (wrong_data archive doesn't have it)
+    with tarfile.open("test/wrong_data.tar") as tf:
         with pytest.raises(CCXMessagingError, match="doesn't contain cluster id"):
-            extract_cluster_id(tf, "test/ols.tar")
+            extract_cluster_id(tf, "test/wrong_data.tar")
 
 
 def test_extract_cluster_id_success():

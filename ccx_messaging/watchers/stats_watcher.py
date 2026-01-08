@@ -28,9 +28,9 @@ from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
 
 
 LOG = logging.getLogger(__name__)
-# Label to differentiate between OCP, OLS and HyperShift tarballs
+# Label to differentiate between OCP and HyperShift tarballs
 ARCHIVE_TYPE_LABEL = "archive"
-ARCHIVE_TYPE_VALUES = ["ocp", "hypershift", "ols"]
+ARCHIVE_TYPE_VALUES = ["ocp", "hypershift"]
 IO_GATHERING_REMOTE_CONFIG_LABEL = "version"
 
 
@@ -172,9 +172,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         """On extract event handler for engines using tarfile."""
         tarfile_contents = extraction.getnames()
 
-        if "openshift_lightspeed.json" in tarfile_contents:
-            self._archive_metadata["type"] = "ols"
-        elif os.path.join("config", "infrastructure.json") in tarfile_contents:
+        if os.path.join("config", "infrastructure.json") in tarfile_contents:
             self._archive_metadata["type"] = "hypershift"
 
         self._extracted_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
@@ -186,9 +184,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
     def on_extract_with_extractor(self, extraction: TarExtractor | ZipExtractor) -> None:
         """On extract event handler for engines using extractor."""
         # Set archive_type label based on found file
-        if os.path.exists(os.path.join(extraction.tmp_dir, "openshift_lightspeed.json")):
-            self._archive_metadata["type"] = "ols"
-        elif os.path.exists(os.path.join(extraction.tmp_dir, "config", "infrastructure.json")):
+        if os.path.exists(os.path.join(extraction.tmp_dir, "config", "infrastructure.json")):
             self._archive_metadata["type"] = "hypershift"
 
         self._extracted_total.labels(**{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}).inc()
