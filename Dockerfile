@@ -24,7 +24,4 @@ RUN microdnf remove -y git-core && \
     microdnf clean all && \
     rpm -e --nodeps sqlite-libs krb5-libs libxml2 readline pam openssh openssh-clients
 
-RUN chmod -R g=u $HOME $VENV /etc/passwd && \
-    chgrp -R 0 $HOME $VENV
-
 USER 1001
