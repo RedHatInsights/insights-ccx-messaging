@@ -243,7 +243,7 @@ parameters:
 - name: PAYLOAD_TRACKER_TOPIC
   value: platform.payload-status
 - name: KAFKA_GROUP_ID
-  value: archive_sync_app
+  value: multiplexor_app
 - name: KAFKA_SERVER
   description: App-SRE Kafka
   value: mq-kafka:29092
