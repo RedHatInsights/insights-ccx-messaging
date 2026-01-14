@@ -1,0 +1,169 @@
+# Copyright 2020, 2021, 2022 Red Hat, Inc
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Module containing unit tests for the `HTTPDownloader` class."""
+
+from unittest.mock import MagicMock, patch
+
+import requests
+import pytest
+
+from ccx_messaging.downloaders.http_downloader import HTTPDownloader, parse_human_input
+from ccx_messaging.error import CCXMessagingError
+
+
+_INVALID_FILE_SIZES = [42, 2.71, True, [], {}, "1234J"]
+_VALID_FILE_SIZES = ["1K", "2M", "3G", "4T", "5Ki", "6Mi", "7Gi", "8Ti"]
+
+
+@pytest.mark.parametrize("file_size", _INVALID_FILE_SIZES)
+def test_parse_human_input_invalid_file_sizes(file_size):
+    """Test that passing invalid data to parse_human_input raise an exception."""
+    with pytest.raises((TypeError, ValueError)):
+        parse_human_input(file_size)
+
+
+@pytest.mark.parametrize("file_size", _VALID_FILE_SIZES)
+def test_parse_human_input_valid_file_sizes(file_size):
+    """Test that passing valid data to parse_human_input doesn't raise an exception."""
+    parse_human_input(file_size)
+
+
+_REGEX_BAD_URL_FORMAT = r"^Invalid URL format"
+_INVALID_TYPE_URLS = [42, 2.71, True, [], {}]
+
+
+@pytest.mark.parametrize("url", _INVALID_TYPE_URLS)
+def test_get_invalid_type(url):
+    """Test that passing invalid data type to `get` raises an exception."""
+    with pytest.raises(TypeError):
+        sut = HTTPDownloader()
+        with sut.get(url):
+            pass
+
+
+_INVALID_URLS = [None, "", "ftp://server", "bucket/file"]
+
+
+@pytest.mark.parametrize("url", _INVALID_URLS)
+def test_get_invalid_url(url):
+    """Test that passing invalid URL to `get` raises an exception."""
+    with pytest.raises(CCXMessagingError, match=_REGEX_BAD_URL_FORMAT):
+        sut = HTTPDownloader()
+        with sut.get(url):
+            pass
+
+
+_VALID_URLS = [
+    "https://zzzzzzzzzzzzzzzzzzzzzzzz.s3.amazonaws.com/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential="
+    "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ&X-Amz-Date=19700101T000000Z"
+    "&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature="
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "https://insights-dev-upload-perm.s3.amazonaws.com/upload-service-1-48nb7/gPRz2EdWpr-000144"
+    "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=FillInCorrectDataHere%2F2C2D0311%2F"
+    "us-east-1%2Fs3%2Faws4_request&X-Amz-Date=20200311T080728Z&X-Amz-Expires=86400&"
+    "X-Amz-SignedHeaders=host&"
+    "X-Amz-Signature=0000cafe0000babe0000cafe0000babe0000cafe0000babe0000cafe0000babe",
+    "https://s3.us-east-1.amazonaws.com/insights-ingress-prod/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    "?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential="
+    "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ&X-Amz-Date=20201201T210535Z&"
+    "X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature="
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+]
+
+
+@patch("requests.get")
+@pytest.mark.parametrize("url", _VALID_URLS)
+def test_get_valid_url(get_mock, url):
+    """Test that passing a valid URL the `get` method tries to download it."""
+    response_mock = MagicMock()
+    get_mock.return_value = response_mock
+    response_mock.content = b"file content"
+    sut = HTTPDownloader()
+
+    with sut.get(url) as filename:
+        with open(filename, "rb") as file_desc:
+            file_content = file_desc.read()
+            assert file_content == response_mock.content
+
+
+@patch("requests.get")
+def test_get_empty_archive(get_mock):
+    """Test that passing an empty archive to `get` raises an exception."""
+    response_mock = MagicMock()
+    get_mock.return_value = response_mock
+    response_mock.content = b""
+
+    with pytest.raises(CCXMessagingError, match="Empty input archive"):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("https://example.com/empty.tar.gz"):
+            pass
+
+
+@patch("requests.get")
+def test_max_archive_size_enforced(get_mock):
+    """Test that the max archive size is enforced."""
+    response_mock = MagicMock()
+    get_mock.return_value = response_mock
+    response_mock.content = b"file content"
+
+    with pytest.raises(CCXMessagingError, match="The archive is too big. Skipping"):
+        sut = HTTPDownloader(max_archive_size="2", allow_unsafe_links=True)
+        with sut.get("https://example.com/large.tar.gz"):
+            pass
+
+
+@patch("requests.get")
+def test_connection_error(get_mock):
+    """Test that a connection error raises an exception."""
+    get_mock.side_effect = requests.exceptions.ConnectionError("Connection error")
+
+    with pytest.raises(CCXMessagingError, match="Connection error while downloading the file"):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("https://example.com/connection_error.tar.gz"):
+            pass
+
+
+@patch("requests.get")
+def test_other_error(get_mock):
+    """Test that other errors raise an exception."""
+    get_mock.side_effect = Exception("Other error")
+
+    with pytest.raises(CCXMessagingError, match="Unknown error while downloading the file"):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("https://example.com/other_error.tar.gz"):
+            pass
+
+
+@patch("ccx_messaging.downloaders.http_downloader.LOG.warning")
+@patch("requests.get")
+def test_additional_data_handling(get_mock, log_mock):
+    """Test that an invalid URL format raises an exception."""
+    expected_additional_data = {"archive_path": "test.tar"}
+    exception_to_be_raised = CCXMessagingError(
+        "Test exception", additional_data=expected_additional_data
+    )
+    get_mock.side_effect = exception_to_be_raised
+
+    with pytest.raises(CCXMessagingError):
+        sut = HTTPDownloader(allow_unsafe_links=True)
+        with sut.get("invalid_url"):
+            pass
+
+    log_mock.assert_called_with(
+        "Error while downloading the file: %s",
+        exception_to_be_raised,
+        extra=expected_additional_data,
+    )

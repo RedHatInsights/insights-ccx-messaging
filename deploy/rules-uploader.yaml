@@ -1,0 +1,278 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: rules-uploader
+objects:
+- apiVersion: cloud.redhat.com/v1alpha1
+  kind: ClowdApp
+  metadata:
+    name: rules-uploader
+  spec:
+    envName: ${ENV_NAME}
+    objectStore:
+      - ${TARGET_S3_BUCKET}
+    testing:
+      iqePlugin: ccx
+    deployments:
+      - name: instance
+        replicas: ${{REPLICAS}}
+        webServices:
+          public:
+            enabled: false
+          private:
+            enabled: false
+          metrics:
+            enabled: true
+        podSpec:
+          image: ${IMAGE}:${IMAGE_TAG}
+          command: ["ccx-messaging"]
+          args: ["/data/config.yaml"]
+          env:
+            - name: CLOWDER_ENABLED
+              value: ${CLOWDER_ENABLED}
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: rules-uploader-dsn
+                  optional: true
+            - name: SENTRY_ENVIRONMENT
+              value: ${ENV_NAME}
+            - name: SENTRY_ENABLED
+              value: ${SENTRY_ENABLED}
+            - name: ALLOW_UNSAFE_LINKS
+              value: ${ALLOW_UNSAFE_LINKS}
+            - name: LOGGING_TO_CW_ENABLED
+              value: ${LOGGING_TO_CW_ENABLED}
+            - name: CW_STREAM_NAME
+              value: ${CW_LOG_STREAM}
+            - name: AWS_REGION_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: cloudwatch
+                  key: aws_region
+                  optional: true
+            - name: CW_LOG_GROUP
+              valueFrom:
+                secretKeyRef:
+                  name: cloudwatch
+                  key: log_group_name
+                  optional: true
+            - name: CW_AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: cloudwatch
+                  key: aws_access_key_id
+                  optional: true
+            - name: CW_AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cloudwatch
+                  key: aws_secret_access_key
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 20
+            successThreshold: 1
+            periodSeconds: 10
+            timeoutSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 20
+            successThreshold: 1
+            failureThreshold: 1
+            periodSeconds: 10
+            timeoutSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 20
+            successThreshold: 1
+            # Wait for 10x10 seconds
+            failureThreshold: 10
+            periodSeconds: 10
+            timeoutSeconds: 10
+          volumeMounts:
+            - mountPath: /data
+              name: rules-uploader-config
+          volumes:
+            - configMap:
+                name: rules-uploader-config-map
+              name: rules-uploader-config
+          resources:
+            requests:
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
+            limits:
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
+
+    kafkaTopics:
+      - topicName: ${KAFKA_INCOMING_TOPIC}
+      - topicName: ${PAYLOAD_TRACKER_TOPIC}
+        partitions: 1
+
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    labels:
+      app: rules-uploader
+    name: rules-uploader-config-map
+  data:
+    config.yaml: |-
+      plugins:
+        default_component_enabled: true
+        packages:
+        - ccx_messaging
+      service:
+        extract_timeout:
+        extract_tmp_dir:
+        format: insights.formats._json.JsonFormat
+        target_components: []
+        consumer:
+          name: ccx_messaging.consumers.rules_results_consumer.RulesResultsConsumer
+          kwargs:
+            incoming_topic: ${KAFKA_INCOMING_TOPIC}
+            group.id: ${KAFKA_GROUP_ID}
+            bootstrap.servers: ${KAFKA_SERVER}
+            processing_timeout_s: 0
+            max.poll.interval.ms: 600000
+            heartbeat.interval.ms: 10000
+            session.timeout.ms: 20000
+        downloader:
+          name: insights_messaging.downloaders.localfs.LocalFS
+        engine:
+          name: ccx_messaging.engines.s3_upload_engine.S3UploadEngine
+          kwargs:
+            dest_bucket: ${TARGET_S3_BUCKET}
+            archive_name_pattern: "$report_path"
+        publisher:
+          name: insights_messaging.publishers.Publisher
+        watchers:
+          - name: ccx_messaging.watchers.stats_watcher.StatsWatcher
+            kwargs:
+              prometheus_port: 8000
+          - name: ccx_messaging.watchers.payload_tracker_watcher.PayloadTrackerWatcher
+            kwargs:
+              bootstrap.servers: ${KAFKA_SERVER}
+              topic: ${PAYLOAD_TRACKER_TOPIC}
+              service_name: rules-uploader
+        logging:
+          version: 1
+          disable_existing_loggers: false
+          handlers:
+            default:
+              level: ${LOGLEVEL_STDOUT}
+              class: logging.StreamHandler
+              stream: ext://sys.stdout
+              formatter: default
+          formatters:
+            default:
+              format: '%(asctime)s %(name)s %(levelname)-8s %(message)s'
+              datefmt: '%Y-%m-%d %H:%M:%S'
+          root:
+            level: ${LOGLEVEL_ROOT}
+            handlers:
+              - default
+          loggers:
+            ccx_messaging:
+              level: ${LOGLEVEL_CCX_MESSAGING}
+            insights_messaging:
+              level: ${LOGLEVEL_INSIGHTS_MESSAGING}
+            insights:
+              level: ${LOGLEVEL_INSIGHTS}
+            kafka:
+              level: ${LOGLEVEL_KAFKA}
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    annotations:
+      prometheus.io/path: /metrics
+      prometheus.io/port: "8000"
+      prometheus.io/scheme: http
+      prometheus.io/scrape: "true"
+    name: rules-uploader-prometheus-exporter
+    labels:
+      app: rules-uploader
+  spec:
+    ports:
+      - name: rules-uploader-port-metrics
+        port: 8000
+        protocol: TCP
+        targetPort: 8000
+    selector:
+      app: rules-uploader
+
+parameters:
+- description: Image name
+  name: IMAGE
+  value: quay.io/redhat-services-prod/obsint-processing-tenant/ccx-messaging/ccx-messaging
+- description: Image tag
+  name: IMAGE_TAG
+  required: true
+- description: Determines Clowder deployment
+  name: CLOWDER_ENABLED
+  value: "true"
+- description: ClowdEnv Name
+  name: ENV_NAME
+  required: true
+- description: Number of pods
+  name: REPLICAS
+  value: '1'
+
+- name: KAFKA_INCOMING_TOPIC
+  value: ccx.insights.rules.results
+- name: PAYLOAD_TRACKER_TOPIC
+  value: platform.payload-status
+- name: KAFKA_GROUP_ID
+  value: rules_uploader_app
+- name: KAFKA_SERVER
+  description: App-SRE Kafka
+  value: mq-kafka:29092
+
+- name: TARGET_S3_BUCKET
+  value: ccx-bucket
+
+- name: CLOUDWATCH_DEBUG
+  value: "false"
+- name: CW_LOG_STREAM
+  value: "rules-uploader"
+- name: ALLOW_UNSAFE_LINKS
+  value: ""
+
+- name: CPU_LIMIT
+  value: 200m
+- name: MEMORY_LIMIT
+  value: 512Mi
+- name: CPU_REQUEST
+  value: 100m
+- name: MEMORY_REQUEST
+  value: 256Mi
+
+- name: LOGLEVEL_CCX_MESSAGING
+  value: INFO
+- name: LOGLEVEL_INSIGHTS_MESSAGING
+  value: WARNING
+- name: LOGLEVEL_INSIGHTS
+  value: WARNING
+- name: LOGLEVEL_KAFKA
+  value: INFO
+- name: LOGLEVEL_STDOUT
+  value: INFO
+- name: LOGLEVEL_ROOT
+  value: WARNING
+- name: LOGGING_TO_CW_ENABLED
+  value: "true"
+
+- name: SENTRY_ENABLED
+  value: "false"
