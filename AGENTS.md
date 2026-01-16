@@ -175,10 +175,9 @@ Follow conventional style:
   [app-interface repository](https://gitlab.cee.redhat.com/service/app-interface/).
 - The services deployed are:
   1. archive-sync: service used to copy the incoming files from Ingress S3 bucket to internal S3 bucket for long storage.
-  2. multiplexor: service that reads metadata about incoming archives sent by Ingress and sends to archive-sync
-  3. rules-uploader: consumes the Insights rules result produced by other service and store them, in JSON format, in a S3 bucket for
+  2. rules-uploader: consumes the Insights rules result produced by other service and store them, in JSON format, in a S3 bucket for
     long storage.
-  5. Other deployment files used for internal testing in Ephemeral environments.
+  3. Other deployment files used for internal testing in Ephemeral environments.
 
 ## Common Tasks
 
