@@ -244,6 +244,8 @@ parameters:
   value: ccx.archive.synced
 - name: PAYLOAD_TRACKER_TOPIC
   value: platform.payload-status
+  # multiplexor_app is the correct group
+  # introduced when decommissioning multiplexor service
 - name: KAFKA_GROUP_ID
   value: multiplexor_app
 - name: KAFKA_SERVER
