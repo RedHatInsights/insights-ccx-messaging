@@ -405,7 +405,7 @@ data:
                 "uid": "${aws_msk}"
               },
               "editorMode": "code",
-              "expr": "sum(aws_kafka_max_offset_lag_average{consumer_group=~\"ccx-rules-processing-service|archive_sync_app|rules-uploader-app\"}) by (consumer_group, topic)",
+              "expr": "sum(aws_kafka_max_offset_lag_average{consumer_group=~\"ccx-rules-processing-service|rules-uploader-app|multiplexor_app\"}) by (consumer_group, topic)",
               "hide": false,
               "legendFormat": "{{consumer_group}} ({{topic}})",
               "range": true,
