@@ -91,7 +91,7 @@ define **all** the following environment variables:
   session.
 - `CW_AWS_SECRET_ACCESS_KEY`: The AWS secret access key for creating the Cloud
   Watch session.
-- `AWS_REGION_NAME:`: An AWS region name where the Cloud Watch authentication
+- `AWS_REGION_NAME`: An AWS region name where the Cloud Watch authentication
   should be done.
 - `CW_LOG_GROUP`: The logging group that will be used to
   publish the log messages.
