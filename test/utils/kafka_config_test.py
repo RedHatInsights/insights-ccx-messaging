@@ -15,8 +15,8 @@
 """Test for the ccx_messaging.utils.kafka_config module."""
 
 from ccx_messaging.utils.kafka_config import (
-    translate_kafka_configuration,
     kafka_producer_config_cleanup,
+    translate_kafka_configuration,
 )
 
 

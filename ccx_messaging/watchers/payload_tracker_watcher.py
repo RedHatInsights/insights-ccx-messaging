@@ -23,7 +23,6 @@ from confluent_kafka import Producer
 from ccx_messaging.utils.kafka_config import kafka_producer_config_cleanup
 from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
 
-
 LOG = logging.getLogger(__name__)
 
 

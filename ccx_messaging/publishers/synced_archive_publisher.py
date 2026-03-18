@@ -15,8 +15,9 @@
 """Module implementing a IDP publisher to Kafka topic."""
 
 import json
-from typing import Dict
 import logging
+from typing import Dict
+
 from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
 
 LOG = logging.getLogger(__name__)

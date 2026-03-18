@@ -19,16 +19,14 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-from freezegun import freeze_time
-
 from confluent_kafka import KafkaException
+from freezegun import freeze_time
 from insights.core.exceptions import InvalidContentType
 
 from ccx_messaging.consumers.synced_archive_consumer import SyncedArchiveConsumer
 from ccx_messaging.error import CCXMessagingError
 
 from . import KafkaMessage
-
 
 # _REGEX_BAD_SCHEMA = r"^Unable to extract URL from input message: "
 _INVALID_TYPE_VALUES = [
@@ -171,7 +169,7 @@ _VALID_RECORD_VALUES = [
 @pytest.mark.parametrize("value", _INVALID_RECORD_VALUES)
 def test_get_url_invalid(value):
     """Test that `SyncedArchiveConsumer.get_url` raises the appropriate exception."""
-    with pytest.raises(Exception):
+    with pytest.raises(TypeError):
         SyncedArchiveConsumer.get_url(None, value)
 
 

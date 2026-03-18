@@ -16,8 +16,8 @@
 """Class for s3 uploader."""
 
 import logging
-import boto3
 
+import boto3
 
 LOG = logging.getLogger(__name__)
 

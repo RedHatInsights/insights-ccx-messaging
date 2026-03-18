@@ -22,7 +22,6 @@ from json import JSONDecodeError
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
 
-
 log = logging.getLogger(__name__)
 
 RFC3339_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
@@ -82,10 +81,10 @@ class RuleProcessingPublisher(KafkaPublisher):
         """
         try:
             report = json.loads(report)
-        except (TypeError, json.decoder.JSONDecodeError):
-            raise CCXMessagingError("Could not parse report; report is not in JSON format")
+        except (TypeError, json.decoder.JSONDecodeError) as err:
+            raise CCXMessagingError("Could not parse report; report is not in JSON format") from err
 
-        if "reports" not in report.keys():
+        if "reports" not in report:
             log.debug("Report does not contain OCP rules related results; skipping")
             return
 

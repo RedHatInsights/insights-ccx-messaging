@@ -21,7 +21,6 @@ from json import JSONDecodeError
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
 
-
 log = logging.getLogger(__name__)
 
 

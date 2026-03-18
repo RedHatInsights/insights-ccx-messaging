@@ -22,11 +22,10 @@ import pytest
 from insights.core.archives import TarExtractor
 
 from ccx_messaging.watchers.stats_watcher import (
-    StatsWatcher,
     ARCHIVE_TYPE_LABEL,
     ARCHIVE_TYPE_VALUES,
+    StatsWatcher,
 )
-
 
 _INVALID_PORTS = [None, "8000", 8000.0, 70000]
 

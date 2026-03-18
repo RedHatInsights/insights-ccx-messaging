@@ -8,7 +8,6 @@ import jsonschema
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.schemas import ARCHIVE_SYNCED_SCHEMA, RULES_RESULTS_SCHEMA
 
-
 LOG = logging.getLogger(__name__)
 
 

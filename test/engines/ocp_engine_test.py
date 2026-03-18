@@ -14,8 +14,9 @@
 
 """Module for testing the engines module."""
 
-from insights.formats.text import HumanReadableFormat
 import pytest
+from insights.core.exceptions import InvalidContentType
+from insights.formats.text import HumanReadableFormat
 
 from ccx_messaging.engines.ocp_engine import OCPEngine
 from ccx_messaging.watchers.stats_watcher import StatsWatcher
@@ -38,7 +39,7 @@ def test_process_no_extract():
     broker = None
     path = "not-exist"
 
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidContentType):
         e.process(broker, path)
 
 

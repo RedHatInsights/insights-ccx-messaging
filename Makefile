@@ -26,15 +26,15 @@ documentation: ## Generate documentation for all sources
 	pydoc3 *.py > docs/sources.txt
 
 shellcheck: ## Run shellcheck
-	shellcheck *.sh
+	pre-commit run --all-files shellcheck
 
 lint:
 	echo "Checking code style of all Python sources"
-	ruff check
+	pre-commit run --all-files ruff-check
 
 pyformat: ## Reformat all Python sources
 	echo "Reformat all Python sources"
-	ruff format
+	pre-commit run --all-files ruff-format
 
 help: ## Show this help screen
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'

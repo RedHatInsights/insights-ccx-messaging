@@ -16,12 +16,11 @@
 
 from unittest.mock import MagicMock, patch
 
-import requests
 import pytest
+import requests
 
 from ccx_messaging.downloaders.http_downloader import HTTPDownloader, parse_human_input
 from ccx_messaging.error import CCXMessagingError
-
 
 _INVALID_FILE_SIZES = [42, 2.71, True, [], {}, "1234J"]
 _VALID_FILE_SIZES = ["1K", "2M", "3G", "4T", "5Ki", "6Mi", "7Gi", "8Ti"]
@@ -93,10 +92,9 @@ def test_get_valid_url(get_mock, url):
     response_mock.content = b"file content"
     sut = HTTPDownloader()
 
-    with sut.get(url) as filename:
-        with open(filename, "rb") as file_desc:
-            file_content = file_desc.read()
-            assert file_content == response_mock.content
+    with sut.get(url) as filename, open(filename, "rb") as file_desc:
+        file_content = file_desc.read()
+        assert file_content == response_mock.content
 
 
 @patch("requests.get")

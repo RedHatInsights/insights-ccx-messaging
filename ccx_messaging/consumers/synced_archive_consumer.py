@@ -4,14 +4,13 @@ import logging
 import time
 from typing import Any
 
-from confluent_kafka import Message, KafkaException
+from confluent_kafka import KafkaException, Message
 from insights.core.exceptions import InvalidContentType
 
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
-from ccx_messaging.internal_pipeline import parse_archive_sync_msg
 from ccx_messaging.error import CCXMessagingError
+from ccx_messaging.internal_pipeline import parse_archive_sync_msg
 from ccx_messaging.monitored_broker import SentryMonitoredBroker
-
 
 LOG = logging.getLogger(__name__)
 

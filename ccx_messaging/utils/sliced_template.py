@@ -7,7 +7,6 @@ import string
 from collections import ChainMap
 from dataclasses import dataclass
 
-
 _sentinel_map = {}
 
 

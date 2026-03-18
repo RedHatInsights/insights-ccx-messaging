@@ -16,18 +16,16 @@
 
 import json
 import os
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
 from confluent_kafka import KafkaException
 from insights.core.exceptions import InvalidContentType
 
 from ccx_messaging.consumers.rules_results_consumer import RulesResultsConsumer
 from ccx_messaging.error import CCXMessagingError
 
-
 from . import KafkaMessage
-
 
 _VALID_MESSAGE_CONTENT = {
     "path": "archives/compressed/aa/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/202101/20/031044.tar.gz",
@@ -65,7 +63,7 @@ def test_get_url():
 def test_get_url_invalid():
     """Test that `get_url` method raises exception if `file_path` field is missing."""
     consumer = RulesResultsConsumer(None, None, None, incoming_topic=None)
-    with pytest.raises(Exception):
+    with pytest.raises(KeyError):
         consumer.get_url({})
 
 
@@ -194,8 +192,8 @@ def test_create_broker():
         create_path_mock.return_value = "mock_path"
         broker = consumer.create_broker(_VALID_MESSAGE_CONTENT)
         assert create_path_mock.called
-        assert "report_path" in broker.keys()
-        assert "cluster_id" in broker.keys()
+        assert "report_path" in broker
+        assert "cluster_id" in broker
         assert broker["report_path"] == "mock_path"
         assert broker["cluster_id"] == _VALID_MESSAGE_CONTENT["metadata"]["cluster_id"]
 

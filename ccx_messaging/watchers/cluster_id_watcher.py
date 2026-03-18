@@ -20,7 +20,6 @@ from uuid import UUID
 
 from insights_messaging.watchers import ConsumerWatcher, EngineWatcher
 
-
 LOG = logging.getLogger(__name__)
 
 

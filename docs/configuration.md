@@ -24,7 +24,7 @@ _consumer_, _downloader_, _engine_ and _publisher_ are configured.
     seconds, it will be ignored. By default, messages older than 2 hours will be
     ignored. To disable this functionality and process every record ignoring its
     age, use `-1`.
-  
+
 - `downloader`: name refers to the class
   `ccx_messaging.downloaders.http_downloader.HTTPDownloader`. Some of the accepted
   argument are:

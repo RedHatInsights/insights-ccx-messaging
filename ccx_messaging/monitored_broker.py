@@ -2,10 +2,8 @@
 
 import logging
 
-from insights.core.dr import Broker
-from insights.core.dr import MissingRequirements
+from insights.core.dr import Broker, MissingRequirements
 from insights.core.spec_factory import ContentException
-
 from sentry_sdk import capture_exception
 
 

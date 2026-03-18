@@ -14,8 +14,8 @@
 
 """Module that implements a customizable Kafka publisher."""
 
-import logging
 import gzip
+import logging
 
 from confluent_kafka import KafkaException, Producer
 from insights_messaging.publishers import Publisher

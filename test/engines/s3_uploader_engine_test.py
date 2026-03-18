@@ -17,15 +17,15 @@
 
 import json
 import os
-import pytest
 import tarfile
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from ccx_messaging.engines.s3_upload_engine import S3UploadEngine, extract_cluster_id
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.utils.s3_uploader import S3Uploader
 from ccx_messaging.watchers.stats_watcher import StatsWatcher
-
 
 BROKER = {
     "cluster_id": "11111111-2222-3333-4444-555555555555",
@@ -144,9 +144,9 @@ def test_engine_upload_file(mock_tarfile):
 
 def test_uploader():
     """Test of uploader."""
-    file = open(LOCAL_FILE_PATH, "a")
-    file.write("test data")
-    file.close()
+    with open(LOCAL_FILE_PATH, "a") as test_file:
+        test_file.write("test data")
+
     uploader = S3Uploader(access_key="test", secret_key="test", endpoint="https://s3.amazonaws.com")
     uploader.client.put_object = MagicMock()
     uploader.upload_file(path="file_path", bucket=DEST_BUCKET, file_name=METADATA.get("path"))
@@ -288,9 +288,10 @@ def test_extract_cluster_id_from_non_tarfile():
 def test_extract_cluster_id_missing_config_id():
     """Test that extract_cluster_id raises error when tar doesn't have config/id."""
     # Use an archive without config/id (wrong_data archive doesn't have it)
-    with tarfile.open("test/wrong_data.tar") as tf:
-        with pytest.raises(CCXMessagingError, match="doesn't contain cluster id"):
-            extract_cluster_id(tf, "test/wrong_data.tar")
+    with tarfile.open("test/wrong_data.tar") as tf, pytest.raises(
+        CCXMessagingError, match="doesn't contain cluster id"
+    ):
+        extract_cluster_id(tf, "test/wrong_data.tar")
 
 
 def test_extract_cluster_id_success():

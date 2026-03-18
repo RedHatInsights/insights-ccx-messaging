@@ -89,10 +89,11 @@ class HTTPDownloader:
     @contextmanager
     def get(self, src):
         """Download a file from HTTP server and store it in a temporary file."""
-        if not self.allow_unsafe_links:
-            if src is None or not HTTPDownloader.HTTP_RE.fullmatch(src):
-                LOG.warning("Invalid URL format: %s", src)
-                raise CCXMessagingError("Invalid URL format")
+        if not self.allow_unsafe_links and (
+            src is None or not HTTPDownloader.HTTP_RE.fullmatch(src)
+        ):
+            LOG.warning("Invalid URL format: %s", src)
+            raise CCXMessagingError("Invalid URL format")
 
         try:
             response = requests.get(src)
