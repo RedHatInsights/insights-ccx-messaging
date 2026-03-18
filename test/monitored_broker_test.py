@@ -1,13 +1,12 @@
 """Tests for the utility class SentryMonitoredBroker."""
 
 import time
-from uuid import uuid4
 from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
 from insights.core.dr import MissingRequirements
 from insights.core.spec_factory import ContentException
-
 
 from ccx_messaging.monitored_broker import SentryMonitoredBroker
 

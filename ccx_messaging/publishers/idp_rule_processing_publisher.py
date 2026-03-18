@@ -24,7 +24,6 @@ from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
 from ccx_messaging.schemas import ARCHIVE_SYNCED_SCHEMA
 
-
 log = logging.getLogger(__name__)
 
 
@@ -55,8 +54,8 @@ class IDPRuleProcessingPublisher(KafkaPublisher):
         try:
             report = json.loads(report)
 
-        except (TypeError, json.decoder.JSONDecodeError):
-            raise CCXMessagingError("Could not parse report; report is not in JSON format")
+        except (TypeError, json.decoder.JSONDecodeError) as err:
+            raise CCXMessagingError("Could not parse report; report is not in JSON format") from err
 
         output_msg = {
             "path": input_msg["path"],

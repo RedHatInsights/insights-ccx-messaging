@@ -16,7 +16,6 @@
 
 from ccx_messaging.error import CCXMessagingError
 
-
 input_msg = {
     "topic": "topic name",
     "partition": "partition name",

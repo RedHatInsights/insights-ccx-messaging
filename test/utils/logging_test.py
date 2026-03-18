@@ -22,7 +22,6 @@ from watchtower import CloudWatchLogHandler
 
 from ccx_messaging.utils.logging import get_mac_address, setup_watchtower
 
-
 INVALID_INITIALIZATIONS = [
     {},
     {

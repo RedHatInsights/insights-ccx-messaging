@@ -15,8 +15,8 @@
 """Module containing unit tests for the `Consumer` class."""
 
 import sys
-import pytest
 
+import pytest
 
 import ccx_messaging.command_line as command_line
 

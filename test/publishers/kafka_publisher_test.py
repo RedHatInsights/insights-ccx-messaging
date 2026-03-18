@@ -14,11 +14,12 @@
 
 """Tests for the KafkaPublisher class."""
 
-import json
 import gzip
+import json
 from unittest.mock import MagicMock
 
 import pytest
+
 from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
 
 VALID_INPUT_MSG = [
@@ -98,7 +99,7 @@ VALID_INPUT_MSG = [
 BEST_COMPRESSION = 9
 
 
-def timeStampMasking(message):
+def timestamp_masking(message):
     """Mask four bytes in Gzip stream that contain timestamp."""
     message = list(message)
     message[4] = 0
@@ -127,13 +128,13 @@ def test_init_compression():
 def test_compressing_enabled(input):
     """Check if message is gzipped if compression is enabled."""
     input = bytes(json.dumps(input) + "\n", "utf-8")
-    expected_output = timeStampMasking(gzip.compress(input, compresslevel=BEST_COMPRESSION))
+    expected_output = timestamp_masking(gzip.compress(input, compresslevel=BEST_COMPRESSION))
     kakfa_config = {"bootstrap.servers": "kafka:9092", "compression": "gzip"}
     pub = KafkaPublisher(outgoing_topic="topic-name", **kakfa_config)
     pub.producer = MagicMock()
     pub.produce(input)
     outgoing_topic = pub.producer.produce.call_args[0][0]
-    outgoing_message = timeStampMasking(pub.producer.produce.call_args[0][1])
+    outgoing_message = timestamp_masking(pub.producer.produce.call_args[0][1])
     assert outgoing_message == expected_output and outgoing_topic == "topic-name"
 
 

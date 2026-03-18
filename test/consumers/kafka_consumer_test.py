@@ -15,8 +15,8 @@
 """Module containing unit tests for the `KafkaConsumer` class."""
 
 import datetime
-import logging
 import io
+import logging
 import time
 from unittest.mock import MagicMock, patch
 
@@ -28,7 +28,6 @@ from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
 
 from . import KafkaMessage
-
 
 # _REGEX_BAD_SCHEMA = r"^Unable to extract URL from input message: "
 _INVALID_TYPE_VALUES = [
@@ -233,18 +232,19 @@ _VALID_SERVERS = ["server", "great.server.net"]
 @pytest.mark.parametrize("server", _VALID_SERVERS)
 def test_consumer_init_direct(topic, group, server):
     """Test of our Consumer constructor, using direct configuration options."""
-    with patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer") as mock_consumer_init:
-        with patch("os.environ", new={}):
-            kwargs = {
-                "group.id": group,
-                "bootstrap.servers": server,
-            }
-            KafkaConsumer(None, None, None, topic, **kwargs)
-            config = {
-                "bootstrap.servers": server,
-                "group.id": group,
-            }
-            mock_consumer_init.assert_called_with(config)
+    with patch(
+        "ccx_messaging.consumers.kafka_consumer.ConfluentConsumer"
+    ) as mock_consumer_init, patch("os.environ", new={}):
+        kwargs = {
+            "group.id": group,
+            "bootstrap.servers": server,
+        }
+        KafkaConsumer(None, None, None, topic, **kwargs)
+        config = {
+            "bootstrap.servers": server,
+            "group.id": group,
+        }
+        mock_consumer_init.assert_called_with(config)
 
 
 MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST = 2
@@ -396,19 +396,20 @@ def test_non_processed_to_dlq(value, expected):
     sut = KafkaConsumer(None, None, None, None)
     input_msg = KafkaMessage(value)
 
-    with patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process") as process_mock:
-        with patch(
-            "ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process_dead_letter"
-        ) as process_dlq_mock:
-            process_mock.side_effect = [CCXMessagingError, TimeoutError, IndexError]
-            sut.process_msg(input_msg)
-            process_dlq_mock.assert_called_with(input_msg)
+    with patch(
+        "ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process"
+    ) as process_mock, patch(
+        "ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process_dead_letter"
+    ) as process_dlq_mock:
+        process_mock.side_effect = [CCXMessagingError, TimeoutError, IndexError]
+        sut.process_msg(input_msg)
+        process_dlq_mock.assert_called_with(input_msg)
 
-            sut.process_msg(input_msg)
-            process_dlq_mock.assert_called_with(input_msg)
+        sut.process_msg(input_msg)
+        process_dlq_mock.assert_called_with(input_msg)
 
-            sut.process_msg(input_msg)
-            process_dlq_mock.assert_called_with(input_msg)
+        sut.process_msg(input_msg)
+        process_dlq_mock.assert_called_with(input_msg)
 
 
 @pytest.mark.parametrize("value,expected", _VALID_MESSAGES)

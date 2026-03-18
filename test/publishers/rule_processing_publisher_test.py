@@ -14,10 +14,10 @@
 
 """Tests for the RuleProcessingPublisher class."""
 
-import freezegun
 import json
 from unittest.mock import MagicMock, patch
 
+import freezegun
 import pytest
 from confluent_kafka import KafkaException
 

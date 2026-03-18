@@ -5,7 +5,6 @@ import pytest
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.ingress import parse_identity, parse_ingress_message
 
-
 VALID_ENCODED_IDENTITIES = [
     "eyJpZGVudGl0eSI6IHsiaW50ZXJuYWwiOiB7Im9yZ19pZCI6ICIxMjM0NTY3OCJ9fX0K",
 ]

@@ -16,18 +16,17 @@
 
 import logging
 
-import yaml
 import app_common_python
+import yaml
 from app_common_python.types import BrokerConfigAuthtypeEnum
-
 
 logger = logging.getLogger(__name__)
 
 
 def apply_clowder_config(manifest):
     """Apply Clowder config values to ICM config manifest."""
-    Loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
-    config = yaml.load(manifest, Loader=Loader)
+    loader = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+    config = yaml.load(manifest, Loader=loader)
 
     _add_buckets_config(config)
     _add_kafka_config(config)

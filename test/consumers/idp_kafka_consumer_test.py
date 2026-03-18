@@ -25,7 +25,6 @@ from ccx_messaging.error import CCXMessagingError
 
 from . import KafkaMessage
 
-
 # _REGEX_BAD_SCHEMA = r"^Unable to extract URL from input message: "
 _INVALID_TYPE_VALUES = [
     None,
@@ -166,7 +165,7 @@ _VALID_EMPTY_RECORD_VALUES = [
 @pytest.mark.parametrize("value", _INVALID_RECORD_VALUES)
 def test_get_url_invalid(value):
     """Test that `IDPConsumer.get_url` raises the appropriate exception."""
-    with pytest.raises(Exception):
+    with pytest.raises(AttributeError):
         IDPConsumer.get_url(None, value)
 
 

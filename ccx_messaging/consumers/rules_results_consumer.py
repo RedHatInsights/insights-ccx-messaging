@@ -2,11 +2,10 @@
 
 import json
 import logging
-import time
 import os
+import time
 from tempfile import NamedTemporaryFile
 from typing import Any
-
 
 from confluent_kafka import KafkaException
 from insights.core.exceptions import InvalidContentType
@@ -15,7 +14,6 @@ from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.internal_pipeline import parse_rules_results_msg
 from ccx_messaging.monitored_broker import SentryMonitoredBroker
-
 
 LOG = logging.getLogger(__name__)
 

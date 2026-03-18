@@ -7,11 +7,13 @@ from datetime import datetime
 from threading import Thread
 
 from confluent_kafka import (
-    Consumer as ConfluentConsumer,
+    TIMESTAMP_NOT_AVAILABLE,
     KafkaException,
     Message,
     Producer,
-    TIMESTAMP_NOT_AVAILABLE,
+)
+from confluent_kafka import (
+    Consumer as ConfluentConsumer,
 )
 from insights.core.exceptions import InvalidContentType
 from insights_messaging.consumers import Consumer
@@ -20,7 +22,6 @@ from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.ingress import parse_ingress_message
 from ccx_messaging.monitored_broker import SentryMonitoredBroker
 from ccx_messaging.utils.kafka_config import kafka_producer_config_cleanup
-
 
 LOG = logging.getLogger(__name__)
 MAX_ELAPSED_TIME_BETWEEN_MESSAGES = 60 * 60
@@ -53,8 +54,8 @@ class KafkaConsumer(Consumer):
         LOG.info(
             "Consuming topic '%s' from brokers %s as group '%s'",
             incoming_topic,
-            kwargs.get("bootstrap.servers", None),
-            kwargs.get("group.id", None),
+            kwargs.get("bootstrap.servers"),
+            kwargs.get("group.id"),
         )
 
         LOG.debug("Confluent Kafka consumer extra configuration arguments: %s", kwargs)
@@ -63,7 +64,7 @@ class KafkaConsumer(Consumer):
         self.consumer.subscribe([incoming_topic])
 
         # Self handled vars
-        self.log_pattern = f"topic: {incoming_topic}, group.id: {kwargs.get('group.id', None)}"
+        self.log_pattern = f"topic: {incoming_topic}, group.id: {kwargs.get('group.id')}"
 
         # Service to filter in messages
         self.platform_service = platform_service

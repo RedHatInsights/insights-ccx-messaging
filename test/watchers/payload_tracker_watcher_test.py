@@ -21,7 +21,6 @@ from freezegun import freeze_time
 
 from ccx_messaging.watchers.payload_tracker_watcher import PayloadTrackerWatcher
 
-
 _INVALID_SERVERS = [
     None,
     [],

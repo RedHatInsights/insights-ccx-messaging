@@ -1,7 +1,7 @@
 """Kafka consumer implementation using Confluent Kafka library for Internal Data Pipeline."""
 
-import logging
 import json
+import logging
 import re
 
 from confluent_kafka import Message
@@ -9,7 +9,6 @@ from confluent_kafka import Message
 from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.monitored_broker import SentryMonitoredBroker
-
 
 # Path example: <org_id>/<cluster_id>/<year><month><day><time>-<id>
 # Following RE matches with S3 archives like the previous example and allow

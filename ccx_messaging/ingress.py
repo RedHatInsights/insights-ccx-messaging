@@ -10,7 +10,6 @@ import jsonschema
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.schemas import IDENTITY_SCHEMA, INPUT_MESSAGE_SCHEMA
 
-
 LOG = logging.getLogger(__name__)
 
 

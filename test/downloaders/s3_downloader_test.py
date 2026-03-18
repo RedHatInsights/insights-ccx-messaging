@@ -59,6 +59,5 @@ def test_download_non_existing_file(mock_s3_open):
 
     mock_s3_open.side_effect = FileNotFoundError()
 
-    with pytest.raises(FileNotFoundError):
-        with downloader.get("non_existend_file"):
-            pytest.fail()
+    with pytest.raises(FileNotFoundError), downloader.get("non_existend_file"):
+        pytest.fail()

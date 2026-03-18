@@ -14,18 +14,17 @@
 
 """Module including instrumentation to expose retrieved stats to Prometheus."""
 
+import json
 import logging
 import os
 import tarfile
 import time
-import json
 
 from insights.core.archives import TarExtractor, ZipExtractor
 from insights_messaging.watchers import EngineWatcher
-from prometheus_client import Counter, Histogram, start_http_server, REGISTRY
+from prometheus_client import REGISTRY, Counter, Histogram, start_http_server
 
 from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
-
 
 LOG = logging.getLogger(__name__)
 # Label to differentiate between OCP and HyperShift tarballs

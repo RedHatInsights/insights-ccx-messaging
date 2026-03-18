@@ -25,7 +25,6 @@ from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.utils.s3_uploader import S3Uploader
 from ccx_messaging.utils.sliced_template import SlicedTemplate
 
-
 LOG = logging.getLogger(__name__)
 
 
@@ -165,11 +164,11 @@ def extract_cluster_id(tf: tarfile.TarFile, tar_path: str) -> str:
         CCXMessagingError: If the tarfile doesn't contain config/id
 
     """
-    ID_PATH = os.path.join("config", "id")
-    LOG.debug("Looking for %s in file %s", ID_PATH, tar_path)
+    id_path = os.path.join("config", "id")
+    LOG.debug("Looking for %s in file %s", id_path, tar_path)
 
     try:
-        with tf.extractfile(ID_PATH) as id_file:
+        with tf.extractfile(id_path) as id_file:
             return id_file.read().decode().strip()
     except KeyError as ex:
         raise CCXMessagingError(f"The tar in {tar_path} doesn't contain cluster id") from ex

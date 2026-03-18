@@ -21,7 +21,6 @@ from typing import Dict
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
 
-
 log = logging.getLogger(__name__)
 
 
@@ -43,7 +42,7 @@ class DVOMetricsPublisher(KafkaPublisher):
         except (TypeError, json.decoder.JSONDecodeError) as err:
             raise CCXMessagingError("Could not parse report; report is not in JSON format") from err
 
-        if "workload_recommendations" not in report.keys():
+        if "workload_recommendations" not in report:
             log.debug("Report does not contain DVO related results; skipping")
             return
 

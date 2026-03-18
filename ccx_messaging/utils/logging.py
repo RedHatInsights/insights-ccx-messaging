@@ -19,8 +19,8 @@ import os
 import platform
 import uuid
 
-from pythonjsonlogger import json as jsonlogger
 from boto3.session import Session
+from pythonjsonlogger import json as jsonlogger
 from watchtower import CloudWatchLogHandler
 
 
