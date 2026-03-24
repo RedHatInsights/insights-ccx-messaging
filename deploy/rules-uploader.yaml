@@ -281,11 +281,11 @@ parameters:
   value: "true"
 
 - name: PYTHONDEVMODE
-  value: "0"
+  value: ""
 - name: PYTHONWARNINGS
   value: "default"
 - name: SENTRY_CATCH_WARNINGS
-  value: "0"
+  value: ""
 
 - name: SENTRY_ENABLED
   value: "false"
