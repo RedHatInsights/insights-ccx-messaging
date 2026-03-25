@@ -43,6 +43,12 @@ objects:
               value: ${SENTRY_ENABLED}
             - name: ALLOW_UNSAFE_LINKS
               value: ${ALLOW_UNSAFE_LINKS}
+            - name: PYTHONDEVMODE
+              value: ${PYTHONDEVMODE}
+            - name: PYTHONWARNINGS
+              value: ${PYTHONWARNINGS}
+            - name: SENTRY_CATCH_WARNINGS
+              value: ${SENTRY_CATCH_WARNINGS}
             - name: LOGGING_TO_CW_ENABLED
               value: ${LOGGING_TO_CW_ENABLED}
             - name: CW_STREAM_NAME
@@ -273,6 +279,13 @@ parameters:
   value: WARNING
 - name: LOGGING_TO_CW_ENABLED
   value: "true"
+
+- name: PYTHONDEVMODE
+  value: ""
+- name: PYTHONWARNINGS
+  value: "default"
+- name: SENTRY_CATCH_WARNINGS
+  value: ""
 
 - name: SENTRY_ENABLED
   value: "false"
