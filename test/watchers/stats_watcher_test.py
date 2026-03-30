@@ -224,7 +224,11 @@ def test_stats_watcher_on_consumer_success(label_value):
     w._archive_metadata["type"] = label_value
 
     # change metrics
-    w.on_consumer_success(input_msg, "broker", "{result}")
+    mock_broker = MagicMock()
+    mock_broker.instances = {}
+    mock_broker.exceptions = {}
+    mock_broker.tracebacks = {}
+    w.on_consumer_success(input_msg, mock_broker, "{result}")
 
     # test new metrics values
     assert w._recv_total._value.get() == 0
