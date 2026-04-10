@@ -22,7 +22,7 @@ import time
 
 from insights.core.archives import TarExtractor, ZipExtractor
 from insights_messaging.watchers import EngineWatcher
-from prometheus_client import REGISTRY, Counter, Histogram, start_http_server
+from prometheus_client import REGISTRY, Counter, Gauge, Histogram, start_http_server
 
 from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
 
@@ -114,6 +114,21 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
             "gathering_conditions_remote_configuration_version",
             "Counter of times a given configuration is seen",
             [IO_GATHERING_REMOTE_CONFIG_LABEL],
+        )
+
+        self._broker_instances_size = Gauge(
+            "ccx_broker_instances_size",
+            "Number of entries in broker.instances dict after processing",
+        )
+
+        self._broker_exceptions_size = Gauge(
+            "ccx_broker_exceptions_size",
+            "Number of entries in broker.exceptions dict after processing",
+        )
+
+        self._broker_tracebacks_size = Gauge(
+            "ccx_broker_tracebacks_size",
+            "Number of entries in broker.tracebacks dict after processing",
         )
 
         self._start_time = None
@@ -250,6 +265,10 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
             **{ARCHIVE_TYPE_LABEL: self._archive_metadata["type"]}
         ).observe(self._published_time - self._processed_time)
 
+        self._broker_instances_size.set(len(broker.instances))
+        self._broker_exceptions_size.set(len(broker.exceptions))
+        self._broker_tracebacks_size.set(len(broker.tracebacks))
+
     def on_consumer_failure(self, input_msg, exception):
         """On consumer failure event handler."""
         LOG.debug("Receiving 'on_consumer_failure' callback")
@@ -319,3 +338,6 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
         REGISTRY.unregister(self._publish_duration)
         REGISTRY.unregister(self._processed_timeout_total)
         REGISTRY.unregister(self._gathering_conditions_remote_configuration_version)
+        REGISTRY.unregister(self._broker_instances_size)
+        REGISTRY.unregister(self._broker_exceptions_size)
+        REGISTRY.unregister(self._broker_tracebacks_size)
