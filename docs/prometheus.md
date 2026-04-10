@@ -31,4 +31,20 @@ This class is able to track and expose to Prometheus the following statistics:
 - `ccx_publish_duration_seconds`: histogram of the time that takes to send the
   new record to the outgoing Kafka topic after the archive has been processed.
 
+Additionally, the following **gauge** metrics are exposed. Unlike counters, these
+reflect the current value at the time of the last processed message. They are
+useful for monitoring broker memory growth and diagnosing memory leaks in the
+`insights-core` dependency:
+
+- `ccx_broker_instances_size`: number of entries in the broker's `instances`
+  dict after processing. This dict holds the component registry used during
+  archive evaluation. A steadily growing value indicates that component instances
+  are not being cleaned up between messages.
+- `ccx_broker_exceptions_size`: number of entries in the broker's `exceptions`
+  dict after processing. A growing value may indicate that exception objects
+  raised during rule evaluation are not being released.
+- `ccx_broker_tracebacks_size`: number of entries in the broker's `tracebacks`
+  dict after processing. A growing value may indicate that traceback objects are
+  leaking, which can pin large amounts of memory via frame references.
+
 [1]: https://github.com/RedHatInsights/insights-ccx-messaging/
