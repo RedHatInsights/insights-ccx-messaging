@@ -247,7 +247,8 @@ def test_consumer_init_direct(topic, group, server):
         mock_consumer_init.assert_called_with(config)
 
 
-MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST = 2
+# Must be > 1 because test_elapsed_time_thread_no_warning sleeps for (value - 1) seconds.
+MAX_ELAPSED_TIME_BETWEEN_MESSAGES_TEST = 1.1
 
 
 @patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer", lambda *a, **k: MagicMock())

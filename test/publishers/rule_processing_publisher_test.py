@@ -58,6 +58,7 @@ INVALID_KWARGS = [
 ]
 
 
+@pytest.mark.real_kafka_producer
 @pytest.mark.parametrize("kwargs", INVALID_KWARGS)
 def test_bad_initialization(kwargs):
     """Check that init fails when using not valid kwargs."""
@@ -65,6 +66,7 @@ def test_bad_initialization(kwargs):
         RuleProcessingPublisher(outgoing_topic="topic", **kwargs)
 
 
+@pytest.mark.real_kafka_producer
 @pytest.mark.parametrize("kafka_broker_cfg", INVALID_KWARGS)
 @pytest.mark.parametrize("kwargs", INVALID_KWARGS)
 def test_bad_init_with_kafka_config(kafka_broker_cfg, kwargs):

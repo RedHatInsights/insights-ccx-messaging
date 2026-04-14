@@ -62,6 +62,11 @@ dev = [
     "ruff"
 ]
 
+[tool.pytest.ini_options]
+markers = [
+    "real_kafka_producer: test needs the real confluent_kafka.Producer (not mocked)",
+]
+
 [tool.setuptools_scm]
 
 [tool.ruff]
