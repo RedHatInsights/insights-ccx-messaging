@@ -1,0 +1,20 @@
+name: Python Unit tests
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  tests:
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+
+    uses: RedHatInsights/processing-tools/.github/workflows/pytests.yaml@master
+    with:
+      python_version: ${{ matrix.python-version }}
+      packages: ccx_messaging
+      coverage_threshold: 70
