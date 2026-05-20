@@ -9,6 +9,7 @@ Stub for all CCX services based on Insights Core Messaging framework
 <!-- vim-markdown-toc GFM -->
 
 * [Makefile targets](#makefile-targets)
+* [Releasing a new version](#releasing-a-new-version)
 
 <!-- vim-markdown-toc -->
 
@@ -25,3 +26,18 @@ shellcheck           Run shellcheck
 pyformat             Reformat all Python sources
 help                 Show this help screen
 ```
+
+## Releasing a new version
+
+The project version is derived from git tags using [`setuptools_scm`](https://github.com/pypa/setuptools-scm) — there is no hardcoded version file.
+
+To create a new release:
+
+1. Tag the desired commit on `main` with a lightweight tag following the `vMAJOR.MINOR.PATCH` convention:
+
+    ```shell
+    git tag v4.X.Y
+    git push origin v4.X.Y
+    ```
+
+2. The CI workflow (`.github/workflows/pypi-release.yaml`) will automatically build and publish to [PyPI](https://pypi.org/p/ccx-messaging).
