@@ -168,6 +168,31 @@ Follow conventional style:
 - No specific commit message convention.
 - If it is related to one specific Jira task, use the Jira task ID. For example, "[CCXDEV-12345] Fixes the problem"
 
+## Releasing a New Version
+
+### Versioning
+
+The project uses [`setuptools_scm`](https://github.com/pypa/setuptools-scm) to derive the version number automatically from **git tags**. There is no hardcoded version in any file. The version seen by `pip` and PyPI is computed from the most recent `vMAJOR.MINOR.PATCH` tag at build time.
+
+### Creating a Release
+
+1. **Tag the commit** on the `main` branch with a lightweight tag:
+
+    ```shell
+    git tag v4.X.Y
+    git push origin v4.X.Y
+    ```
+
+    Tags follow the `vMAJOR.MINOR.PATCH` convention (e.g., `v4.3.7`). Tags are lightweight (not annotated).
+
+2. **PyPI publish is automatic**: The `.github/workflows/pypi-release.yaml` workflow detects the new tag (`startsWith(github.ref, 'refs/tags/')`) and publishes to PyPI using trusted publishing (OIDC).
+
+### Release Checklist
+
+- All CI checks pass on the tagged commit
+- The tag points to a commit on `main`
+- PyPI release workflow completes successfully
+
 ## Deployment information
 
 - The `/deploy` directory contains configuration files used for the deployment of services based on this software.
