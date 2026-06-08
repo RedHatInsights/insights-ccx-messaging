@@ -20,18 +20,6 @@ def _make_exception_with_traceback(exc_type=Exception, msg="test exception"):
         return ex, tb_string
 
 
-def test_traceback_cleared_generic_exception():
-    """Verify __traceback__ is cleared for generic exceptions."""
-    broker = SentryMonitoredBroker()
-    ex, tb = _make_exception_with_traceback(Exception, "generic error")
-    assert ex.__traceback__ is not None
-
-    with patch("ccx_messaging.monitored_broker.capture_exception"):
-        broker.add_exception("component", ex, tb)
-
-    assert ex.__traceback__ is None
-
-
 def test_traceback_cleared_keyboard_interrupt():
     """Verify __traceback__ is cleared for BaseException subclasses."""
     broker = SentryMonitoredBroker()
@@ -40,32 +28,6 @@ def test_traceback_cleared_keyboard_interrupt():
 
     with patch("ccx_messaging.monitored_broker.capture_exception"):
         broker.add_exception("component", ex, tb)
-
-    assert ex.__traceback__ is None
-
-
-def test_traceback_cleared_missing_requirements():
-    """MissingRequirements should also have traceback cleared."""
-    broker = SentryMonitoredBroker()
-    ex = MissingRequirements(["req1", "req2"])
-    try:
-        raise ex
-    except MissingRequirements:
-        tb = traceback.format_exc()
-    assert ex.__traceback__ is not None
-
-    broker.add_exception("component", ex, tb)
-
-    assert ex.__traceback__ is None
-
-
-def test_traceback_cleared_content_exception():
-    """ContentException should also have traceback cleared."""
-    broker = SentryMonitoredBroker()
-    ex, tb = _make_exception_with_traceback(ContentException, "content error")
-    assert ex.__traceback__ is not None
-
-    broker.add_exception("component", ex, tb)
 
     assert ex.__traceback__ is None
 
@@ -124,6 +86,93 @@ def test_sentry_not_called_for_excluded_types():
             assert ex.__traceback__ is None
 
 
+def test_traceback_cleared_even_when_sentry_fails():
+    """Traceback must be cleared even if capture_exception raises."""
+    broker = SentryMonitoredBroker()
+    ex, tb = _make_exception_with_traceback(Exception, "sentry failure")
+
+    with patch(
+        "ccx_messaging.monitored_broker.capture_exception",
+        side_effect=RuntimeError("sentry unavailable"),
+    ):
+        broker.add_exception("component", ex, tb)
+
+    assert ex.__traceback__ is None
+
+
+def test_chained_exception_tracebacks():
+    """Chained exception tracebacks (__cause__, __context__) should also be cleared."""
+    broker = SentryMonitoredBroker()
+    caught = None
+    try:
+        try:
+            raise ValueError("original")
+        except ValueError as orig:
+            raise RuntimeError("wrapper") from orig
+    except RuntimeError as ex:
+        tb = traceback.format_exc()
+        caught = ex
+
+    assert caught.__traceback__ is not None
+    assert caught.__cause__.__traceback__ is not None
+
+    with patch("ccx_messaging.monitored_broker.capture_exception"):
+        broker.add_exception("component", caught, tb)
+
+    assert caught.__traceback__ is None
+    assert caught.__cause__.__traceback__ is None
+
+
+def test_implicit_chained_exception_context():
+    """Implicit chaining (__context__) should also have traceback cleared."""
+    broker = SentryMonitoredBroker()
+    caught = None
+    try:
+        try:
+            raise ValueError("original")
+        except ValueError:
+            raise RuntimeError("during handling")  # noqa: B904
+    except RuntimeError as ex:
+        tb = traceback.format_exc()
+        caught = ex
+
+    assert caught.__traceback__ is not None
+    assert caught.__context__.__traceback__ is not None
+
+    with patch("ccx_messaging.monitored_broker.capture_exception"):
+        broker.add_exception("component", caught, tb)
+
+    assert caught.__traceback__ is None
+    assert caught.__context__.__traceback__ is None
+
+
+def test_multiple_exceptions_all_tracebacks_cleared():
+    """All tracebacks must be cleared when multiple exceptions are added to one broker."""
+    broker = SentryMonitoredBroker()
+    exceptions = []
+
+    for i in range(5):
+        ex, tb = _make_exception_with_traceback(Exception, f"error {i}")
+        with patch("ccx_messaging.monitored_broker.capture_exception"):
+            broker.add_exception(f"component_{i}", ex, tb)
+        exceptions.append(ex)
+
+    for ex in exceptions:
+        assert ex.__traceback__ is None, f"Traceback not cleared for: {ex}"
+
+
+def test_exception_without_traceback():
+    """Exceptions that were never raised (no __traceback__) should not crash."""
+    broker = SentryMonitoredBroker()
+    ex = Exception("never raised")
+    assert ex.__traceback__ is None
+
+    with patch("ccx_messaging.monitored_broker.capture_exception"):
+        broker.add_exception("component", ex, None)
+
+    assert ex.__traceback__ is None
+
+
 def test_broker_collected_after_add_exception():
     """Without the fix, circular references keep brokers alive."""
     n_brokers = 5
@@ -149,6 +198,44 @@ def test_broker_collected_after_add_exception():
             f"Only {collected}/{n_brokers} brokers were collected "
             "by reference counting alone. Remaining brokers are held "
             "by circular references from ex.__traceback__ -> frame -> broker."
+        )
+    finally:
+        if was_enabled:
+            gc.enable()
+        gc.collect()
+
+
+def test_broker_collected_with_chained_exceptions():
+    """Brokers must be collectable even when exceptions have __cause__ chains."""
+    n_brokers = 5
+    refs = []
+
+    gc.collect()
+    was_enabled = gc.isenabled()
+    gc.disable()
+
+    try:
+        for _ in range(n_brokers):
+            broker = SentryMonitoredBroker()
+            caught = None
+            try:
+                try:
+                    raise ValueError("cause")
+                except ValueError as orig:
+                    raise RuntimeError("effect") from orig
+            except RuntimeError as ex:
+                tb = traceback.format_exc()
+                caught = ex
+
+            with patch("ccx_messaging.monitored_broker.capture_exception"):
+                broker.add_exception("component", caught, tb)
+
+            refs.append(weakref.ref(broker))
+            del broker, caught, tb
+
+        collected = sum(1 for ref in refs if ref() is None)
+        assert collected >= n_brokers - 1, (
+            f"Only {collected}/{n_brokers} brokers collected with chained exceptions"
         )
     finally:
         if was_enabled:
