@@ -40,6 +40,9 @@ class SentryMonitoredBroker(Broker):
         # error-tracking systems (Sentry/GlitchTip), so no debugging
         # information is lost.
         if isinstance(ex, BaseException):
+            # Defensive check: add_exception() is public API that could receive
+            # invalid input from plugin code (e.g., strings, None). Only process
+            # actual exceptions to prevent crashes downstream.
             # Walk the full exception chain (explicit __cause__ from
             # `raise X from Y` and implicit __context__) clearing
             # __traceback__ at every level. Uses iterative depth-first

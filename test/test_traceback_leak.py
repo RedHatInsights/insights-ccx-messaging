@@ -250,6 +250,10 @@ def test_broker_collected_after_add_exception():
             del broker, ex, tb
 
         collected = sum(1 for ref in refs if ref() is None)
+        # Allow up to 1 broker to survive due to CPython reference counting
+        # edge cases (e.g., last loop iteration's locals may persist until
+        # try-finally exits). The memory leak would keep ALL brokers alive,
+        # so requiring >= n-1 collected is sufficient to verify the fix works.
         assert collected >= n_brokers - 1, (
             f"Only {collected}/{n_brokers} brokers were collected "
             "by reference counting alone. Remaining brokers are held "
