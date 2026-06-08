@@ -40,11 +40,17 @@ class SentryMonitoredBroker(Broker):
         # error-tracking systems (Sentry/GlitchTip), so no debugging
         # information is lost.
         if isinstance(ex, BaseException):
-            ex.__traceback__ = None
-            # Chained exceptions (`raise X from Y` or implicit chaining)
-            # carry their own __traceback__ objects, creating additional
-            # circular reference paths through __cause__ and __context__.
-            if isinstance(getattr(ex, "__cause__", None), BaseException):
-                ex.__cause__.__traceback__ = None
-            if isinstance(getattr(ex, "__context__", None), BaseException):
-                ex.__context__.__traceback__ = None
+            # Walk the full exception chain (explicit __cause__ from
+            # `raise X from Y` and implicit __context__) clearing
+            # __traceback__ at every level.  A `seen` set guards against
+            # cycles so the loop always terminates.
+            seen = set()
+            stack = [ex]
+            while stack:
+                cur = stack.pop()
+                if not isinstance(cur, BaseException) or id(cur) in seen:
+                    continue
+                seen.add(id(cur))
+                cur.__traceback__ = None
+                stack.append(getattr(cur, "__cause__", None))
+                stack.append(getattr(cur, "__context__", None))

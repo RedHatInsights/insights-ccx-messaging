@@ -146,6 +146,34 @@ def test_implicit_chained_exception_context():
     assert caught.__context__.__traceback__ is None
 
 
+def test_deep_chained_exception_tracebacks():
+    """Multi-level exception chains must have all tracebacks cleared."""
+    broker = SentryMonitoredBroker()
+    caught = None
+    try:
+        try:
+            try:
+                raise ValueError("root cause")
+            except ValueError as e1:
+                raise TypeError("middle") from e1
+        except TypeError as e2:
+            raise RuntimeError("outer") from e2
+    except RuntimeError as ex:
+        tb = traceback.format_exc()
+        caught = ex
+
+    assert caught.__traceback__ is not None
+    assert caught.__cause__.__traceback__ is not None
+    assert caught.__cause__.__cause__.__traceback__ is not None
+
+    with patch("ccx_messaging.monitored_broker.capture_exception"):
+        broker.add_exception("component", caught, tb)
+
+    assert caught.__traceback__ is None
+    assert caught.__cause__.__traceback__ is None
+    assert caught.__cause__.__cause__.__traceback__ is None
+
+
 def test_multiple_exceptions_all_tracebacks_cleared():
     """All tracebacks must be cleared when multiple exceptions are added to one broker."""
     broker = SentryMonitoredBroker()
