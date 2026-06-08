@@ -21,7 +21,17 @@ def _make_exception_with_traceback(exc_type=Exception, msg="test exception"):
 
 
 def test_traceback_cleared_keyboard_interrupt():
-    """Verify __traceback__ is cleared for BaseException subclasses."""
+    """Verify __traceback__ is cleared for BaseException subclasses.
+
+    The implementation uses `isinstance(ex, BaseException)` (not Exception),
+    which includes system exceptions like KeyboardInterrupt, SystemExit, and
+    GeneratorExit. These can occur during graceful shutdown, signal handling,
+    or async task cancellation. This test verifies the full BaseException
+    hierarchy is handled correctly, not just regular exceptions.
+
+    KeyboardInterrupt exception is in some frameworks mapped to signal SIGTERM
+    for graceful shutdown.
+    """
     broker = SentryMonitoredBroker()
     ex, tb = _make_exception_with_traceback(KeyboardInterrupt, "interrupt")
     assert ex.__traceback__ is not None
@@ -70,6 +80,11 @@ def test_sentry_not_called_for_excluded_types():
     """MissingRequirements and ContentException skip Sentry but still clear traceback."""
     broker = SentryMonitoredBroker()
 
+    # Don't use _make_exception_with_traceback helper here because these
+    # insights-core exception types have different constructor signatures:
+    # MissingRequirements expects a list, ContentException expects a string.
+    # The inline approach is clearer than abstracting a helper with complex
+    # parameter handling for just two test cases.
     for exc_type, msg in [
         (MissingRequirements, ["req"]),
         (ContentException, "content"),
@@ -202,7 +217,20 @@ def test_exception_without_traceback():
 
 
 def test_broker_collected_after_add_exception():
-    """Without the fix, circular references keep brokers alive."""
+    """Verify that brokers are collected by reference counting alone.
+
+    The memory leak manifests as circular references that prevent garbage
+    collection: broker.exceptions -> ex -> __traceback__ -> frame -> broker.
+
+    This test disables Python's cyclic garbage collector to verify that
+    reference counting ALONE (immediate collection) successfully reclaims
+    brokers after exceptions are added. This proves that clearing
+    __traceback__ breaks the circular reference chain.
+
+    Without the fix, brokers would remain alive until the next GC cycle,
+    causing memory to accumulate over time in production (where thousands
+    of exceptions are processed before GC runs).
+    """
     n_brokers = 5
     refs = []
 

@@ -1,4 +1,4 @@
-"""Utility broker to improve Ssentry exception handling."""
+"""Utility broker to improve Sentry exception handling."""
 
 import logging
 
@@ -42,8 +42,10 @@ class SentryMonitoredBroker(Broker):
         if isinstance(ex, BaseException):
             # Walk the full exception chain (explicit __cause__ from
             # `raise X from Y` and implicit __context__) clearing
-            # __traceback__ at every level.  A `seen` set guards against
-            # cycles so the loop always terminates.
+            # __traceback__ at every level. Uses iterative depth-first
+            # traversal (not recursion) to handle arbitrarily deep chains
+            # without stack overflow. A `seen` set guards against cycles
+            # so the loop always terminates.
             seen = set()
             stack = [ex]
             while stack:
