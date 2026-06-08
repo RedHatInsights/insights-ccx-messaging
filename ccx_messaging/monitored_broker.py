@@ -22,7 +22,12 @@ class SentryMonitoredBroker(Broker):
         # prevent MissingRequirements and ContentException from being sent to sentry
         if not isinstance(ex, (MissingRequirements, ContentException)):
             self.logger.debug("Sending exception to Sentry: %s", type(ex))
-            capture_exception(ex)
+            # Sentry failure must not prevent traceback cleanup below;
+            # otherwise the memory leak silently returns in production.
+            try:
+                capture_exception(ex)
+            except Exception:
+                self.logger.exception("Failed to send exception to Sentry")
 
         # Break circular reference chain to prevent memory leak.
         # TODO: remove when this is merged: https://github.com/RedHatInsights/insights-core/pull/4763
@@ -36,3 +41,10 @@ class SentryMonitoredBroker(Broker):
         # information is lost.
         if isinstance(ex, BaseException):
             ex.__traceback__ = None
+            # Chained exceptions (`raise X from Y` or implicit chaining)
+            # carry their own __traceback__ objects, creating additional
+            # circular reference paths through __cause__ and __context__.
+            if isinstance(getattr(ex, "__cause__", None), BaseException):
+                ex.__cause__.__traceback__ = None
+            if isinstance(getattr(ex, "__context__", None), BaseException):
+                ex.__context__.__traceback__ = None
