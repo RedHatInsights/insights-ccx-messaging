@@ -22,7 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12"
 ]
 
-requires-python = ">= 3.8"
+requires-python = ">= 3.11"
 dependencies = [
     "app-common-python>=0.2.3",
     "boto3>=1.42.91,<1.42.92",  # limited due to incompatibility between aiobotocore and newer versions of boto

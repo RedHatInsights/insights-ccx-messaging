@@ -1,8 +1,11 @@
 # insights-ccx-messaging
 
-[![GitHub Pages](https://img.shields.io/badge/%20-GitHub%20Pages-informational)](https://redhatinsights.github.io/insights-ccx-messaging/)
+[![PyPI version](https://img.shields.io/pypi/v/ccx-messaging)](https://pypi.org/project/ccx-messaging/)
+[![Python versions](https://img.shields.io/pypi/pyversions/ccx-messaging)]
+[![Python unit tests](https://github.com/RedHatInsights/insights-ccx-messaging/actions/workflows/pytests.yaml/badge.svg)](https://github.com/RedHatInsights/insights-ccx-messaging/actions/workflows/pytests.yaml)
 [![codecov](https://codecov.io/gh/RedHatInsights/insights-ccx-messaging/branch/main/graph/badge.svg?token=G00EQ808EP)](https://codecov.io/gh/RedHatInsights/insights-ccx-messaging)
 [![License](https://img.shields.io/badge/license-Apache-blue)](https://github.com/RedHatInsights/insights-ccx-messaging/blob/main/LICENSE)
+[![GitHub Pages](https://img.shields.io/badge/%20-GitHub%20Pages-informational)](https://redhatinsights.github.io/insights-ccx-messaging/)
 
 Stub for all CCX services based on Insights Core Messaging framework
 

@@ -232,9 +232,10 @@ _VALID_SERVERS = ["server", "great.server.net"]
 @pytest.mark.parametrize("server", _VALID_SERVERS)
 def test_consumer_init_direct(topic, group, server):
     """Test of our Consumer constructor, using direct configuration options."""
-    with patch(
-        "ccx_messaging.consumers.kafka_consumer.ConfluentConsumer"
-    ) as mock_consumer_init, patch("os.environ", new={}):
+    with (
+        patch("ccx_messaging.consumers.kafka_consumer.ConfluentConsumer") as mock_consumer_init,
+        patch("os.environ", new={}),
+    ):
         kwargs = {
             "group.id": group,
             "bootstrap.servers": server,
@@ -396,11 +397,12 @@ def test_non_processed_to_dlq(value, expected):
     sut = KafkaConsumer(None, None, None, None)
     input_msg = KafkaMessage(value)
 
-    with patch(
-        "ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process"
-    ) as process_mock, patch(
-        "ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process_dead_letter"
-    ) as process_dlq_mock:
+    with (
+        patch("ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process") as process_mock,
+        patch(
+            "ccx_messaging.consumers.kafka_consumer.KafkaConsumer.process_dead_letter"
+        ) as process_dlq_mock,
+    ):
         process_mock.side_effect = [CCXMessagingError, TimeoutError, IndexError]
         sut.process_msg(input_msg)
         process_dlq_mock.assert_called_with(input_msg)
@@ -522,8 +524,8 @@ def test_last_received_message_time_is_updated():
 
     [CCXDEV-14812] the variable is never updated
     """
-    t1 = datetime.datetime(2025, 1, 31, 12, 0, 0, tzinfo=datetime.timezone.utc)
-    t2 = datetime.datetime(2025, 1, 31, 12, 20, 0, tzinfo=datetime.timezone.utc)
+    t1 = datetime.datetime(2025, 1, 31, 12, 0, 0, tzinfo=datetime.UTC)
+    t2 = datetime.datetime(2025, 1, 31, 12, 20, 0, tzinfo=datetime.UTC)
 
     with freeze_time(t1) as frozen_time:
         sut = KafkaConsumer(None, None, None, None)
