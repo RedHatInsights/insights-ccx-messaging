@@ -16,7 +16,6 @@
 
 import json
 import logging
-from typing import Dict
 
 from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
 
@@ -26,7 +25,7 @@ LOG = logging.getLogger(__name__)
 class SyncedArchivePublisher(KafkaPublisher):
     """Publisher for interanal data pipeline."""  # noqa: D203
 
-    def publish(self, input_msg: Dict, report: str) -> None:
+    def publish(self, input_msg: dict, report: str) -> None:
         """Publish response as Kafka message to outgoing topic."""
         output_msg = json.loads(report)
         output_msg.pop("reports", None)

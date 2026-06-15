@@ -16,7 +16,6 @@
 
 import json
 import logging
-from typing import Dict
 
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.publishers.kafka_publisher import KafkaPublisher
@@ -27,7 +26,7 @@ log = logging.getLogger(__name__)
 class DVOMetricsPublisher(KafkaPublisher):
     """DVOMetricsPublisher handles the result of the extraction of DVO metrics from an archive."""
 
-    def publish(self, input_msg: Dict, report: str) -> None:
+    def publish(self, input_msg: dict, report: str) -> None:
         """Publish an EOL-terminated JSON message to the output Kafka topic.
 
         The response is assumed to be a string representing a valid JSON object.

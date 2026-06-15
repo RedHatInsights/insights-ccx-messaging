@@ -282,8 +282,8 @@ def test_last_received_message_time_is_updated():
 
     [CCXDEV-14812] the variable is never updated
     """
-    t1 = datetime.datetime(2025, 1, 31, 12, 0, 0, tzinfo=datetime.timezone.utc)
-    t2 = datetime.datetime(2025, 1, 31, 12, 20, 0, tzinfo=datetime.timezone.utc)
+    t1 = datetime.datetime(2025, 1, 31, 12, 0, 0, tzinfo=datetime.UTC)
+    t2 = datetime.datetime(2025, 1, 31, 12, 20, 0, tzinfo=datetime.UTC)
 
     with freeze_time(t1) as frozen_time:
         sut = IDPConsumer(None, None, None, incoming_topic=None)
