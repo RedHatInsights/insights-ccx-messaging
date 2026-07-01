@@ -1,5 +1,5 @@
 app-common-python>=0.2.3
-boto3>=1.43.29,<1.43.30
+boto3>=1.42.90,<1.43.1
 confluent-kafka>=2.0.0
 insights-core>=3.1.2
 insights-core-messaging @ git+https://github.com/RedHatInsights/insights-core-messaging@1.2.21
