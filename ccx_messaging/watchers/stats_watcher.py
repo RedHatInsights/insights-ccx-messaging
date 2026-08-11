@@ -24,6 +24,7 @@ from insights.core.archives import TarExtractor, ZipExtractor
 from insights_messaging.watchers import EngineWatcher
 from prometheus_client import REGISTRY, Counter, Gauge, Histogram, start_http_server
 
+from ccx_messaging.utils.logging import anonymize_message
 from ccx_messaging.watchers.consumer_watcher import ConsumerWatcher
 
 LOG = logging.getLogger(__name__)
@@ -163,7 +164,7 @@ class StatsWatcher(ConsumerWatcher, EngineWatcher):
             # credentials used to access the archive. It's a risk to log this
             pass
         else:
-            LOG.error(f"message has no S3 path: {input_msg}")
+            LOG.error(f"message has no S3 path: {anonymize_message(input_msg)}")
 
     def on_filter(self):
         """On filter event handler."""

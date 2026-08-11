@@ -18,6 +18,7 @@ import logging
 import os
 import platform
 import uuid
+from urllib.parse import urlparse
 
 from boto3.session import Session
 from pythonjsonlogger import json as jsonlogger
@@ -127,3 +128,58 @@ def get_mac_address():
         mac_address = ":".join(reversed([hex((mac_address >> i * 8) & 0xFF)[2:] for i in range(6)]))
 
     return mac_address
+
+
+def anonymize_url(url: str) -> str:
+    """Anonymize an URL, keeping only the protocol and the domain.
+
+    Any authentication information (user/password embedded in the URL) and
+    the endpoint (path, query string and fragment, which often contain
+    presigned URL signatures or other sensitive data) are replaced by
+    "****".
+
+    Args:
+        url: The URL to anonymize.
+
+    Returns:
+        The anonymized URL, e.g. "https://example.com/****", or "****" if
+        `url` is not a string or could not be parsed as a valid URL (this
+        includes malformed ports, e.g. non-numeric or out-of-range values).
+    """
+    if not isinstance(url, str):
+        return "****"
+
+    try:
+        parsed_url = urlparse(url)
+
+        if not parsed_url.scheme or not parsed_url.hostname:
+            return "****"
+
+        domain = parsed_url.hostname
+        if parsed_url.port:
+            domain = f"{domain}:{parsed_url.port}"
+
+        auth = "****@" if parsed_url.username or parsed_url.password else ""
+        endpoint = "/****" if parsed_url.path or parsed_url.query or parsed_url.fragment else ""
+
+    except ValueError:
+        return "****"
+
+    return f"{parsed_url.scheme}://{auth}{domain}{endpoint}"
+
+
+def anonymize_message(value: dict) -> dict:
+    """Anonymize the message."""
+    if not isinstance(value, dict):
+        return value
+
+    new_value = value.copy()
+
+    if "identity" in new_value:
+        new_value["identity"] = "anonymized_value"
+    if "b64_identity" in new_value:
+        new_value["b64_identity"] = "anonymized_b64_identity"
+    if "url" in new_value:
+        new_value["url"] = anonymize_url(new_value["url"])
+
+    return new_value

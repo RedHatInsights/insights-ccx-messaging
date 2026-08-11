@@ -20,7 +20,12 @@ from unittest.mock import patch
 import pytest
 from watchtower import CloudWatchLogHandler
 
-from ccx_messaging.utils.logging import get_mac_address, setup_watchtower
+from ccx_messaging.utils.logging import (
+    anonymize_message,
+    anonymize_url,
+    get_mac_address,
+    setup_watchtower,
+)
 
 INVALID_INITIALIZATIONS = [
     {},
@@ -146,3 +151,98 @@ def test_get_mac_address_real():
     with patch("ccx_messaging.utils.logging.uuid.getnode") as getnode_mock:
         getnode_mock.return_value = 66939779387710  # magic number that does the trick
         assert get_mac_address() == "3c:e1:a1:c5:91:3e"
+
+
+# Each tuple is (url, expected_anonymized_url)
+ANONYMIZE_URL_CASES = [
+    (
+        "https://insights-dev-upload-perm.s3.amazonaws.com/e927438c126040dab7891608447da0b5"
+        "?X-Amz-Algorithm=AWS4-HMAC-SHA256",
+        "https://insights-dev-upload-perm.s3.amazonaws.com/****",
+    ),
+    (
+        "https://user:pass@example.com:8443/some/path?query=1#frag",
+        "https://****@example.com:8443/****",
+    ),
+    ("https://example.com", "https://example.com"),
+    ("https://example.com/", "https://example.com/****"),
+    ("http://example.com/path/to/archive.tar.gz", "http://example.com/****"),
+    ("https://example.com?query=1", "https://example.com/****"),
+    ("https://example.com#fragment", "https://example.com/****"),
+    ("https://user@example.com", "https://****@example.com"),
+    ("ftp://example.com/file.txt", "ftp://example.com/****"),
+    ("https://example.com:8080", "https://example.com:8080"),
+    ("", "****"),
+    ("not a url", "****"),
+    ("example.com/no-scheme", "****"),
+    (None, "****"),
+    (123, "****"),
+    (b"http://example.com", "****"),
+    (["not", "a", "url"], "****"),
+    ("http://example.com:abc/path", "****"),
+    ("http://example.com:99999999999999/path", "****"),
+]
+
+
+@pytest.mark.parametrize("url,expected", ANONYMIZE_URL_CASES)
+def test_anonymize_url(url, expected):
+    """Check that `anonymize_url` keeps the protocol/domain and hides auth/endpoint."""
+    assert anonymize_url(url) == expected
+
+
+# Each tuple is (input_message, expected_anonymized_message)
+ANONYMIZE_MESSAGE_CASES = [
+    (
+        {
+            "url": "https://user:pass@example.com/secret/path",
+            "identity": {"identity": {"internal": {"org_id": "123"}}},
+            "b64_identity": "eyJpZGVudGl0eSI6IHt9fQ==",
+            "timestamp": "2020-01-23T16:15:59.478901889Z",
+        },
+        {
+            "url": "https://****@example.com/****",
+            "identity": "anonymized_value",
+            "b64_identity": "anonymized_b64_identity",
+            "timestamp": "2020-01-23T16:15:59.478901889Z",
+        },
+    ),
+    (
+        {"url": "https://example.com"},
+        {"url": "https://example.com"},
+    ),
+    (
+        {
+            "identity": {"identity": {"internal": {"org_id": "123"}}},
+            "b64_identity": "eyJpZGVudGl0eSI6IHt9fQ==",
+        },
+        {
+            "identity": "anonymized_value",
+            "b64_identity": "anonymized_b64_identity",
+        },
+    ),
+    ({}, {}),
+    (
+        {"other": "kept as is"},
+        {"other": "kept as is"},
+    ),
+]
+
+
+@pytest.mark.parametrize("message,expected", ANONYMIZE_MESSAGE_CASES)
+def test_anonymize_message(message, expected):
+    """Check that `anonymize_message` anonymizes sensitive fields and keeps the rest."""
+    assert anonymize_message(message) == expected
+
+
+def test_anonymize_message_does_not_mutate_input():
+    """Check that `anonymize_message` doesn't modify the original message dict."""
+    message = {
+        "url": "https://user:pass@example.com/secret",
+        "identity": {"identity": {"internal": {"org_id": "123"}}},
+        "b64_identity": "eyJpZGVudGl0eSI6IHt9fQ==",
+    }
+    original = message.copy()
+
+    anonymize_message(message)
+
+    assert message == original

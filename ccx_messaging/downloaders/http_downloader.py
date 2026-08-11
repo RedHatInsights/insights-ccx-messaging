@@ -22,6 +22,7 @@ from tempfile import NamedTemporaryFile
 import requests
 
 from ccx_messaging.error import CCXMessagingError
+from ccx_messaging.utils.logging import anonymize_url
 
 LOG = logging.getLogger(__name__)
 
@@ -92,7 +93,7 @@ class HTTPDownloader:
         if not self.allow_unsafe_links and (
             src is None or not HTTPDownloader.HTTP_RE.fullmatch(src)
         ):
-            LOG.warning("Invalid URL format: %s", src)
+            LOG.warning("Invalid URL format: %s", anonymize_url(src))
             raise CCXMessagingError("Invalid URL format")
 
         try:
