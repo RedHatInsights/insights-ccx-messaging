@@ -22,6 +22,7 @@ from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.ingress import parse_ingress_message
 from ccx_messaging.monitored_broker import SentryMonitoredBroker
 from ccx_messaging.utils.kafka_config import kafka_producer_config_cleanup
+from ccx_messaging.utils.logging import anonymize_message
 
 LOG = logging.getLogger(__name__)
 MAX_ELAPSED_TIME_BETWEEN_MESSAGES = 60 * 60
@@ -200,7 +201,7 @@ class KafkaConsumer(Consumer):
             LOG.warning(
                 "Unexpected error processing incoming message. (%s): %s. Error: %s",
                 self.log_pattern,
-                msg.value(),
+                anonymize_message(msg.value()),
                 ex,
             )
             self.process_dead_letter(msg)
@@ -224,7 +225,9 @@ class KafkaConsumer(Consumer):
         except AttributeError as ex:
             raise CCXMessagingError("Invalid incoming message type: %s", type(msg)) from ex
 
-        LOG.debug("Deserializing incoming message(%s): %s", self.log_pattern, value)
+        LOG.debug(
+            "Deserializing incoming message(%s): %s", self.log_pattern, anonymize_message(value)
+        )
 
         if not value:
             raise CCXMessagingError("Unable to read incoming message: %s", value)

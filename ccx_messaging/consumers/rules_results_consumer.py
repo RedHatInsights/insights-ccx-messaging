@@ -14,6 +14,7 @@ from ccx_messaging.consumers.kafka_consumer import KafkaConsumer
 from ccx_messaging.error import CCXMessagingError
 from ccx_messaging.internal_pipeline import parse_rules_results_msg
 from ccx_messaging.monitored_broker import SentryMonitoredBroker
+from ccx_messaging.utils.logging import anonymize_message
 
 LOG = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ class RulesResultsConsumer(KafkaConsumer):
             LOG.warning(
                 "Unexpected error processing incoming message. (%s): %s. Error: %s",
                 self.log_pattern,
-                msg.value(),
+                anonymize_message(msg.value()),
                 ex,
             )
             self.process_dead_letter(msg)
