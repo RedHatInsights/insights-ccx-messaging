@@ -67,6 +67,7 @@ ARCHIVE_SYNCED_SCHEMA = {
     "properties": {
         "path": {"type": "string"},
         "original_path": {"type": "string"},
+        "url": {"type": "string"},
         "metadata": {
             "type": "object",
             "properties": {
@@ -76,7 +77,7 @@ ARCHIVE_SYNCED_SCHEMA = {
             "required": ["cluster_id"],
         },
     },
-    "required": ["path", "metadata"],
+    "required": ["path", "url", "metadata"],
 }
 
 RULES_RESULTS_SCHEMA = {
