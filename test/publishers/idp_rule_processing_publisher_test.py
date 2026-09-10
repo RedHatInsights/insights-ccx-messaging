@@ -99,15 +99,15 @@ def test_publish_bad_argument(wrong_input_msg):
 VALID_INPUT_MSG = [
     pytest.param(
         {
-            "path": "bucket/path/to/archive.tgz",
-            "url": "http://example.com/archive.tgz",
+            "path": "",
+            "original_path": "http://example.com/archive.tgz",
             "metadata": {
                 "cluster_id": "uuid",
             },
             "request_id": "ingress-service-7777777777-q4444/4444444444-000001",
         },
         {
-            "path": "bucket/path/to/archive.tgz",
+            "path": "",
             "metadata": {
                 "cluster_id": "uuid",
             },
@@ -121,10 +121,9 @@ VALID_INPUT_MSG = [
     pytest.param(
         {
             "path": "bucket/path/to/archive.tgz",
-            "original_path": "other_than_current_path",
+            "original_path": "http://example.com/archive.tgz",
             "metadata": {"cluster_id": "uuid", "external_organization": "an organization"},
             "request_id": "ingress-service-7777777777-q4444/4444444444-000001",
-            "url": "http://example.com/archive.tgz",
         },
         {
             "path": "bucket/path/to/archive.tgz",

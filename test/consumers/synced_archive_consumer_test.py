@@ -59,62 +59,47 @@ def test_deserialize_invalid_type_as_kafka_message(mock_consumer, value):
 
 _VALID_MESSAGES = [
     (
-        '{"path": "", "url": "", "metadata": {"cluster_id": ""}}',
+        '{"path": "", "original_path": "", "metadata": {"cluster_id": ""}}',
         {
             "path": "",
-            "url": "",
+            "original_path": "",
             "metadata": {
                 "cluster_id": "",
             },
         },
     ),
     (
-        '{"path": "path/to/archive.tgz", "url": "http://example.com/archive.tgz", '
+        '{"path": "", "original_path": "http://example.com/archive.tgz", '
         '"metadata": {"cluster_id": ""}}',
         {
-            "path": "path/to/archive.tgz",
-            "url": "http://example.com/archive.tgz",
+            "path": "",
+            "original_path": "http://example.com/archive.tgz",
             "metadata": {
                 "cluster_id": "",
             },
         },
     ),
     (
-        '{"path": "path/to/archive.tgz", "url": "http://example.com/archive.tgz", '
-        '"metadata": {"cluster_id": "a_cluster_name"},'
-        '"original_path": ""}',
+        '{"path": "", "metadata": {"cluster_id": "a_cluster_name"}, '
+        '"original_path": "http://example.com/archive.tgz"}',
         {
-            "path": "path/to/archive.tgz",
-            "url": "http://example.com/archive.tgz",
+            "path": "",
             "metadata": {
                 "cluster_id": "a_cluster_name",
             },
-            "original_path": "",
+            "original_path": "http://example.com/archive.tgz",
         },
     ),
     (
-        '{"path": "path/to/archive.tgz", "original_path": "other/path/archive.tgz", '
-        '"url": "http://example.com/archive.tgz",'
+        '{"path": "other/path/archive.tgz", "original_path": "http://example.com/archive.tgz", '
         '"metadata": {"cluster_id": "a_cluster_name", "external_organization": ""}}',
         {
-            "path": "path/to/archive.tgz",
-            "url": "http://example.com/archive.tgz",
+            "path": "other/path/archive.tgz",
             "metadata": {
                 "cluster_id": "a_cluster_name",
                 "external_organization": "",
             },
-            "original_path": "other/path/archive.tgz",
-        },
-    ),
-    (
-        '{"path": "path/to/archive.tgz", "url": "https://example.com/archive.tgz", '
-        '"metadata": {"cluster_id": "a_cluster_name"}}',
-        {
-            "path": "path/to/archive.tgz",
-            "url": "https://example.com/archive.tgz",
-            "metadata": {
-                "cluster_id": "a_cluster_name",
-            },
+            "original_path": "http://example.com/archive.tgz",
         },
     ),
 ]
@@ -168,7 +153,7 @@ def test_handles_valid(msg, _):
 
 
 # This would have been a valid input, but it's supposed to be a `dict`, not `str`.
-_DICT_STR = '{"url": "https://a-valid-domain.com/precious_url"}'
+_DICT_STR = '{"path": "bucket/file"}'
 
 _INVALID_RECORD_VALUES = [
     "",
@@ -178,33 +163,23 @@ _INVALID_RECORD_VALUES = [
 ]
 
 _VALID_RECORD_VALUES = [
-    {"url": ""},
-    {"url": "bucket/file"},
-    {"url": "https://a-valid-domain.com/precious_url"},
+    {"original_path": ""},
+    {"original_path": "bucket/file"},
+    {"original_path": "https://a-valid-domain.com/precious_url"},
 ]
 
 
 @pytest.mark.parametrize("value", _INVALID_RECORD_VALUES)
 def test_get_url_invalid(value):
-    """Test that `SyncedArchiveConsumer.get_url` raises the appropriate exception.
-
-    `get_url` is inherited from `KafkaConsumer`, which wraps any lookup failure into a
-    `CCXMessagingError`.
-    """
-    with pytest.raises(CCXMessagingError):
+    """Test that `SyncedArchiveConsumer.get_url` raises the appropriate exception."""
+    with pytest.raises(TypeError):
         SyncedArchiveConsumer.get_url(None, value)
 
 
 @pytest.mark.parametrize("value", _VALID_RECORD_VALUES)
 def test_get_url_valid(value):
     """Test that `SyncedArchiveConsumer.get_url` returns the expected value."""
-    assert SyncedArchiveConsumer.get_url(None, value) == value["url"]
-
-
-def test_get_url_missing_url_key():
-    """Test that `SyncedArchiveConsumer.get_url` fails if "url" is not present."""
-    with pytest.raises(CCXMessagingError):
-        SyncedArchiveConsumer.get_url(None, {"path": "bucket/file"})
+    assert SyncedArchiveConsumer.get_url(None, value) == value["original_path"]
 
 
 def test_create_broker():
