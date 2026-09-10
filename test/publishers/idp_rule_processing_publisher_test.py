@@ -100,6 +100,7 @@ VALID_INPUT_MSG = [
     pytest.param(
         {
             "path": "bucket/path/to/archive.tgz",
+            "url": "http://example.com/archive.tgz",
             "metadata": {
                 "cluster_id": "uuid",
             },
@@ -123,6 +124,7 @@ VALID_INPUT_MSG = [
             "original_path": "other_than_current_path",
             "metadata": {"cluster_id": "uuid", "external_organization": "an organization"},
             "request_id": "ingress-service-7777777777-q4444/4444444444-000001",
+            "url": "http://example.com/archive.tgz",
         },
         {
             "path": "bucket/path/to/archive.tgz",

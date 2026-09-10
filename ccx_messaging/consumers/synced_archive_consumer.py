@@ -19,11 +19,6 @@ LOG = logging.getLogger(__name__)
 class SyncedArchiveConsumer(KafkaConsumer):
     """Consumer for the topic produced by `synced_archive_publisher.SyncedArchivePublisher`."""
 
-    def get_url(self, input_msg: dict[str, str]) -> str:
-        """Retrieve path to the archive in the S3 storage from Kafka message."""
-        # it's safe to asume the "path" is there because the message format is validated
-        return input_msg["path"]
-
     def process_msg(self, msg: Message) -> None:
         """Process a single message received from the topic."""
         if not msg:
