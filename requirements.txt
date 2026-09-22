@@ -14,4 +14,4 @@ sentry-sdk>=1.37.1
 watchtower>=3.0.0
 setuptools>=70.0.0
 aiobotocore==3.9.1
-s3fs==2026.7.0
+s3fs==2026.9.0
